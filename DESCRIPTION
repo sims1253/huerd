@@ -13,7 +13,10 @@ Imports:
     future,
     future.apply,
     progressr,
-    animation
+    animation,
+    RColorBrewer,
+    scales,
+    scico
 Suggests:
     testthat (>= 3.0.0)
 Roxygen: list(markdown = TRUE)

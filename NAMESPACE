@@ -2,8 +2,12 @@
 
 export(animate_repulsion)
 export(simulate_color_repulsion)
+importFrom(RColorBrewer,brewer.pal)
 importFrom(colorspace,deutan)
 importFrom(colorspace,protan)
 importFrom(colorspace,tritan)
 importFrom(farver,compare_colour)
 importFrom(farver,convert_colour)
+importFrom(grDevices,col2rgb)
+importFrom(scales,hue_pal)
+importFrom(scico,scico)

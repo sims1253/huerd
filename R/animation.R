@@ -62,6 +62,9 @@ animate_repulsion <- function(n_colors,
   boundaries <- get_lab_boundaries(base_colors)
   n_base <- if (!is.null(base_colors)) length(base_colors) else 0
 
+  # Get reference distances once before starting animation
+  ref_distances <- get_reference_distances(n_colors)
+
   # Create animated GIF with enhanced visualization
   animation::saveGIF(
     {
@@ -137,9 +140,19 @@ animate_repulsion <- function(n_colors,
           xlab = "Distance",
           col = "lightblue",
           breaks = breaks,
-          ylim = c(0, 10)
+          ylim = c(0, 10),
+          xlim = c(0, 100)
         )
-        abline(v = mean(distances$original), col = "red", lwd = 2)
+        abline(v = mean_bottom_quartile(distances$original), col = "red", lwd = 3)
+        # Add reference lines
+        abline(v = ref_distances$batlow$original, col = "black", lwd = 2, lty = 3)
+        abline(v = ref_distances$tableau$original, col = "black", lwd = 2, lty = 5)
+        abline(v = ref_distances$brewer$original, col = "black", lwd = 2, lty = 4)
+        legend("topright",
+          legend = c("Current meanQ25", "batlow meanQ25", "Set2 meanQ25", "Hue meanQ25"),
+          col = c("red", "black", "black", "black"),
+          lwd = 2, lty = c(1, 3, 4, 5)
+        )
 
         # 3. Deuteranopia distances histogram
         hist(distances$deutan,
@@ -147,9 +160,13 @@ animate_repulsion <- function(n_colors,
           xlab = "Distance",
           col = "lightgreen",
           breaks = breaks,
-          ylim = c(0, 10)
+          ylim = c(0, 10),
+          xlim = c(0, 100)
         )
-        abline(v = mean(distances$deutan), col = "red", lwd = 2)
+        abline(v = mean_bottom_quartile(distances$deutan), col = "red", lwd = 3)
+        abline(v = ref_distances$batlow$deutan, col = "black", lwd = 2, lty = 3)
+        abline(v = ref_distances$tableau$deutan, col = "black", lwd = 2, lty = 5)
+        abline(v = ref_distances$brewer$deutan, col = "black", lwd = 2, lty = 4)
 
         # 4. Protanopia distances histogram
         hist(distances$protan,
@@ -157,9 +174,13 @@ animate_repulsion <- function(n_colors,
           xlab = "Distance",
           col = "salmon",
           breaks = breaks,
-          ylim = c(0, 10)
+          ylim = c(0, 10),
+          xlim = c(0, 100)
         )
-        abline(v = mean(distances$protan), col = "red", lwd = 2)
+        abline(v = mean_bottom_quartile(distances$protan), col = "red", lwd = 3)
+        abline(v = ref_distances$batlow$protan, col = "black", lwd = 2, lty = 3)
+        abline(v = ref_distances$tableau$protan, col = "black", lwd = 2, lty = 5)
+        abline(v = ref_distances$brewer$protan, col = "black", lwd = 2, lty = 4)
 
         # 5. Tritanopia distances histogram
         hist(distances$tritan,
@@ -167,20 +188,24 @@ animate_repulsion <- function(n_colors,
           xlab = "Distance",
           col = "lightblue",
           breaks = breaks,
-          ylim = c(0, 10)
+          ylim = c(0, 10),
+          xlim = c(0, 100)
         )
-        abline(v = mean(distances$tritan), col = "red", lwd = 2)
+        abline(v = mean_bottom_quartile(distances$tritan), col = "red", lwd = 3)
+        abline(v = ref_distances$batlow$tritan, col = "black", lwd = 2, lty = 3)
+        abline(v = ref_distances$tableau$tritan, col = "black", lwd = 2, lty = 5)
+        abline(v = ref_distances$brewer$tritan, col = "black", lwd = 2, lty = 4)
       }
     },
     movie.name = filename,
     ani.width = 800,
     ani.height = 800,
-    interval = 0.2
+    interval = 0.1
   )
 }
 
-
-visualize_force_field <- function(points, n_base, n_colors, boundary_force, boundaries, resolution = 50) {
+visualize_force_field <- function(
+    points, n_base, n_colors, boundary_force, boundaries, resolution = 50) {
   x <- seq(-100, 100, length.out = resolution)
   y <- seq(-100, 100, length.out = resolution)
   grid <- expand.grid(x = x, y = y)
@@ -226,7 +251,8 @@ visualize_force_field <- function(points, n_base, n_colors, boundary_force, boun
   ))
 }
 
-plot_state <- function(points, base_colors = NULL, show_force_field = FALSE, ...) {
+plot_state <- function(
+    points, base_colors = NULL, show_force_field = FALSE, ...) {
   if (show_force_field) {
     n_base <- if (!is.null(base_colors)) length(base_colors) else 0
     n_colors <- nrow(points)
