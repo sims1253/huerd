@@ -25,7 +25,7 @@
 #' animate_repulsion(8)
 #'
 #' # Generate animation with fixed base colors
-#' animate_repulsion(8, base_colors = c("#FF0000", "#00FF00"))
+#' animate_repulsion(8, base_colors = c("#E69F00", "#0072B2"))
 animate_repulsion <- function(n_colors,
                               base_colors = NULL,
                               max_iterations = 100,
@@ -46,7 +46,6 @@ animate_repulsion <- function(n_colors,
     }
   }
 
-  # Simulate the color repulsion process and get states at regular intervals
   states <- simulate_color_repulsion(n_colors,
     max_iterations = max_iterations,
     learning_rate = learning_rate,
@@ -56,39 +55,50 @@ animate_repulsion <- function(n_colors,
     return_states = TRUE
   )
 
-  # Remove NULL entries from states list
+  # Remove NULL entries
   states <- states[!sapply(states, is.null)]
 
   # Get boundaries for consistent plotting
   boundaries <- get_lab_boundaries(base_colors)
   n_base <- if (!is.null(base_colors)) length(base_colors) else 0
 
-  # Create animated GIF showing the repulsion process over time
+  # Create animated GIF with enhanced visualization
   animation::saveGIF(
     {
-      # Loop through each saved state and create a frame
+      # Set up a 3x2 layout with one empty spot and ensure square aspect for main plot
+      layout(matrix(c(1, 1, 2, 3, 4, 5), nrow = 3, ncol = 2, byrow = TRUE),
+        heights = c(2, 1, 1)
+      ) # Make the color space plot larger
+
+      # Set default margins for all plots
+      par(mar = c(4, 4, 3, 1))
+
       for (i in seq_along(states)) {
         points <- states[[i]]
+        distances <- calculate_all_distances(points)
 
-        # Set up plot margins and create visualization
-        par(mar = c(4, 4, 2, 1))
+        # Set consistent breaks and limits for all histograms
+        all_distances <- c(
+          distances$original, distances$deutan,
+          distances$protan, distances$tritan
+        )
+        breaks <- seq(min(all_distances), max(all_distances),
+          length.out = 20
+        )
 
+        # 1. Main color space plot with square aspect ratio
+        par(pty = "s") # Set square plotting region
         if (show_force_field) {
-          # Calculate and plot force field
           field <- visualize_force_field(
             points, n_base, n_colors,
             boundary_force, boundaries
           )
-
-          # Plot force field with heat map
           image(field$x, field$y,
             field$forces,
             col = hcl.colors(100, "YlOrRd", rev = TRUE),
             xlab = "a", ylab = "b",
             main = sprintf("Iteration %d", (i - 1) * save_every)
           )
-
-          # Add contour lines
           contour(field$x, field$y,
             field$forces,
             add = TRUE,
@@ -96,24 +106,21 @@ animate_repulsion <- function(n_colors,
             drawlabels = FALSE
           )
         } else {
-          # Regular plot setup
           plot(NA, NA,
             xlim = c(-100, 100),
             ylim = c(-100, 100),
             xlab = "a", ylab = "b",
             main = sprintf("Iteration %d", (i - 1) * save_every)
           )
+          grid()
         }
 
-        # Convert LAB color coordinates to RGB hex colors for plotting
+        # Plot colors
         hex_colors <- farver::encode_colour(points, from = "lab")
-
-        # Plot the points
         points(points[, 2], points[, 3],
           col = hex_colors, pch = 16, cex = 2
         )
 
-        # If base colors were provided, highlight them with black circles
         if (!is.null(base_colors)) {
           points(points[seq_along(base_colors), 2],
             points[seq_along(base_colors), 3],
@@ -121,25 +128,56 @@ animate_repulsion <- function(n_colors,
           )
         }
 
-        # Calculate and display average perceptual color distance
-        if (i > 1) {
-          distances <- calculate_color_distances(points)
-          mtext(sprintf("Mean Color Distance: %.1f", distances$mean),
-            side = 3, line = 0, cex = 0.8
-          )
-        }
+        # Reset to non-square for histograms
+        par(pty = "m")
 
-        # Add reference grid
-        grid()
+        # 2. Original distances histogram
+        hist(distances$original,
+          main = "Original Color Distances",
+          xlab = "Distance",
+          col = "lightblue",
+          breaks = breaks,
+          ylim = c(0, 10)
+        )
+        abline(v = mean(distances$original), col = "red", lwd = 2)
+
+        # 3. Deuteranopia distances histogram
+        hist(distances$deutan,
+          main = "Deuteranopia Distances",
+          xlab = "Distance",
+          col = "lightgreen",
+          breaks = breaks,
+          ylim = c(0, 10)
+        )
+        abline(v = mean(distances$deutan), col = "red", lwd = 2)
+
+        # 4. Protanopia distances histogram
+        hist(distances$protan,
+          main = "Protanopia Distances",
+          xlab = "Distance",
+          col = "salmon",
+          breaks = breaks,
+          ylim = c(0, 10)
+        )
+        abline(v = mean(distances$protan), col = "red", lwd = 2)
+
+        # 5. Tritanopia distances histogram
+        hist(distances$tritan,
+          main = "Tritanopia Distances",
+          xlab = "Distance",
+          col = "lightblue",
+          breaks = breaks,
+          ylim = c(0, 10)
+        )
+        abline(v = mean(distances$tritan), col = "red", lwd = 2)
       }
     },
     movie.name = filename,
-    ani.width = 600,
-    ani.height = 600,
-    interval = 0.1
+    ani.width = 800,
+    ani.height = 800,
+    interval = 0.2
   )
 }
-
 
 
 visualize_force_field <- function(points, n_base, n_colors, boundary_force, boundaries, resolution = 50) {

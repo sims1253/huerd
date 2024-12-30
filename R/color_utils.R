@@ -1,4 +1,22 @@
-# Helper function to calculate distances for original and CVD versions
+#' Calculate Color Distances for Original and Color Vision Deficiency (CVD) Simulations
+#'
+#' This function calculates color distances between pairs of colors in the original
+#' color space and in simulated color vision deficiency (CVD) spaces for deuteranomaly,
+#' protanomaly, and tritanomaly.
+#'
+#' @param points A matrix or data frame of LAB color values, where each row represents
+#'   a color and columns represent L, A, and B values respectively.
+#'
+#' @return A list containing four vectors of color distances:
+#'   \item{original}{Distances between original color pairs}
+#'   \item{deutan}{Distances between color pairs as perceived by individuals with deuteranomaly}
+#'   \item{protan}{Distances between color pairs as perceived by individuals with protanomaly}
+#'   \item{tritan}{Distances between color pairs as perceived by individuals with tritanomaly}
+#'   Each vector contains the upper triangular part of the distance matrix.
+#'
+#' @importFrom farver convert_colour compare_colour
+#' @importFrom colorspace deutan protan tritan
+#'
 calculate_all_distances <- function(points) {
   # Convert LAB to RGB
   rgb_colors <- farver::convert_colour(points, from = "lab", to = "rgb")

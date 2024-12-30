@@ -7,7 +7,7 @@
 simulate_color_repulsion(
   n_colors,
   max_iterations = 100,
-  learning_rate = 50,
+  learning_rate = 1,
   base_colors = NULL,
   save_every = 5,
   boundary_force = 1,

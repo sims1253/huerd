@@ -8,9 +8,9 @@ animate_repulsion(
   n_colors,
   base_colors = NULL,
   max_iterations = 100,
-  learning_rate = 50,
+  learning_rate = 1,
   save_every = 5,
-  boundary_force = 10,
+  boundary_force = 1,
   filename = "repulsion.gif",
   show_force_field = FALSE
 )
@@ -49,5 +49,5 @@ color space to generate a perceptually distinct color palette.
 animate_repulsion(8)
 
 # Generate animation with fixed base colors
-animate_repulsion(8, base_colors = c("#FF0000", "#00FF00"))
+animate_repulsion(8, base_colors = c("#E69F00", "#0072B2"))
 }

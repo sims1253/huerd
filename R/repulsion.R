@@ -287,18 +287,17 @@ calculate_color_distances <- function(points) {
 #'         dimensions.
 #'
 #' @keywords internal
-calculate_forces <- function(
-    points, n_base, n_colors, boundary_force, boundaries) {
+calculate_forces <- function(points, n_base, n_colors, boundary_force, boundaries) {
   forces <- matrix(0, nrow = n_colors, ncol = 3)
 
-  # Get full LAB distances
-  cie_distances <- farver::compare_colour(
+  # Get perceptual distances
+  distances <- farver::compare_colour(
     points,
     from_space = "lab",
     method = "cie2000"
   )
 
-  # Calculate 2D distances in a-b plane
+  # Calculate 2D distances in a-b plane for saturation control
   ab_distances <- matrix(0, nrow = n_colors, ncol = n_colors)
   for (i in 1:n_colors) {
     for (j in 1:n_colors) {
@@ -310,52 +309,70 @@ calculate_forces <- function(
   }
 
   for (i in (n_base + 1):n_colors) {
+    # 1. Color-to-color repulsion with adaptive force
     repulsion_force <- numeric(3)
     for (j in 1:n_colors) {
       if (i != j) {
         diff <- points[i, ] - points[j, ]
-        full_distance <- cie_distances[i, j]
-        ab_distance <- ab_distances[i, j]
+        perceptual_dist <- distances[i, j]
+        ab_dist <- ab_distances[i, j]
 
+        # Normalize direction vector
         direction <- diff / sqrt(sum(diff^2))
 
-        force_magnitude <- 5 / (1 + (ab_distance / 40)^1.5)
-        # Additional long-range component
-        long_range <- 2 / (1 + (ab_distance / 60)^1.2)
-        force_magnitude <- force_magnitude + long_range
+        # Combined force with multiple components
+        # Short-range strong repulsion
+        short_range <- 5 / (1 + (ab_dist / 20)^2)
 
-        # Close-range boost remains
-        if (full_distance < 20) {
-          force_magnitude <- force_magnitude * 3
+        # Medium-range component for even spreading
+        medium_range <- 2 / (1 + (ab_dist / 40)^1.5)
+
+        # Long-range weak attraction for global structure
+        long_range <- -0.5 / (1 + (ab_dist / 80)^1.2)
+
+        # Combine forces with distance-dependent weights
+        total_force <- short_range + medium_range + long_range
+
+        # Extra boost for very close colors
+        if (perceptual_dist < 15) {
+          total_force <- total_force * 2
         }
 
-        # L-component boost for close a-b points
-        if (ab_distance < 30) {
-          l_diff <- abs(points[i, 1] - points[j, 1])
-          if (l_diff < 20) {
-            direction[1] <- direction[1] * 2
-          }
-        }
-
-        weights <- c(1.0, 1.0, 1.0)
-        repulsion_force <- repulsion_force +
-          direction * force_magnitude * weights
+        repulsion_force <- repulsion_force + direction * total_force
       }
     }
 
-    # Calculate boundary forces
-    boundary_forces <- calculate_boundary_forces(
-      points[i, ], boundary_force, boundaries
-    )
-
-    # Calculate radius for current point
+    # 2. Boundary forces (circular in a-b plane)
     radius <- sqrt(sum(points[i, 2:3]^2))
-    radius_factor <- exp(
-      -(radius - boundaries$target_radius)^2 / (boundaries$target_radius / 2)^2
-    )
+    target_radius <- boundaries$target_radius
 
-    forces[i, ] <- repulsion_force * radius_factor +
-      boundary_forces * (1 - radius_factor * 0.5)
+    if (radius > 0) {
+      # Radial force toward target radius
+      radial_force <- boundary_force * (target_radius - radius) / target_radius
+
+      # Convert to a,b components
+      forces[i, 2] <- forces[i, 2] + radial_force * points[i, 2] / radius
+      forces[i, 3] <- forces[i, 3] + radial_force * points[i, 3] / radius
+    }
+
+    # 3. L-axis specific forces
+    l_center <- mean(boundaries$l)
+    l_range <- diff(boundaries$l)
+    l_force <- -boundary_force * (points[i, 1] - l_center) / (l_range / 2)
+
+    # Combine all forces
+    forces[i, ] <- c(
+      l_force + repulsion_force[1],
+      forces[i, 2] + repulsion_force[2],
+      forces[i, 3] + repulsion_force[3]
+    )
+  }
+
+  # Normalize extreme forces
+  force_magnitudes <- sqrt(rowSums(forces^2))
+  large_forces <- force_magnitudes > 1
+  if (any(large_forces)) {
+    forces[large_forces, ] <- forces[large_forces, ] / force_magnitudes[large_forces]
   }
 
   return(forces)

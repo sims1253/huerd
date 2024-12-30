@@ -2,3 +2,8 @@
 
 export(animate_repulsion)
 export(simulate_color_repulsion)
+importFrom(colorspace,deutan)
+importFrom(colorspace,protan)
+importFrom(colorspace,tritan)
+importFrom(farver,compare_colour)
+importFrom(farver,convert_colour)
