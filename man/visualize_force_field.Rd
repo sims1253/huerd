@@ -14,17 +14,23 @@ visualize_force_field(
 )
 }
 \arguments{
-\item{points}{A matrix of points where each row represents a point in the format (id, x, y).}
+\item{points}{A matrix of points where each row represents a point in the
+format (id, x, y).}
 
-\item{n_base}{An integer representing the number of base points (not used in the function).}
+\item{n_base}{An integer representing the number of base points (not used in
+the function).}
 
-\item{n_colors}{An integer representing the number of colors (points) to consider for repulsion.}
+\item{n_colors}{An integer representing the number of colors (points) to
+consider for repulsion.}
 
-\item{boundary_force}{A numeric value representing the force applied by the boundary.}
+\item{boundary_force}{A numeric value representing the force applied by the
+boundary.}
 
-\item{boundaries}{A list containing boundary parameters, specifically \code{target_radius}.}
+\item{boundaries}{A list containing boundary parameters, specifically
+\code{target_radius}.}
 
-\item{resolution}{An integer representing the resolution of the grid. Default is 50.}
+\item{resolution}{An integer representing the resolution of the grid.
+Default is 50.}
 }
 \value{
 A list containing:
@@ -35,12 +41,19 @@ A list containing:
 }
 }
 \description{
-This function visualizes a force field based on given points, boundaries, and other parameters.
+This function visualizes a force field based on given points,
+boundaries, and other parameters.
 }
 \examples{
 points <- matrix(c(1, 0, 0, 2, 50, 50), ncol = 3, byrow = TRUE)
 boundaries <- list(target_radius = 100)
-result <- visualize_force_field(points, n_base = 2, n_colors = 2, boundary_force = 10, boundaries = boundaries)
+result <- visualize_force_field(
+  points,
+  n_base = 2,
+  n_colors = 2,
+  boundary_force = 10,
+  boundaries = boundaries
+)
 image(result$x, result$y, result$forces)
 
 }

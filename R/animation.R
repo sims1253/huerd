@@ -68,7 +68,8 @@ animate_repulsion <- function(n_colors,
   # Create animated GIF with enhanced visualization
   animation::saveGIF(
     {
-      # Set up a 3x2 layout with one empty spot and ensure square aspect for main plot
+      # Set up a 3x2 layout with one empty spot and
+      # ensure square aspect for main plot
       layout(matrix(c(1, 1, 2, 3, 4, 5), nrow = 3, ncol = 2, byrow = TRUE),
         heights = c(2, 1, 1)
       ) # Make the color space plot larger
@@ -143,13 +144,23 @@ animate_repulsion <- function(n_colors,
           ylim = c(0, 10),
           xlim = c(0, 100)
         )
-        abline(v = mean_bottom_quartile(distances$original), col = "red", lwd = 3)
+        abline(
+          v = mean_bottom_quartile(distances$original), col = "red", lwd = 3
+        )
         # Add reference lines
-        abline(v = ref_distances$batlow$original, col = "black", lwd = 2, lty = 3)
-        abline(v = ref_distances$tableau$original, col = "black", lwd = 2, lty = 5)
-        abline(v = ref_distances$brewer$original, col = "black", lwd = 2, lty = 4)
+        abline(
+          v = ref_distances$batlow$original, col = "black", lwd = 2, lty = 3
+        )
+        abline(
+          v = ref_distances$tableau$original, col = "black", lwd = 2, lty = 5
+        )
+        abline(
+          v = ref_distances$brewer$original, col = "black", lwd = 2, lty = 4
+        )
         legend("topright",
-          legend = c("Current meanQ25", "batlow meanQ25", "Set2 meanQ25", "Hue meanQ25"),
+          legend = c(
+            "Current meanQ25", "batlow meanQ25", "Set2 meanQ25", "Hue meanQ25"
+          ),
           col = c("red", "black", "black", "black"),
           lwd = 2, lty = c(1, 3, 4, 5)
         )
@@ -163,10 +174,18 @@ animate_repulsion <- function(n_colors,
           ylim = c(0, 10),
           xlim = c(0, 100)
         )
-        abline(v = mean_bottom_quartile(distances$deutan), col = "red", lwd = 3)
-        abline(v = ref_distances$batlow$deutan, col = "black", lwd = 2, lty = 3)
-        abline(v = ref_distances$tableau$deutan, col = "black", lwd = 2, lty = 5)
-        abline(v = ref_distances$brewer$deutan, col = "black", lwd = 2, lty = 4)
+        abline(
+          v = mean_bottom_quartile(distances$deutan), col = "red", lwd = 3
+        )
+        abline(
+          v = ref_distances$batlow$deutan, col = "black", lwd = 2, lty = 3
+        )
+        abline(
+          v = ref_distances$tableau$deutan, col = "black", lwd = 2, lty = 5
+        )
+        abline(
+          v = ref_distances$brewer$deutan, col = "black", lwd = 2, lty = 4
+        )
 
         # 4. Protanopia distances histogram
         hist(distances$protan,
@@ -177,10 +196,18 @@ animate_repulsion <- function(n_colors,
           ylim = c(0, 10),
           xlim = c(0, 100)
         )
-        abline(v = mean_bottom_quartile(distances$protan), col = "red", lwd = 3)
-        abline(v = ref_distances$batlow$protan, col = "black", lwd = 2, lty = 3)
-        abline(v = ref_distances$tableau$protan, col = "black", lwd = 2, lty = 5)
-        abline(v = ref_distances$brewer$protan, col = "black", lwd = 2, lty = 4)
+        abline(
+          v = mean_bottom_quartile(distances$protan), col = "red", lwd = 3
+        )
+        abline(
+          v = ref_distances$batlow$protan, col = "black", lwd = 2, lty = 3
+        )
+        abline(
+          v = ref_distances$tableau$protan, col = "black", lwd = 2, lty = 5
+        )
+        abline(
+          v = ref_distances$brewer$protan, col = "black", lwd = 2, lty = 4
+        )
 
         # 5. Tritanopia distances histogram
         hist(distances$tritan,
@@ -191,10 +218,18 @@ animate_repulsion <- function(n_colors,
           ylim = c(0, 10),
           xlim = c(0, 100)
         )
-        abline(v = mean_bottom_quartile(distances$tritan), col = "red", lwd = 3)
-        abline(v = ref_distances$batlow$tritan, col = "black", lwd = 2, lty = 3)
-        abline(v = ref_distances$tableau$tritan, col = "black", lwd = 2, lty = 5)
-        abline(v = ref_distances$brewer$tritan, col = "black", lwd = 2, lty = 4)
+        abline(
+          v = mean_bottom_quartile(distances$tritan), col = "red", lwd = 3
+        )
+        abline(
+          v = ref_distances$batlow$tritan, col = "black", lwd = 2, lty = 3
+        )
+        abline(
+          v = ref_distances$tableau$tritan, col = "black", lwd = 2, lty = 5
+        )
+        abline(
+          v = ref_distances$brewer$tritan, col = "black", lwd = 2, lty = 4
+        )
       }
     },
     movie.name = filename,
@@ -206,14 +241,21 @@ animate_repulsion <- function(n_colors,
 
 #' Visualize Force Field
 #'
-#' This function visualizes a force field based on given points, boundaries, and other parameters.
+#' This function visualizes a force field based on given points,
+#'  boundaries, and other parameters.
 #'
-#' @param points A matrix of points where each row represents a point in the format (id, x, y).
-#' @param n_base An integer representing the number of base points (not used in the function).
-#' @param n_colors An integer representing the number of colors (points) to consider for repulsion.
-#' @param boundary_force A numeric value representing the force applied by the boundary.
-#' @param boundaries A list containing boundary parameters, specifically `target_radius`.
-#' @param resolution An integer representing the resolution of the grid. Default is 50.
+#' @param points A matrix of points where each row represents a point in the
+#'               format (id, x, y).
+#' @param n_base An integer representing the number of base points (not used in
+#'               the function).
+#' @param n_colors An integer representing the number of colors (points) to
+#'                 consider for repulsion.
+#' @param boundary_force A numeric value representing the force applied by the
+#'                       boundary.
+#' @param boundaries A list containing boundary parameters, specifically
+#'                  `target_radius`.
+#' @param resolution An integer representing the resolution of the grid.
+#'                   Default is 50.
 #'
 #' @return A list containing:
 #' \describe{
@@ -225,7 +267,13 @@ animate_repulsion <- function(n_colors,
 #' @examples
 #' points <- matrix(c(1, 0, 0, 2, 50, 50), ncol = 3, byrow = TRUE)
 #' boundaries <- list(target_radius = 100)
-#' result <- visualize_force_field(points, n_base = 2, n_colors = 2, boundary_force = 10, boundaries = boundaries)
+#' result <- visualize_force_field(
+#'   points,
+#'   n_base = 2,
+#'   n_colors = 2,
+#'   boundary_force = 10,
+#'   boundaries = boundaries
+#' )
 #' image(result$x, result$y, result$forces)
 #'
 #' @export
@@ -238,7 +286,7 @@ visualize_force_field <- function(
   # Calculate repulsion potential field
   potential_field <- matrix(0, nrow = nrow(grid), ncol = 1)
 
-  for (i in 1:nrow(grid)) {
+  for (i in seq_len(nrow(grid))) {
     test_point <- c(60, grid$x[i], grid$y[i])
 
     # Sum up repulsion potentials from all points
@@ -289,17 +337,18 @@ visualize_force_field <- function(
 #'   points will be plotted with these colors.
 #' @param show_force_field A logical value indicating whether to display the
 #'   force field visualization. Default is FALSE.
-#' @param ... Additional arguments passed to the `visualize_force_field` function.
+#' @param ... Additional arguments passed to the `visualize_force_field`
+#'            function.
 #'
 #' @details
 #' If `show_force_field` is TRUE, the function calculates and plots a force
-#' field using the `visualize_force_field` function. The force field is displayed
-#' using a color gradient and contour lines. If `show_force_field` is FALSE,
-#' the function plots an empty plot with specified x and y limits.
+#' field using the `visualize_force_field` function. The force field is
+#' displayed using a color gradient and contour lines. If `show_force_field`
+#' is FALSE, the function plots an empty plot with specified x and y limits.
 #'
-#' The points are plotted on top of the force field or empty plot. If `base_colors`
-#' is provided, the first `n_base` points are plotted with these colors and
-#' larger point characters.
+#' The points are plotted on top of the force field or empty plot. If
+#' `base_colors` is provided, the first `n_base` points are plotted with these
+#' colors and larger point characters.
 #'
 #' @importFrom farver encode_colour
 #' @importFrom graphics image contour plot points grid

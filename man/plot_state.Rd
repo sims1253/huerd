@@ -18,7 +18,8 @@ points will be plotted with these colors.}
 \item{show_force_field}{A logical value indicating whether to display the
 force field visualization. Default is FALSE.}
 
-\item{...}{Additional arguments passed to the \code{visualize_force_field} function.}
+\item{...}{Additional arguments passed to the \code{visualize_force_field}
+function.}
 }
 \description{
 This function plots the state of a given set of points. It can optionally
@@ -26,13 +27,13 @@ display a force field visualization.
 }
 \details{
 If \code{show_force_field} is TRUE, the function calculates and plots a force
-field using the \code{visualize_force_field} function. The force field is displayed
-using a color gradient and contour lines. If \code{show_force_field} is FALSE,
-the function plots an empty plot with specified x and y limits.
+field using the \code{visualize_force_field} function. The force field is
+displayed using a color gradient and contour lines. If \code{show_force_field}
+is FALSE, the function plots an empty plot with specified x and y limits.
 
-The points are plotted on top of the force field or empty plot. If \code{base_colors}
-is provided, the first \code{n_base} points are plotted with these colors and
-larger point characters.
+The points are plotted on top of the force field or empty plot. If
+\code{base_colors} is provided, the first \code{n_base} points are plotted with these
+colors and larger point characters.
 }
 \examples{
 \dontrun{
