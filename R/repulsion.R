@@ -287,7 +287,9 @@ calculate_color_distances <- function(points) {
 #'         dimensions.
 #'
 #' @keywords internal
-calculate_forces <- function(points, n_base, n_colors, boundary_force, boundaries) {
+calculate_forces <- function(
+    points,
+    n_base, n_colors, boundary_force, boundaries) {
   forces <- matrix(0, nrow = n_colors, ncol = 3)
 
   # Get perceptual distances
@@ -372,7 +374,8 @@ calculate_forces <- function(points, n_base, n_colors, boundary_force, boundarie
   force_magnitudes <- sqrt(rowSums(forces^2))
   large_forces <- force_magnitudes > 1
   if (any(large_forces)) {
-    forces[large_forces, ] <- forces[large_forces, ] / force_magnitudes[large_forces]
+    forces[large_forces, ] <- forces[large_forces, ] /
+      force_magnitudes[large_forces]
   }
 
   return(forces)

@@ -82,7 +82,7 @@ calculate_all_distances <- function(points) {
 #'
 calculate_palette_distances <- function(colors) {
   # Convert to LAB
-  rgb_vals <- t(col2rgb(colors))
+  rgb_vals <- t(grDevices::col2rgb(colors))
   lab_vals <- farver::convert_colour(rgb_vals, from = "rgb", to = "lab")
 
   # Calculate all distances

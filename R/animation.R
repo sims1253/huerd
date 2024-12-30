@@ -204,6 +204,31 @@ animate_repulsion <- function(n_colors,
   )
 }
 
+#' Visualize Force Field
+#'
+#' This function visualizes a force field based on given points, boundaries, and other parameters.
+#'
+#' @param points A matrix of points where each row represents a point in the format (id, x, y).
+#' @param n_base An integer representing the number of base points (not used in the function).
+#' @param n_colors An integer representing the number of colors (points) to consider for repulsion.
+#' @param boundary_force A numeric value representing the force applied by the boundary.
+#' @param boundaries A list containing boundary parameters, specifically `target_radius`.
+#' @param resolution An integer representing the resolution of the grid. Default is 50.
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{x}{A sequence of x-coordinates for the grid.}
+#'   \item{y}{A sequence of y-coordinates for the grid.}
+#'   \item{forces}{A matrix representing the normalized potential field.}
+#' }
+#'
+#' @examples
+#' points <- matrix(c(1, 0, 0, 2, 50, 50), ncol = 3, byrow = TRUE)
+#' boundaries <- list(target_radius = 100)
+#' result <- visualize_force_field(points, n_base = 2, n_colors = 2, boundary_force = 10, boundaries = boundaries)
+#' image(result$x, result$y, result$forces)
+#'
+#' @export
 visualize_force_field <- function(
     points, n_base, n_colors, boundary_force, boundaries, resolution = 50) {
   x <- seq(-100, 100, length.out = resolution)
@@ -251,6 +276,43 @@ visualize_force_field <- function(
   ))
 }
 
+#' Plot State Function
+#'
+#' This function plots the state of a given set of points. It can optionally
+#' display a force field visualization.
+#'
+#' @param points A matrix or data frame containing the points to be plotted.
+#'   The first column should contain the point identifiers, the second column
+#'   should contain the x-coordinates, and the third column should contain the
+#'   y-coordinates.
+#' @param base_colors A vector of base colors. If provided, the first `n_base`
+#'   points will be plotted with these colors.
+#' @param show_force_field A logical value indicating whether to display the
+#'   force field visualization. Default is FALSE.
+#' @param ... Additional arguments passed to the `visualize_force_field` function.
+#'
+#' @details
+#' If `show_force_field` is TRUE, the function calculates and plots a force
+#' field using the `visualize_force_field` function. The force field is displayed
+#' using a color gradient and contour lines. If `show_force_field` is FALSE,
+#' the function plots an empty plot with specified x and y limits.
+#'
+#' The points are plotted on top of the force field or empty plot. If `base_colors`
+#' is provided, the first `n_base` points are plotted with these colors and
+#' larger point characters.
+#'
+#' @importFrom farver encode_colour
+#' @importFrom graphics image contour plot points grid
+#' @importFrom grDevices hcl.colors
+#'
+#' @examples
+#' \dontrun{
+#' points <- matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9), ncol = 3)
+#' base_colors <- c("red", "blue")
+#' plot_state(points, base_colors, show_force_field = TRUE)
+#' }
+#'
+#' @export
 plot_state <- function(
     points, base_colors = NULL, show_force_field = FALSE, ...) {
   if (show_force_field) {

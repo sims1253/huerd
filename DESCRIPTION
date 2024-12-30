@@ -1,9 +1,9 @@
 Package: huerd
-Title: What the Package Does (One Line, Title Case)
+Title: Categorical color palette generation with given base colors
 Version: 0.0.1.9000
 Authors@R: 
     person("Maximilian", "Scholz", , "dev.scholz@mailbox.org", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: This package provides functions to generate categorical color palettes based on given base colors. The color palettes are optimized for color vision deficiency and aesthetics.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
