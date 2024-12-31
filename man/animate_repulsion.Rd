@@ -18,17 +18,19 @@ animate_repulsion(
 \arguments{
 \item{n_colors}{Number of colors to generate in the palette}
 
-\item{base_colors}{Optional vector of base colors in hex format (e.g. "#FF0000")
-that will remain fixed during animation}
+\item{base_colors}{Optional vector of base colors in hex format
+(e.g. "#FF0000") that will remain fixed during
+animation}
 
-\item{max_iterations}{Maximum number of iterations for the repulsion simulation}
+\item{max_iterations}{Maximum number of iterations for the repulsion
+simulation}
 
 \item{learning_rate}{Controls magnitude of color movements per iteration}
 
 \item{save_every}{Save state every n iterations for animation frames}
 
-\item{boundary_force}{Strength of containment force keeping colors within valid
-RGB bounds}
+\item{boundary_force}{Strength of containment force keeping colors within
+valid RGB bounds}
 
 \item{filename}{Output GIF filename}
 

@@ -4,13 +4,15 @@
 #' space to generate a perceptually distinct color palette.
 #'
 #' @param n_colors Number of colors to generate in the palette
-#' @param base_colors Optional vector of base colors in hex format (e.g. "#FF0000")
-#'   that will remain fixed during animation
-#' @param max_iterations Maximum number of iterations for the repulsion simulation
+#' @param base_colors Optional vector of base colors in hex format
+#'                    (e.g. "#FF0000") that will remain fixed during
+#'                    animation
+#' @param max_iterations Maximum number of iterations for the repulsion
+#'                       simulation
 #' @param learning_rate Controls magnitude of color movements per iteration
 #' @param save_every Save state every n iterations for animation frames
-#' @param boundary_force Strength of containment force keeping colors within valid
-#'   RGB bounds
+#' @param boundary_force Strength of containment force keeping colors within
+#'                       valid RGB bounds
 #' @param filename Output GIF filename
 #' @param show_force_field Whether to visualize the repulsion force field
 #'
