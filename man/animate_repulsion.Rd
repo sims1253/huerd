@@ -18,31 +18,28 @@ animate_repulsion(
 \arguments{
 \item{n_colors}{Number of colors to generate in the palette}
 
-\item{base_colors}{Optional vector of base colors in hex format to include
-in the palette. These colors will be fixed points in the
-animation.}
+\item{base_colors}{Optional vector of base colors in hex format (e.g. "#FF0000")
+that will remain fixed during animation}
 
-\item{max_iterations}{Maximum number of iterations for the repulsion
-simulation}
+\item{max_iterations}{Maximum number of iterations for the repulsion simulation}
 
-\item{learning_rate}{Controls how far colors move in each iteration. Higher
-values mean larger movements.}
+\item{learning_rate}{Controls magnitude of color movements per iteration}
 
-\item{save_every}{Save state every n iterations for animation}
+\item{save_every}{Save state every n iterations for animation frames}
 
-\item{boundary_force}{Strength of the force keeping colors within valid RGB
-bounds. Higher values mean stronger containment.}
+\item{boundary_force}{Strength of containment force keeping colors within valid
+RGB bounds}
 
-\item{filename}{Name of the output GIF file}
+\item{filename}{Output GIF filename}
 
-\item{show_force_field}{Whether to show the force field visualization}
+\item{show_force_field}{Whether to visualize the repulsion force field}
 }
 \value{
-Creates an animated GIF showing the color repulsion process
+Creates an animated GIF showing the color optimization process
 }
 \description{
-Creates an animated visualization of how colors repel each other in LAB
-color space to generate a perceptually distinct color palette.
+Creates an animated visualization of how colors repel each other in LAB color
+space to generate a perceptually distinct color palette.
 }
 \examples{
 # Generate animation for 8 colors

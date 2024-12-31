@@ -1,23 +1,20 @@
 #' Animate Color Repulsion Process
 #'
-#' Creates an animated visualization of how colors repel each other in LAB
-#' color space to generate a perceptually distinct color palette.
+#' Creates an animated visualization of how colors repel each other in LAB color
+#' space to generate a perceptually distinct color palette.
 #'
 #' @param n_colors Number of colors to generate in the palette
-#' @param base_colors Optional vector of base colors in hex format to include
-#'                    in the palette. These colors will be fixed points in the
-#'                    animation.
-#' @param max_iterations Maximum number of iterations for the repulsion
-#'                       simulation
-#' @param learning_rate Controls how far colors move in each iteration. Higher
-#'                      values mean larger movements.
-#' @param save_every Save state every n iterations for animation
-#' @param boundary_force Strength of the force keeping colors within valid RGB
-#'                        bounds. Higher values mean stronger containment.
-#' @param filename Name of the output GIF file
-#' @param show_force_field Whether to show the force field visualization
+#' @param base_colors Optional vector of base colors in hex format (e.g. "#FF0000")
+#'   that will remain fixed during animation
+#' @param max_iterations Maximum number of iterations for the repulsion simulation
+#' @param learning_rate Controls magnitude of color movements per iteration
+#' @param save_every Save state every n iterations for animation frames
+#' @param boundary_force Strength of containment force keeping colors within valid
+#'   RGB bounds
+#' @param filename Output GIF filename
+#' @param show_force_field Whether to visualize the repulsion force field
 #'
-#' @return Creates an animated GIF showing the color repulsion process
+#' @return Creates an animated GIF showing the color optimization process
 #' @export
 #'
 #' @examples

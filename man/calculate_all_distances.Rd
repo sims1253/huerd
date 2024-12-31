@@ -2,24 +2,24 @@
 % Please edit documentation in R/color_utils.R
 \name{calculate_all_distances}
 \alias{calculate_all_distances}
-\title{Calculate Color Distances for Original and Color Vision Deficiency (CVD) Simulations}
+\title{Calculate Color Distances for CVD Simulations}
 \usage{
 calculate_all_distances(points)
 }
 \arguments{
-\item{points}{A matrix or data frame of LAB color values, where each row represents
-a color and columns represent L, A, and B values respectively.}
+\item{points}{A matrix or data frame of LAB color values (n × 3), where each
+row represents a color and columns are L, a, and b values.}
 }
 \value{
-A list containing four vectors of color distances:
-\item{original}{Distances between original color pairs}
-\item{deutan}{Distances between color pairs as perceived by individuals with deuteranomaly}
-\item{protan}{Distances between color pairs as perceived by individuals with protanomaly}
-\item{tritan}{Distances between color pairs as perceived by individuals with tritanomaly}
-Each vector contains the upper triangular part of the distance matrix.
+A named list of distance vectors:
+\describe{
+\item{original}{Pairwise distances between original colors}
+\item{deutan}{Pairwise distances in deuteranomaly simulation}
+\item{protan}{Pairwise distances in protanomaly simulation}
+\item{tritan}{Pairwise distances in tritanomaly simulation}
+}
 }
 \description{
-This function calculates color distances between pairs of colors in the original
-color space and in simulated color vision deficiency (CVD) spaces for deuteranomaly,
-protanomaly, and tritanomaly.
+Calculates color distances between pairs of colors in both original and
+simulated color vision deficiency (CVD) spaces.
 }

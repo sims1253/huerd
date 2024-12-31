@@ -7,15 +7,12 @@
 mean_bottom_quartile(distances)
 }
 \arguments{
-\item{distances}{A numeric vector of distances.}
+\item{distances}{Numeric vector of distances}
 }
 \value{
-A numeric value representing the mean of the bottom quartile of the input distances.
+Mean value of the bottom quartile
 }
 \description{
-This function calculates the mean of the bottom quartile of a given set of distances.
-}
-\details{
-The function sorts the input distances, determines the size of the bottom quartile,
-extracts the bottom quartile, and calculates its mean.
+Helper function to calculate the mean of the lowest 25\% of values in a
+vector.
 }

@@ -7,20 +7,15 @@
 get_reference_distances(n_colors)
 }
 \arguments{
-\item{n_colors}{An integer specifying the number of colors to generate in each palette.}
+\item{n_colors}{Number of colors to generate in each palette}
 }
 \value{
-A list containing reference distances for three color palettes (batlow, brewer, and tableau).
-Each palette's data is a nested list with four elements:
-\itemize{
-\item original: Mean of bottom quartile distances for original colors
-\item deutan: Mean of bottom quartile distances for deuteranomaly simulation
-\item protan: Mean of bottom quartile distances for protanomaly simulation
-\item tritan: Mean of bottom quartile distances for tritanomaly simulation
-}
+A list containing reference distances for three palettes (batlow,
+brewer, and tableau). Each palette contains mean bottom quartile distances
+for original colors and three CVD simulations.
 }
 \description{
-This function generates reference color palettes and calculates their color distances
-for both original and color vision deficiency (CVD) simulations. It provides a benchmark
-for comparing other color palettes.
+Generates reference color palettes and calculates their color distances in
+both original and CVD simulations to provide benchmarks for palette
+comparison.
 }

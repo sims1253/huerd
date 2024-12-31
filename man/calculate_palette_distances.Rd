@@ -7,17 +7,16 @@
 calculate_palette_distances(colors)
 }
 \arguments{
-\item{colors}{A vector of color names or hex codes representing the palette.}
+\item{colors}{A character vector of color names or hex codes.}
 }
 \value{
-A list containing four vectors of color distances:
-\item{original}{Distances between original color pairs}
-\item{deutan}{Distances between color pairs as perceived by individuals with deuteranomaly}
-\item{protan}{Distances between color pairs as perceived by individuals with protanomaly}
-\item{tritan}{Distances between color pairs as perceived by individuals with tritanomaly}
-Each vector contains the upper triangular part of the distance matrix.
+A list containing four vectors of pairwise color distances:
+\item{original}{Distances in original color space}
+\item{deutan}{Distances in deuteranomaly simulation}
+\item{protan}{Distances in protanomaly simulation}
+\item{tritan}{Distances in tritanomaly simulation}
 }
 \description{
-This function calculates color distances between pairs of colors in a given palette,
-both in the original color space and in simulated color vision deficiency (CVD) spaces.
+Calculates pairwise color distances for a palette in both original and
+simulated color vision deficiency (CVD) spaces.
 }
