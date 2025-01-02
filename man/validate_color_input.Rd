@@ -2,22 +2,22 @@
 % Please edit documentation in R/color_utility.R
 \name{validate_color_input}
 \alias{validate_color_input}
-\title{Input validation for color values}
+\title{Validate color input values}
 \usage{
 validate_color_input(points, space = "lab", distance = FALSE)
 }
 \arguments{
-\item{points}{Matrix of color values}
+\item{points}{Matrix or data frame of color values with 3 columns}
 
-\item{space}{Character string indicating color space ("lab", "rgb", "xyz")}
+\item{space}{Character string specifying color space: "lab", "rgb", or "xyz"}
 
-\item{distance}{Logical indicating whether points are used for distance
-calculation}
+\item{distance}{Logical indicating if points will be used for distance calculations}
 }
 \value{
-Validated matrix or error
+Numeric matrix of validated color values
 }
 \description{
-Input validation for color values
+Performs comprehensive validation of color values for different color spaces.
+Checks input type, dimensions, value ranges, and space-specific constraints.
 }
 \keyword{internal}

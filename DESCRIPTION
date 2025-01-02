@@ -17,7 +17,9 @@ Imports:
     animation,
     RColorBrewer,
     scales,
-    scico
+    scico,
+    pracma,
+    purrr
 Suggests:
     testthat (>= 3.0.0)
 Roxygen: list(markdown = TRUE)

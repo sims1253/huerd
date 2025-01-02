@@ -51,7 +51,7 @@ calculate_all_distances <- function(colors,
   tryCatch(
     {
       # Convert to CAM16-UCS
-      cam16_colors <- xyz_to_cam16ucs(
+      cam16_colors <- xyz_to_CIECAM16(
         colors,
         L_A = viewing_conditions$L_A,
         Y_b = viewing_conditions$Y_b,
@@ -60,7 +60,7 @@ calculate_all_distances <- function(colors,
       )
 
       # Calculate original distances
-      original_distances <- cam16ucs_distance_matrix(cam16_colors)
+      original_distances <- CIECAM16_distance_matrix(cam16_colors)
 
       # Convert to RGB for CVD simulation
       rgb_colors <- farver::convert_colour(colors, from = "xyz", to = "rgb")
@@ -79,7 +79,7 @@ calculate_all_distances <- function(colors,
         cvd_xyz <- farver::convert_colour(cvd_rgb, from = "rgb", to = "xyz")
 
         # Convert to CAM16-UCS
-        cvd_cam16 <- xyz_to_cam16ucs(
+        cvd_cam16 <- xyz_to_CIECAM16(
           cvd_xyz,
           L_A = viewing_conditions$L_A,
           Y_b = viewing_conditions$Y_b,
@@ -87,7 +87,7 @@ calculate_all_distances <- function(colors,
         )
 
         # Calculate distances
-        cvd_distances[[cvd_type]] <- cam16ucs_distance_matrix(cvd_cam16)
+        cvd_distances[[cvd_type]] <- CIECAM16_distance_matrix(cvd_cam16)
       }
 
       # Extract upper triangular part of distance matrices
