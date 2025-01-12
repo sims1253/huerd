@@ -70,14 +70,23 @@ animate_repulsion <- function(n_colors,
   # Get reference distances once before starting animation
   ref_distances <- get_reference_distances(n_colors)
 
+    # Function to draw a color swatch with hex code
+    draw_swatch <- function(x, y, width, height, color, hex_code) {
+      rect(x, y, x + width, y + height, col = color, border = "gray30")
+      # Calculate text color based on background luminance
+      rgb_col <- col2rgb(color)
+      text_col <- ifelse(mean(rgb_col) < 128, "white", "black")
+      text(x + width/2, y + height/2, hex_code, col = text_col, 
+           cex = 2, family = "mono")
+    }
+
   # Create animated GIF with enhanced visualization
   animation::saveGIF(
     {
-      # Set up a 3x2 layout with one empty spot and
-      # ensure square aspect for main plot
-      layout(matrix(c(1, 1, 2, 3, 4, 5), nrow = 3, ncol = 2, byrow = TRUE),
+      # Set up a 3x2 layout with LAB plot and palette on top
+      layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = TRUE),
         heights = c(2, 1, 1)
-      ) # Make the color space plot larger
+      )
 
       # Set default margins for all plots
       par(mar = c(4, 4, 3, 1))
@@ -140,7 +149,24 @@ animate_repulsion <- function(n_colors,
         # Reset to non-square for histograms
         par(pty = "m")
 
-        # 2. Original distances histogram
+        # 2. Color palette visualization
+        par(mar = c(2, 1, 3, 1))
+        plot(NA, NA, xlim = c(0, 1), ylim = c(0, 1),
+             type = "n", xlab = "", ylab = "", xaxt = "n", yaxt = "n",
+             main = "Color Palette")
+        
+        # Calculate swatch dimensions
+        n_total <- length(hex_colors)
+        swatch_height <- min(0.15, 0.9/n_total)
+        y_positions <- seq(0.95 - swatch_height, 0.05, length.out = n_total)
+        
+        # Draw all swatches with hex codes
+        for (j in seq_along(hex_colors)) {
+          draw_swatch(0.1, y_positions[j], 0.8, swatch_height,
+                     hex_colors[j], toupper(hex_colors[j]))
+        }
+
+        # 3. Original distances histogram
         hist(distances$original,
           main = "Original Color Distances",
           xlab = "Distance",
@@ -170,7 +196,7 @@ animate_repulsion <- function(n_colors,
           lwd = 2, lty = c(1, 3, 4, 5)
         )
 
-        # 3. Deuteranopia distances histogram
+        # 4. Deuteranopia distances histogram
         hist(distances$deutan,
           main = "Deuteranopia Distances",
           xlab = "Distance",
@@ -192,7 +218,7 @@ animate_repulsion <- function(n_colors,
           v = ref_distances$brewer$deutan, col = "black", lwd = 2, lty = 4
         )
 
-        # 4. Protanopia distances histogram
+        # 5. Protanopia distances histogram
         hist(distances$protan,
           main = "Protanopia Distances",
           xlab = "Distance",
@@ -214,7 +240,7 @@ animate_repulsion <- function(n_colors,
           v = ref_distances$brewer$protan, col = "black", lwd = 2, lty = 4
         )
 
-        # 5. Tritanopia distances histogram
+        # 6. Tritanopia distances histogram
         hist(distances$tritan,
           main = "Tritanopia Distances",
           xlab = "Distance",
