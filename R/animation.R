@@ -27,15 +27,20 @@
 #' animate_repulsion(8, base_colors = c("#E69F00", "#0072B2"))
 animate_repulsion <- function(n_colors,
                               base_colors = NULL,
-                              max_iterations = 100,
-                              learning_rate = 1,
+                              max_iterations = 500,
                               save_every = 5,
-                              boundary_force = 1,
+                              color_force_factor = 200,
+                              boundary_force_factor = 200,
+                              middle_force_factor = 200,
                               filename = "repulsion.gif",
-                              show_force_field = FALSE) {
+                              show_force_field = FALSE,
+                              convergence_threshold = NULL,
+                              min_iterations= 100) {
   # Input validation
   if (n_colors <= 0) stop("n_colors must be positive")
-  if (learning_rate <= 0) stop("learning_rate must be positive")
+  if (color_force_factor <= 0) stop("color_force_factor must be positive")
+  if (boundary_force_factor <= 0) stop("boundary_force_factor must be positive")
+  if (middle_force_factor <= 0) stop("middle_force_factor must be positive")
   if (save_every <= 0) stop("save_every must be positive")
 
   if (!is.null(base_colors)) {
@@ -45,12 +50,13 @@ animate_repulsion <- function(n_colors,
     }
   }
 
-  states <- simulate_color_repulsion(n_colors,
-    max_iterations = max_iterations,
-    learning_rate = learning_rate,
-    base_colors = base_colors,
-    save_every = save_every,
-    boundary_force = boundary_force,
+  states <- sqrt_repulsion(n_colors,
+    max_iterations,
+    base_colors,
+    save_every,
+    color_force_factor,
+    boundary_force_factor,
+    middle_force_factor,
     return_states = TRUE
   )
 
@@ -94,7 +100,7 @@ animate_repulsion <- function(n_colors,
         if (show_force_field) {
           field <- visualize_force_field(
             points, n_base, n_colors,
-            boundary_force, boundaries
+            boundary_force_factor, boundaries
           )
           image(field$x, field$y,
             field$forces,
@@ -270,14 +276,14 @@ animate_repulsion <- function(n_colors,
 #'   points,
 #'   n_base = 2,
 #'   n_colors = 2,
-#'   boundary_force = 10,
+#'   boundary_force_factor = 10,
 #'   boundaries = boundaries
 #' )
 #' image(result$x, result$y, result$forces)
 #'
 #' @export
 visualize_force_field <- function(
-    points, n_base, n_colors, boundary_force, boundaries, resolution = 50) {
+    points, n_base, n_colors, boundary_force_factor, boundaries, resolution = 50) {
   x <- seq(-100, 100, length.out = resolution)
   y <- seq(-100, 100, length.out = resolution)
   grid <- expand.grid(x = x, y = y)
@@ -305,7 +311,7 @@ visualize_force_field <- function(
     if (radius > 0) {
       target_radius <- boundaries$target_radius
       radius_diff <- abs(radius - target_radius)
-      boundary_potential <- boundary_force * (radius_diff / target_radius)^2
+      boundary_potential <- boundary_force_factor * (radius_diff / target_radius)^2
       potential <- potential + boundary_potential
     }
 

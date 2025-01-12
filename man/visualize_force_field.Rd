@@ -8,7 +8,7 @@ visualize_force_field(
   points,
   n_base,
   n_colors,
-  boundary_force,
+  boundary_force_factor,
   boundaries,
   resolution = 50
 )
@@ -23,14 +23,14 @@ the function).}
 \item{n_colors}{An integer representing the number of colors (points) to
 consider for repulsion.}
 
-\item{boundary_force}{A numeric value representing the force applied by the
-boundary.}
-
 \item{boundaries}{A list containing boundary parameters, specifically
 \code{target_radius}.}
 
 \item{resolution}{An integer representing the resolution of the grid.
 Default is 50.}
+
+\item{boundary_force}{A numeric value representing the force applied by the
+boundary.}
 }
 \value{
 A list containing:
@@ -51,7 +51,7 @@ result <- visualize_force_field(
   points,
   n_base = 2,
   n_colors = 2,
-  boundary_force = 10,
+  boundary_force_factor = 10,
   boundaries = boundaries
 )
 image(result$x, result$y, result$forces)

@@ -2,22 +2,24 @@
 % Please edit documentation in R/color_distances.R
 \name{calculate_all_distances}
 \alias{calculate_all_distances}
-\title{Calculate color distances using CAM16-UCS}
+\title{Calculate Color Distances for CVD Simulations}
 \usage{
-calculate_all_distances(
-  colors,
-  viewing_conditions = list(L_A = 100, Y_b = 20, surround = "average")
-)
+calculate_all_distances(points)
 }
 \arguments{
-\item{colors}{Matrix of xyz color values (n × 3)}
-
-\item{viewing_conditions}{List with viewing condition parameters}
+\item{points}{A matrix or data frame of LAB color values (n × 3), where each
+row represents a color and columns are L, a, and b values.}
 }
 \value{
-List of distance vectors for original and CVD-simulated colors
+A named list of distance vectors:
+\describe{
+\item{original}{Pairwise distances between original colors}
+\item{deutan}{Pairwise distances in deuteranomaly simulation}
+\item{protan}{Pairwise distances in protanomaly simulation}
+\item{tritan}{Pairwise distances in tritanomaly simulation}
+}
 }
 \description{
-Calculates color distances in CAM16-UCS space for both original and
-CVD-simulated colors. Input colors should be in LAB space.
+Calculates color distances between pairs of colors in both original and
+simulated color vision deficiency (CVD) spaces.
 }
