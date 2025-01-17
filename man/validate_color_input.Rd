@@ -4,12 +4,12 @@
 \alias{validate_color_input}
 \title{Validate color input values}
 \usage{
-validate_color_input(points, space = "lab", distance = FALSE)
+validate_color_input(points, space = "oklab", distance = FALSE)
 }
 \arguments{
 \item{points}{Matrix or data frame of color values with 3 columns}
 
-\item{space}{Character string specifying color space: "lab", "rgb", or "xyz"}
+\item{space}{Character string specifying color space: "oklab", "rgb", or "xyz"}
 
 \item{distance}{Logical indicating if points will be used for distance calculations}
 }

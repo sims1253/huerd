@@ -4,11 +4,11 @@
 #' Checks input type, dimensions, value ranges, and space-specific constraints.
 #'
 #' @param points Matrix or data frame of color values with 3 columns
-#' @param space Character string specifying color space: "lab", "rgb", or "xyz"
+#' @param space Character string specifying color space: "oklab", "rgb", or "xyz"
 #' @param distance Logical indicating if points will be used for distance calculations
 #' @return Numeric matrix of validated color values
 #' @keywords internal
-validate_color_input <- function(points, space = "lab", distance = FALSE) {
+validate_color_input <- function(points, space = "oklab", distance = FALSE) {
   # Check if input is matrix or data frame
   if (!is.matrix(points) && !is.data.frame(points)) {
     stop("Input must be a matrix or data frame")
@@ -34,7 +34,7 @@ validate_color_input <- function(points, space = "lab", distance = FALSE) {
   }
 
   # Space-specific validation
-  if (space == "lab") {
+  if (space == "oklab") {
     # L should be between 0 and 100
     if (any(points[, 1] < 0) || any(points[, 1] > 100)) {
       stop("L values must be between 0 and 100")
@@ -95,10 +95,10 @@ initialize_points <- function(n_colors, base_colors = NULL) {
 
   # Convert and place base colors if provided
   if (n_base > 0) {
-    rgb_base <- t(sapply(base_colors, function(c) col2rgb(c)))
+    rgb_base <- farver::decode_colour(base_colors)
     points[1:n_base, ] <- farver::convert_colour(
       rgb_base,
-      from = "rgb", to = "lab"
+      from = "rgb", to = "oklab"
     )
   }
 
@@ -157,7 +157,7 @@ initialize_points <- function(n_colors, base_colors = NULL) {
 get_lab_boundaries <- function(base_colors = NULL) {
   if (!is.null(base_colors)) {
     rgb_base <- t(sapply(base_colors, function(c) col2rgb(c)))
-    lab_base <- farver::convert_colour(rgb_base, "rgb", "lab")
+    lab_base <- farver::convert_colour(rgb_base, "rgb", "oklab")
 
     # Calculate target radius as average radius of base colors
     radii <- sqrt(lab_base[, 2]^2 + lab_base[, 3]^2)
@@ -165,19 +165,19 @@ get_lab_boundaries <- function(base_colors = NULL) {
 
     # L range from base colors with some padding
     l_range <- c(
-      max(30, min(lab_base[, 1]) - 10),
-      min(90, max(lab_base[, 1]) + 10)
+      max(0.2, min(lab_base[, 1]) - 0.1),
+      min(0.9, max(lab_base[, 1]) + 0.1)
     )
   } else {
     # Default values
-    l_range <- c(30, 90)
-    target_radius <- 60
+    l_range <- c(0, 1)
+    target_radius <- 0.6
   }
 
   list(
     l = l_range,
-    a = c(-100, 100), # Keep wide a/b ranges for initialization
-    b = c(-100, 100),
+    a = c(-0.4, 0.4), # Keep wide a/b ranges for initialization
+    b = c(-0.4, 0.4),
     target_radius = target_radius
   )
 }

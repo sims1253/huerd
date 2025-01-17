@@ -5,7 +5,7 @@ context("Color Conversion")
 
 test_that("convert_colors converts black RGB (0,0,0) to LAB correctly", {
   rgb_black <- matrix(c(0, 0, 0), ncol = 3)
-  lab_black <- convert_colors(rgb_black, from = "rgb", to = "lab")
+  lab_black <- convert_colors(rgb_black, from = "rgb", to = "oklab")
 
   expect_equal(lab_black[[1, 1]], 0, tolerance = 1e-6)
   expect_equal(lab_black[[1, 2]], 0, tolerance = 1e-6)
@@ -18,10 +18,10 @@ test_that(
     rgb_input <- matrix(c(255, 128, 0), ncol = 3)
     lab_output <- convert_colors(
       rgb_input,
-      from = "rgb", to = "lab", normalized = FALSE
+      from = "rgb", to = "oklab", normalized = FALSE
     )
 
-    expected_lab <- farver::convert_colour(rgb_input, from = "rgb", to = "lab")
+    expected_lab <- farver::convert_colour(rgb_input, from = "rgb", to = "oklab")
 
     expect_equal(lab_output, expected_lab, tolerance = 1e-6)
   }

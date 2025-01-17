@@ -29,9 +29,9 @@ animate_repulsion <- function(n_colors,
                               base_colors = NULL,
                               max_iterations = 500,
                               save_every = 5,
-                              color_force_factor = 200,
-                              boundary_force_factor = 200,
-                              middle_force_factor = 200,
+                              color_force_factor = 1,
+                              boundary_force_factor = 0.008,
+                              center_force_factor = 0.0005,
                               filename = "repulsion.gif",
                               show_force_field = FALSE,
                               convergence_threshold = NULL,
@@ -40,7 +40,7 @@ animate_repulsion <- function(n_colors,
   if (n_colors <= 0) stop("n_colors must be positive")
   if (color_force_factor <= 0) stop("color_force_factor must be positive")
   if (boundary_force_factor <= 0) stop("boundary_force_factor must be positive")
-  if (middle_force_factor <= 0) stop("middle_force_factor must be positive")
+  if (center_force_factor <= 0) stop("middle_force_factor must be positive")
   if (save_every <= 0) stop("save_every must be positive")
 
   if (!is.null(base_colors)) {
@@ -51,13 +51,15 @@ animate_repulsion <- function(n_colors,
   }
 
   states <- sqrt_repulsion(n_colors,
-    max_iterations,
-    base_colors,
-    save_every,
-    color_force_factor,
-    boundary_force_factor,
-    middle_force_factor,
-    return_states = TRUE
+                           max_iterations = max_iterations,
+                           base_colors = base_colors,
+                           save_every = save_every,
+                           color_force_factor = color_force_factor,
+                           boundary_force_factor = boundary_force_factor,
+                           center_force_factor = center_force_factor,
+                           return_states = TRUE,
+                           convergence_threshold = convergence_threshold,
+                           min_iterations = min_iterations
   )
 
   # Remove NULL entries
@@ -76,7 +78,7 @@ animate_repulsion <- function(n_colors,
       # Calculate text color based on background luminance
       rgb_col <- col2rgb(color)
       text_col <- ifelse(mean(rgb_col) < 128, "white", "black")
-      text(x + width/2, y + height/2, hex_code, col = text_col, 
+      text(x + width/2, y + height/2, hex_code, col = text_col,
            cex = 2, family = "mono")
     }
 
@@ -125,8 +127,8 @@ animate_repulsion <- function(n_colors,
           )
         } else {
           plot(NA, NA,
-            xlim = c(-100, 100),
-            ylim = c(-100, 100),
+            xlim = c(-0.4, 0.4),
+            ylim = c(-0.4, 0.4),
             xlab = "a", ylab = "b",
             main = sprintf("Iteration %d", (i - 1) * save_every)
           )
@@ -134,7 +136,7 @@ animate_repulsion <- function(n_colors,
         }
 
         # Plot colors
-        hex_colors <- farver::encode_colour(points, from = "lab")
+        hex_colors <- farver::encode_colour(points, from = "oklab")
         points(points[, 2], points[, 3],
           col = hex_colors, pch = 16, cex = 2
         )
@@ -154,12 +156,12 @@ animate_repulsion <- function(n_colors,
         plot(NA, NA, xlim = c(0, 1), ylim = c(0, 1),
              type = "n", xlab = "", ylab = "", xaxt = "n", yaxt = "n",
              main = "Color Palette")
-        
+
         # Calculate swatch dimensions
         n_total <- length(hex_colors)
         swatch_height <- min(0.15, 0.9/n_total)
         y_positions <- seq(0.95 - swatch_height, 0.05, length.out = n_total)
-        
+
         # Draw all swatches with hex codes
         for (j in seq_along(hex_colors)) {
           draw_swatch(0.1, y_positions[j], 0.8, swatch_height,
@@ -431,7 +433,7 @@ plot_state <- function(
   # Plot points on top
   points(points[, 2], points[, 3],
     pch = 19,
-    col = farver::encode_colour(points, from_space = "lab")
+    col = farver::encode_colour(points, from_space = "oklab")
   )
 
   if (!is.null(base_colors)) {

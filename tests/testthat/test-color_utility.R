@@ -9,8 +9,8 @@ test_that("validate_color_input handles basic input correctly", {
     60, 10, -10
   ), ncol = 3, byrow = TRUE)
 
-  expect_no_error(validate_color_input(valid_lab, "lab"))
-  expect_equal(nrow(validate_color_input(valid_lab, "lab")), 2)
+  expect_no_error(validate_color_input(valid_lab, "oklab"))
+  expect_equal(nrow(validate_color_input(valid_lab, "oklab")), 2)
 
   # Test valid RGB input
   valid_rgb <- matrix(c(
@@ -37,7 +37,7 @@ test_that("validate_color_input converts data frame to matrix", {
     b = c(0, -10)
   )
 
-  result <- validate_color_input(df_input, "lab")
+  result <- validate_color_input(df_input, "oklab")
   expect_true(is.matrix(result))
   expect_equal(dim(result), c(2, 3))
 })
@@ -50,7 +50,7 @@ test_that("validate_color_input validates LAB space constraints", {
   ), ncol = 3, byrow = TRUE)
 
   expect_error(
-    validate_color_input(invalid_L, "lab"),
+    validate_color_input(invalid_L, "oklab"),
     "L values must be between 0 and 100"
   )
 
@@ -61,7 +61,7 @@ test_that("validate_color_input validates LAB space constraints", {
   ), ncol = 3, byrow = TRUE)
 
   expect_warning(
-    validate_color_input(extreme_ab, "lab"),
+    validate_color_input(extreme_ab, "oklab"),
     "Extreme a\\* or b\\* values detected \\(>100 or <-100\\)"
   )
 })
@@ -122,7 +122,7 @@ test_that("validate_color_input handles missing values correctly", {
   ), ncol = 3, byrow = TRUE)
 
   expect_error(
-    validate_color_input(na_input, "lab"),
+    validate_color_input(na_input, "oklab"),
     "Input contains missing values"
   )
 })
@@ -135,14 +135,14 @@ test_that("validate_color_input checks dimensions", {
   ), ncol = 2, byrow = TRUE)
 
   expect_error(
-    validate_color_input(wrong_cols, "lab"),
+    validate_color_input(wrong_cols, "oklab"),
     "Input must have exactly 3 columns"
   )
 
   # Test single row input with distance=TRUE
   single_row <- matrix(c(50, 0, 0), nrow = 1)
   expect_error(
-    validate_color_input(single_row, "lab", distance = TRUE),
+    validate_color_input(single_row, "oklab", distance = TRUE),
     "Input must have at least 2 rows for distance calculation"
   )
 })

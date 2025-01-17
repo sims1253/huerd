@@ -29,12 +29,12 @@ sqrt_repulsion <- function(
       stop("Number of base_colors must be less than n_colors")
     }
   }
-  
+
   # Set default convergence threshold based on number of colors if not provided
   if (is.null(convergence_threshold)) {
-    convergence_threshold <- 0.01 / sqrt(n_colors)  # Scales with number of colors
+    convergence_threshold <- 0.00001 / sqrt(n_colors)  # Scales with number of colors
   }
-  
+
   # Initialize color positions and state tracking
   points <- initialize_points(n_colors, base_colors)
   states <- vector(mode = "list", length = floor(max_iterations / save_every))
@@ -54,7 +54,7 @@ sqrt_repulsion <- function(
     # Point Repulsion - Vectorized calculation
     distances <- farver::compare_colour(
       points,
-      from_space = "lab",
+      from_space = "oklab",
       method = "cie2000"
     )
     distances[lower.tri(distances)] <- t(distances)[lower.tri(distances)]
@@ -76,8 +76,8 @@ sqrt_repulsion <- function(
 
       # Combine magnitude and direction
       forces[i,] <- colSums(sweep(direction_vectors, 1, force_magnitudes, "*"))
-    }
 
+    }
     # boundary and center repulsion forces
     for (i in (n_base + 1):n_colors) {
       point <- points[i, ]
@@ -88,31 +88,31 @@ sqrt_repulsion <- function(
       l_max_dist <- boundaries$l[2] - point[1] # Distance to upper L boundary
 
       # Force pointing up from lower boundary (positive direction)
-      boundary_force[1] <- boundary_force[1] + boundary_force_factor / (l_min_dist^2)
+      boundary_force[1] <- boundary_force[1] + boundary_force_factor / sqrt(l_min_dist)
 
       # Force pointing down from upper boundary (negative direction)
-      boundary_force[1] <- boundary_force[1] - boundary_force_factor / (l_max_dist^2)
+      boundary_force[1] <- boundary_force[1] - boundary_force_factor / sqrt(l_max_dist)
 
       # a-b plane boundaries
-      a_min_dist <- point[2] - boundaries$a[1]  # Distance to -100
-      a_max_dist <- boundaries$a[2] - point[2]  # Distance to +100
-      b_min_dist <- point[3] - boundaries$b[1]  # Distance to -100
-      b_max_dist <- boundaries$b[2] - point[3]  # Distance to +100
+      a_min_dist <- point[2] - boundaries$a[1]  # Distance to -1
+      a_max_dist <- boundaries$a[2] - point[2]  # Distance to +1
+      b_min_dist <- point[3] - boundaries$b[1]  # Distance to -1
+      b_max_dist <- boundaries$b[2] - point[3]  # Distance to +1
 
       # Repulsion from a boundaries
-      boundary_force[2] <- boundary_force[2] + boundary_force_factor / (a_min_dist^2)
-      boundary_force[2] <- boundary_force[2] - boundary_force_factor / (a_max_dist^2)
+      boundary_force[2] <- boundary_force[2] + boundary_force_factor / ifelse(abs(a_min_dist) < 1, sqrt(a_min_dist), a_min_dist^2)
+      boundary_force[2] <- boundary_force[2] - boundary_force_factor / ifelse(abs(a_max_dist) < 1, sqrt(a_max_dist), a_max_dist^2)
 
       # Repulsion from b boundaries
-      boundary_force[3] <- boundary_force[3] + boundary_force_factor / (b_min_dist^2)
-      boundary_force[3] <- boundary_force[3] - boundary_force_factor / (b_max_dist^2)
+      boundary_force[3] <- boundary_force[3] + boundary_force_factor / ifelse(abs(b_min_dist) < 1, sqrt(b_min_dist), b_min_dist^2)
+      boundary_force[3] <- boundary_force[3] - boundary_force_factor / ifelse(abs(b_max_dist) < 1, sqrt(b_max_dist), b_max_dist^2)
 
       # Repulsion from center
       radius <- sqrt(point[2]^2 + point[3]^2)
       if (!is.na(radius) && radius > 0) {
         # Force gets stronger as points get closer to center
-        force_magnitude <- center_force_factor / (radius^2)
-        
+        force_magnitude <- center_force_factor / sqrt(radius)
+
         # Push outward from center - positive direction in both a and b
         boundary_force[2] <- boundary_force[2] + force_magnitude * point[2] / radius
         boundary_force[3] <- boundary_force[3] + force_magnitude * point[3] / radius
@@ -136,9 +136,9 @@ sqrt_repulsion <- function(
       movement <- sqrt(mean((points - prev_points)^2))
       movement_history[history_index] <- movement
       history_index <- (history_index %% 5) + 1
-      
+
       # Check for convergence using moving average
-      if (mean(movement_history) < convergence_threshold && 
+      if (mean(movement_history) < convergence_threshold &&
           max(movement_history) < convergence_threshold * 1.5) {
         # Save final state before breaking
         current_save_index <- floor(iter / save_every) + 1
@@ -148,7 +148,7 @@ sqrt_repulsion <- function(
         break
       }
     }
-    
+
     prev_points <- points
 
     # Save state if needed

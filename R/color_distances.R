@@ -38,10 +38,7 @@ get_reference_distances <- function(n_colors) {
     palettes,
     function(colors) {
       calculate_all_distances(
-        farver::convert_colour(
-          t(grDevices::col2rgb(colors)),
-          from = "rgb", to = "xyz"
-        )
+       farver::decode_colour(colors, to = "oklab")
       )
     }
   )
@@ -81,7 +78,7 @@ get_reference_distances <- function(n_colors) {
 calculate_color_distances <- function(points) {
   distances <- farver::compare_colour(
     points,
-    from_space = "lab",
+    from_space = "oklab",
     method = "cie2000"
   )
 
@@ -113,12 +110,12 @@ calculate_color_distances <- function(points) {
 #' @export
 calculate_all_distances <- function(points) {
   # Convert LAB to RGB for CVD simulation
-  rgb_colors <- farver::convert_colour(points, from = "lab", to = "rgb")
+  rgb_colors <- farver::convert_colour(points, from = "oklab", to = "rgb")
 
   # Calculate distances in original LAB space
   original_distances <- farver::compare_colour(
     points,
-    from_space = "lab",
+    from_space = "oklab",
     method = "cie2000"
   )
 
@@ -131,8 +128,8 @@ calculate_all_distances <- function(points) {
 
   # Convert simulated colors back to LAB and calculate distances
   cvd_distances <- lapply(cvd_colors, function(rgb) {
-    lab <- farver::convert_colour(rgb, from = "rgb", to = "lab")
-    farver::compare_colour(lab, from_space = "lab", method = "cie2000")
+    lab <- farver::convert_colour(rgb, from = "rgb", to = "oklab")
+    farver::compare_colour(lab, from_space = "oklab", method = "cie2000")
   })
 
   # Extract upper triangular part of distance matrices

@@ -142,7 +142,7 @@ calculate_forces <- function(
   # Get perceptual distances
   distances <- farver::compare_colour(
     points,
-    from_space = "lab",
+    from_space = "oklab",
     method = "cie2000"
   )
 
