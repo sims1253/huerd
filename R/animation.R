@@ -24,24 +24,25 @@
 #' animate_repulsion(8)
 #'
 #' # Generate animation with fixed base colors
-#' animate_repulsion(8, base_colors = c("#E69F00", "#0072B2"))
-animate_repulsion <- function(n_colors,
+#' states <- sqrt_repulsion(n_colors,
+#'   max_iterations = max_iterations,
+#'   base_colors = base_colors,
+#'   save_every = save_every,
+#'   color_force_factor = color_force_factor,
+#'   boundary_force_factor = boundary_force_factor,
+#'   center_force_factor = center_force_factor,
+#'   return_states = TRUE,
+#'   convergence_threshold = convergence_threshold,
+#'   min_iterations = min_iterations
+#' )
+#' animate_repulsion(states, 8, base_colors = c("#E69F00", "#0072B2"))
+animate_repulsion <- function(states,
+                              n_colors,
                               base_colors = NULL,
-                              max_iterations = 500,
-                              save_every = 5,
-                              color_force_factor = 200,
-                              boundary_force_factor = 200,
-                              middle_force_factor = 200,
                               filename = "repulsion.gif",
-                              show_force_field = FALSE,
-                              convergence_threshold = NULL,
-                              min_iterations= 100) {
+                              show_force_field = FALSE) {
   # Input validation
   if (n_colors <= 0) stop("n_colors must be positive")
-  if (color_force_factor <= 0) stop("color_force_factor must be positive")
-  if (boundary_force_factor <= 0) stop("boundary_force_factor must be positive")
-  if (middle_force_factor <= 0) stop("middle_force_factor must be positive")
-  if (save_every <= 0) stop("save_every must be positive")
 
   if (!is.null(base_colors)) {
     valid_hex <- grepl("^#[0-9A-Fa-f]{6}$", base_colors)
@@ -49,16 +50,6 @@ animate_repulsion <- function(n_colors,
       stop("Invalid color format in base_colors")
     }
   }
-
-  states <- sqrt_repulsion(n_colors,
-    max_iterations,
-    base_colors,
-    save_every,
-    color_force_factor,
-    boundary_force_factor,
-    middle_force_factor,
-    return_states = TRUE
-  )
 
   # Remove NULL entries
   states <- states[!sapply(states, is.null)]
@@ -70,15 +61,17 @@ animate_repulsion <- function(n_colors,
   # Get reference distances once before starting animation
   ref_distances <- get_reference_distances(n_colors)
 
-    # Function to draw a color swatch with hex code
-    draw_swatch <- function(x, y, width, height, color, hex_code) {
-      rect(x, y, x + width, y + height, col = color, border = "gray30")
-      # Calculate text color based on background luminance
-      rgb_col <- col2rgb(color)
-      text_col <- ifelse(mean(rgb_col) < 128, "white", "black")
-      text(x + width/2, y + height/2, hex_code, col = text_col, 
-           cex = 2, family = "mono")
-    }
+  # Function to draw a color swatch with hex code
+  draw_swatch <- function(x, y, width, height, color, hex_code) {
+    rect(x, y, x + width, y + height, col = color, border = "gray30")
+    # Calculate text color based on background luminance
+    rgb_col <- col2rgb(color)
+    text_col <- ifelse(mean(rgb_col) < 128, "white", "black")
+    text(x + width / 2, y + height / 2, hex_code,
+      col = text_col,
+      cex = 2, family = "mono"
+    )
+  }
 
   # Create animated GIF with enhanced visualization
   animation::saveGIF(
@@ -151,19 +144,23 @@ animate_repulsion <- function(n_colors,
 
         # 2. Color palette visualization
         par(mar = c(2, 1, 3, 1))
-        plot(NA, NA, xlim = c(0, 1), ylim = c(0, 1),
-             type = "n", xlab = "", ylab = "", xaxt = "n", yaxt = "n",
-             main = "Color Palette")
-        
+        plot(NA, NA,
+          xlim = c(0, 1), ylim = c(0, 1),
+          type = "n", xlab = "", ylab = "", xaxt = "n", yaxt = "n",
+          main = "Color Palette"
+        )
+
         # Calculate swatch dimensions
         n_total <- length(hex_colors)
-        swatch_height <- min(0.15, 0.9/n_total)
+        swatch_height <- min(0.15, 0.9 / n_total)
         y_positions <- seq(0.95 - swatch_height, 0.05, length.out = n_total)
-        
+
         # Draw all swatches with hex codes
         for (j in seq_along(hex_colors)) {
-          draw_swatch(0.1, y_positions[j], 0.8, swatch_height,
-                     hex_colors[j], toupper(hex_colors[j]))
+          draw_swatch(
+            0.1, y_positions[j], 0.8, swatch_height,
+            hex_colors[j], toupper(hex_colors[j])
+          )
         }
 
         # 3. Original distances histogram

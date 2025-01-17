@@ -176,8 +176,8 @@ get_lab_boundaries <- function(base_colors = NULL) {
 
   list(
     l = l_range,
-    a = c(-100, 100), # Keep wide a/b ranges for initialization
-    b = c(-100, 100),
+    a = c(-86, 98), # Keep wide a/b ranges for initialization
+    b = c(-108, 96),
     target_radius = target_radius
   )
 }

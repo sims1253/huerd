@@ -5,17 +5,11 @@
 \title{Animate Color Repulsion Process}
 \usage{
 animate_repulsion(
+  states,
   n_colors,
   base_colors = NULL,
-  max_iterations = 500,
-  save_every = 5,
-  color_force_factor = 200,
-  boundary_force_factor = 200,
-  middle_force_factor = 200,
   filename = "repulsion.gif",
-  show_force_field = FALSE,
-  convergence_threshold = NULL,
-  min_iterations = 100
+  show_force_field = FALSE
 )
 }
 \arguments{
@@ -25,16 +19,16 @@ animate_repulsion(
 (e.g. "#FF0000") that will remain fixed during
 animation}
 
-\item{max_iterations}{Maximum number of iterations for the repulsion
-simulation}
-
-\item{save_every}{Save state every n iterations for animation frames}
-
 \item{filename}{Output GIF filename}
 
 \item{show_force_field}{Whether to visualize the repulsion force field}
 
+\item{max_iterations}{Maximum number of iterations for the repulsion
+simulation}
+
 \item{learning_rate}{Controls magnitude of color movements per iteration}
+
+\item{save_every}{Save state every n iterations for animation frames}
 
 \item{boundary_force}{Strength of containment force keeping colors within
 valid RGB bounds}
@@ -51,5 +45,16 @@ space to generate a perceptually distinct color palette.
 animate_repulsion(8)
 
 # Generate animation with fixed base colors
-animate_repulsion(8, base_colors = c("#E69F00", "#0072B2"))
+states <- sqrt_repulsion(n_colors,
+  max_iterations = max_iterations,
+  base_colors = base_colors,
+  save_every = save_every,
+  color_force_factor = color_force_factor,
+  boundary_force_factor = boundary_force_factor,
+  center_force_factor = center_force_factor,
+  return_states = TRUE,
+  convergence_threshold = convergence_threshold,
+  min_iterations = min_iterations
+)
+animate_repulsion(states, 8, base_colors = c("#E69F00", "#0072B2"))
 }
