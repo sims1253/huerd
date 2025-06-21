@@ -1,0 +1,122 @@
+---
+title: "Introduction to huerd"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to huerd}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+The `huerd` package provides a scientifically-grounded approach to generating categorical color palettes. It uses a pure minimax optimization algorithm in the perceptually uniform OKLAB color space to create palettes with maximally distinct colors.
+
+This vignette will walk you through the core features of `huerd`, from basic palette generation to in-depth analysis.
+
+## Installation
+
+You can install the development version of `huerd` from GitHub with:
+
+```R
+# install.packages("remotes")
+# remotes::install_github("sims1253/huerd")
+```
+
+## Basic Palette Generation
+
+The simplest way to use `huerd` is with the `generate_palette()` function. By default, it will create a palette of the specified size with colors that are as distinct as possible.
+
+```{r}
+library(huerd)
+
+# Generate a palette of 5 colors
+palette <- generate_palette(5, progress = FALSE)
+print(palette)
+```
+
+All palettes are automatically sorted by brightness (lightness in the OKLAB space), making them intuitive to use.
+
+## Constrained Palettes
+
+A key feature of `huerd` is the ability to include fixed "brand" colors in your palette while optimizing the remaining colors around them.
+
+```{r}
+# Generate a 6-color palette that must include a specific blue and orange
+brand_palette <- generate_palette(
+  n = 6,
+  include_colors = c("#4A6B8A", "#E5A04C"),
+  progress = FALSE
+)
+print(brand_palette)
+```
+
+## Palette Analysis
+
+`huerd` includes powerful tools for analyzing the quality of your palettes.
+
+### `evaluate_palette()`
+
+The `evaluate_palette()` function provides a detailed, quantitative assessment of a palette's properties.
+
+```{r}
+# Evaluate the brand palette we just created
+evaluation <- evaluate_palette(brand_palette)
+print(evaluation)
+```
+
+This function returns a wealth of information, including:
+
+*   **Perceptual Distances**: Minimum, mean, and other statistics about the distances between colors.
+*   **CVD Safety**: How the palette performs under simulated color vision deficiency.
+*   **Color Distribution**: Statistics on the spread of lightness, chroma, and hue.
+
+### `plot_palette_analysis()`
+
+For a more visual analysis, the `plot_palette_analysis()` function creates a comprehensive dashboard.
+
+```{r, fig.width=10, fig.height=6}
+# Create the diagnostic dashboard
+plot_palette_analysis(brand_palette)
+```
+
+This dashboard provides six key visualizations:
+
+1.  **Color Swatches**: An overview of the palette with key metrics.
+2.  **Pairwise Distance Matrix**: A heatmap showing the perceptual distance between every pair of colors.
+3.  **Nearest Neighbor Distances**: A bar chart showing how distinct each color is from its closest neighbor.
+4.  **OKLAB Color Space**: A projection of the colors in the `a*b*` plane of the OKLAB space.
+5.  **CVD Simulation**: How the palette appears to individuals with the three most common types of color vision deficiency.
+6.  **Comparative Palettes**: A comparison of your palette's distance distribution against established palettes like Viridis and Set2.
+
+## CVD Accessibility
+
+`huerd` provides two main tools for working with CVD.
+
+### `is_cvd_safe()`
+
+This function provides a simple, programmatic check to see if a palette meets a minimum threshold for CVD safety.
+
+```{r}
+is_cvd_safe(brand_palette)
+```
+
+### `simulate_palette_cvd()`
+
+This function allows you to see how your palette would appear to individuals with different types of CVD.
+
+```{r}
+# Simulate the appearance for all CVD types
+cvd_simulation <- simulate_palette_cvd(brand_palette, cvd_type = "all")
+print(cvd_simulation)
+```
+
+## Conclusion
+
+This vignette has covered the core functionality of the `huerd` package. By combining pure minimax optimization with comprehensive analysis tools, `huerd` provides a powerful and flexible solution for creating high-quality, accessible color palettes.
