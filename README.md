@@ -1,5 +1,11 @@
 # huerd: Herding hues
-A discrete color palette generation tool that creates perceptually distinct colors optimized for both normal and color vision deficient viewers.
+
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![R-CMD-check](https://github.com/sims1253/huerd/workflows/R-CMD-check/badge.svg)](https://github.com/sims1253/huerd/actions)
+[![Actions Status](https://github.com/sims1253/huerd/workflows/Tests/badge.svg)](https://github.com/sims1253/huerd/actions)
+[![Codecov test coverage](https://codecov.io/gh/sims1253/huerd/graph/badge.svg)](https://app.codecov.io/gh/sims1253/huerd)
+
+A discrete color palette generation tool that creates perceptually distinct colors optimized for both normal and color vision deficient viewers and supports fixed colors.
 
 ## Installation
 
@@ -10,106 +16,107 @@ if (!requireNamespace("remotes")) {
 remotes::install_github("sims1253/huerd")
 ```
 
-## Usage
+## Basic Usage
 
-### Basic Color Palette Generation
-
-Generate a palette of perceptually distinct colors using inverse square law repulsion:
+Generate a palette of maximally distinct colors using pure minimax optimization:
 
 ```R
 library(huerd)
 
-# Generate 8 colors
-colors <- sqrt_repulsion(
-  n_colors = 8,
-  max_iterations = 1000,
-  color_force_factor = 200,
-  boundary_force_factor = 400,
-  center_force_factor = 150
-)
+# Generate 5 colors (automatically sorted by brightness)
+palette <- generate_palette(5)
+print(palette)
 
-# Convert LAB colors to hex format
-hex_colors <- farver::encode_colour(colors, from = "lab")
+# The package uses pure minimax optimization to maximize the minimum 
+# perceptual distance between any two colors in the palette
 ```
 
-### Color Vision Deficiency (CVD) Optimization
+## Constrained Color Palettes
 
-Take the generated palette and optimize it for color vision deficiency:
+Include specific colors while optimizing the remaining colors:
 
 ```R
-# Optimize colors for CVD viewers
-cvd_optimized <- adjust_for_cvd(
-  lab_colors = colors,
-  max_iterations = 1000,
-  convergence_threshold = 10,
-  min_iterations = 100
+# Generate 6 colors including fixed colors
+palette <- generate_palette(
+  n = 6,
+  include_colors = c("#4A6B8A", "#E5A04C")
 )
-
-# Convert optimized colors to hex
-hex_optimized <- farver::encode_colour(cvd_optimized, from = "lab")
+print(palette)
 ```
 
-### Animating the Process
+## Diagnostic Dashboard
 
-Create an animated visualization of the color optimization process:
+Analyze palette quality with a dashboard:
 
 ```R
-# Generate animation states
-states <- sqrt_repulsion(
-  n_colors = 8,
-  max_iterations = 1000,
-  return_states = TRUE,
-  save_every = 5
-)
+# Generate a palette
+palette <- generate_palette(6)
 
-# Create animation
-animate_repulsion(
-  states = states,
-  n_colors = 8,
-  filename = "color_optimization.gif",
-  show_force_field = TRUE
+# Create diagnostic dashboard
+plot_palette_analysis(palette)
+```
+
+## Palette Quality Evaluation
+
+Pure data provider for detailed post-hoc analysis:
+
+```R
+# Generate and evaluate a palette
+palette <- generate_palette(4)
+evaluation <- evaluate_palette(palette)
+
+# Access raw metrics (no subjective scoring)
+cat("Minimum distance:", evaluation$distances$min, "\n")
+cat("Performance ratio:", evaluation$distances$performance_ratio * 100, "%\n")
+cat("CVD worst case:", evaluation$cvd_safety$worst_case_min_distance, "\n")
+```
+
+## Custom Parameters
+
+Fine-tune the generation process:
+
+```R
+palette <- generate_palette(
+  n = 8,
+  initialization = "harmony",              # Color harmony-based initialization
+  init_lightness_bounds = c(0.3, 0.8),    # Constrain lightness range
+  max_iterations = 2000                    # Show progress
 )
 ```
 
-### Complete Example
-
-Here's a complete example that combines all three features:
+## Complete Workflow Example
 
 ```R
 library(huerd)
 
-# 1. Generate initial palette with animation states
-repulsion_states <- sqrt_repulsion(
-  n_colors = 8,
-  max_iterations = 1000,
-  base_colors = c("#FF0000", "#00FF00"), # Optional fixed colors
-  return_states = TRUE,
-  save_every = 5,
-  color_force_factor = 200,
-  boundary_force_factor = 400,
-  center_force_factor = 150
+# 1. Generate brand-constrained palette with pure minimax optimization
+brand_palette <- generate_palette(
+  n = 8,
+  include_colors = c("#1f77b4", "#ff7f0e"),  # Fixed brand colors
+  return_metrics = TRUE,
+  progress = TRUE
 )
 
-# 2. Get final colors and optimize for CVD
-cvd_adjustment_states <- adjust_for_cvd(
-  lab_colors = tail(states, 1)[[1]],
-  max_iterations = 1000,
-  convergence_threshold = 10,
-  min_iterations = 100
-)
-cvd_optimized_color <- tail(cvd_adjustment_states, 1)[[1]]
+# 2. Comprehensive diagnostic analysis
+plot_palette_analysis(brand_palette)
 
-# 3. Create animation of the process
-animate_repulsion(
-  states = c(repulsion_states, cvd_adjustment_states),
-  n_colors = 8,
-  base_colors = c("#FF0000", "#00FF00"),
-  filename = "palette_generation.gif",
-  show_force_field = TRUE
-)
+# 3. Detailed quality evaluation
+evaluation <- evaluate_palette(brand_palette)
+cat("Min distance:", round(evaluation$distances$min, 3), "\n")
+cat("Performance:", round(evaluation$distances$performance_ratio * 100, 1), "%\n")
 
-# Convert final colors to hex format
-hex_colors <- farver::encode_colour(cvd_optimized_color, from = "lab")
-colorspace::swatchplot(hex_colors)
-print(hex_colors)
+# 4. CVD accessibility check
+cvd_safe <- is_cvd_safe(brand_palette)
+if (cvd_safe) {
+  cat("Palette is CVD-accessible\n")
+} else {
+  cat("Palette may challenge CVD viewers\n")
+}
+
+# 5. CVD simulation for verification
+cvd_simulation <- simulate_palette_cvd(brand_palette, cvd_type = "all")
+print(cvd_simulation)
+
+# 6. Display final palette (colors are brightness-sorted)
+print(brand_palette)
 ```

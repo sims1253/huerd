@@ -1,3 +1,6 @@
 ^huerd\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
+^LICENSE\.md$
+^doc$
+^Meta$
