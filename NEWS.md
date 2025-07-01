@@ -1,4 +1,4 @@
-# huerd 0.0.4 (2025-07-01)
+# huerd 0.1.0 (2025-07-01)
 
 This is a major refactoring and simplification of `huerd`, focusing the package on a single, scientifically-grounded objective: pure minimax color palette generation.
 
