@@ -1,6 +1,6 @@
 Package: huerd
 Title: Color Palette Optimization with fixed colors
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     person("Maximilian", "Scholz", , "dev.scholz@mailbox.org", role = c("aut", "cre"))
 Description: Generates color palettes using minimax optimization to maximize the
@@ -14,9 +14,7 @@ Encoding: UTF-8
 LazyData: true
 Depends: R (>= 2.10)
 Imports:
-    cli,
     colorspace,
-    crayon,
     farver,
     nloptr
 Suggests:

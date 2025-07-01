@@ -37,7 +37,5 @@
 #' @importFrom stats runif dist optim var sd quantile median setNames
 #' @importFrom utils modifyList packageVersion head str
 #' @importFrom grDevices rgb col2rgb
-#' @importFrom cli cli_progress_step cli_progress_done cli_alert_warning cli_alert_info cli_alert_success cli_h1 cli_h2 cli_text cli_bullets
-#' @importFrom crayon black white make_style
 ## usethis namespace: end
 NULL
