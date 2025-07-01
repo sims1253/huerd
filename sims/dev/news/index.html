@@ -58,10 +58,10 @@
     </div>
 
     <div class="section level2">
-<h2 class="page-header" data-toc-text="0.0.4" id="huerd-004-2025-07-01">huerd 0.0.4 (2025-07-01)<a class="anchor" aria-label="anchor" href="#huerd-004-2025-07-01"></a></h2>
+<h2 class="page-header" data-toc-text="0.1.0" id="huerd-010-2025-07-01">huerd 0.1.0 (2025-07-01)<a class="anchor" aria-label="anchor" href="#huerd-010-2025-07-01"></a></h2>
 <p>This is a major refactoring and simplification of <code>huerd</code>, focusing the package on a single, scientifically-grounded objective: pure minimax color palette generation.</p>
 <div class="section level3">
-<h3 id="major-changes-0-0-4">Major Changes<a class="anchor" aria-label="anchor" href="#major-changes-0-0-4"></a></h3>
+<h3 id="major-changes-0-1-0">Major Changes<a class="anchor" aria-label="anchor" href="#major-changes-0-1-0"></a></h3>
 <ul><li>
 <strong>Pure Minimax Optimization</strong>: The core <code><a href="../reference/generate_palette.html">generate_palette()</a></code> function has been streamlined to use a pure minimax objective, maximizing the minimum perceptual distance between colors in the OKLAB space. All complex multi-objective parameters (<code>optimize_for</code>, <code>balance_weights</code>, <code>aesthetic_penalty_weights_LC</code>) have been removed, simplifying the API and aligning the package with a clear, defensible scientific goal.</li>
 <li>
@@ -72,12 +72,12 @@
 <strong>Simplified Evaluation</strong>: The <code><a href="../reference/evaluate_palette.html">evaluate_palette()</a></code> function is now a pure data provider, returning raw, objective metrics (distances, CVD safety, color distribution) without any subjective heuristic scoring.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="minor-changes-0-0-4">Minor Changes<a class="anchor" aria-label="anchor" href="#minor-changes-0-0-4"></a></h3>
+<h3 id="minor-changes-0-1-0">Minor Changes<a class="anchor" aria-label="anchor" href="#minor-changes-0-1-0"></a></h3>
 <ul><li>The <code><a href="../reference/is_cvd_safe.html">is_cvd_safe()</a></code> function now uses the more robust <code><a href="../reference/evaluate_palette.html">evaluate_palette()</a></code> function for its calculations.</li>
 <li>The print methods for <code>huerd_palette</code> and <code>huerd_evaluation</code> have been updated to reflect the new, simplified data structures.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="removals-0-0-4">Removals<a class="anchor" aria-label="anchor" href="#removals-0-0-4"></a></h3>
+<h3 id="removals-0-1-0">Removals<a class="anchor" aria-label="anchor" href="#removals-0-1-0"></a></h3>
 <p>The following experimental and non-essential features have been removed to streamline the package:</p>
 <ul><li>Force-field and repulsion-based optimization algorithms.</li>
 <li>Palette animation framework.</li>
