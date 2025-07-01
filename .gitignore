@@ -11,3 +11,6 @@
 repulsion.gif
 /doc/
 /Meta/
+vignettes/*.html
+vignettes/*.R
+inst/doc

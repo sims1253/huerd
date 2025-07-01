@@ -15,10 +15,10 @@ adhere to the aesthetic "vibe" (Lightness and Chroma profile) of the fixed color
 \section{Main Functions}{
 
 \describe{
-\item{\code{\link{generate_palette}}}{Generate a color palette with constraints.}
-\item{\code{\link{evaluate_palette}}}{Evaluate the quality of a color palette.}
-\item{\code{\link{simulate_palette_cvd}}}{Simulate how a palette appears under CVD.}
-\item{\code{\link{is_cvd_safe}}}{Quick check for CVD safety against a threshold.}
+\item{\code{\link[=generate_palette]{generate_palette()}}}{Generate a color palette with constraints.}
+\item{\code{\link[=evaluate_palette]{evaluate_palette()}}}{Evaluate the quality of a color palette.}
+\item{\code{\link[=simulate_palette_cvd]{simulate_palette_cvd()}}}{Simulate how a palette appears under CVD.}
+\item{\code{\link[=is_cvd_safe]{is_cvd_safe()}}}{Quick check for CVD safety against a threshold.}
 }
 }
 

@@ -8,10 +8,10 @@
 #'
 #' @section Main Functions:
 #' \describe{
-#'   \item{\code{\link{generate_palette}}}{Generate a color palette with constraints.}
-#'   \item{\code{\link{evaluate_palette}}}{Evaluate the quality of a color palette.}
-#'   \item{\code{\link{simulate_palette_cvd}}}{Simulate how a palette appears under CVD.}
-#'   \item{\code{\link{is_cvd_safe}}}{Quick check for CVD safety against a threshold.}
+#'   \item{[generate_palette()]}{Generate a color palette with constraints.}
+#'   \item{[evaluate_palette()]}{Evaluate the quality of a color palette.}
+#'   \item{[simulate_palette_cvd()]}{Simulate how a palette appears under CVD.}
+#'   \item{[is_cvd_safe()]}{Quick check for CVD safety against a threshold.}
 #' }
 #'
 #' @section Color Spaces:
