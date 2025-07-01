@@ -1,25 +1,31 @@
+# Workflow for building and deploying a pkgdown site
+#
+# This workflow is suitable for deploying to GitHub Pages.
+# It will build and deploy the site on pushes to main and PRs to main.
+#
+# See https://pkgdown.r-lib.org/articles/actions.html for more details
 on:
   push:
     branches: [master]
   pull_request:
-    types: [opened, synchronize, reopened]
-  release:
-    types: [published]
-  workflow_dispatch:
+    branches: [master]
 
 name: pkgdown
-
-permissions: read-all
 
 jobs:
   pkgdown:
     runs-on: ubuntu-latest
     concurrency:
-      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: "true"
+
     permissions:
-      contents: write
+      contents: read   # to check out repository
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify deployment authenticity
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,21 +33,22 @@ jobs:
 
       - uses: r-lib/actions/setup-r@v2
         with:
-          use-public-rspm: true
+          r-version: 'release'
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, local::.
+          extra-packages: any::pkgdown, any::ragg
           needs: website
 
       - name: Build site
-        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+        run: pkgdown::build_site_github_pages()
         shell: Rscript {0}
 
-      - name: Deploy to GitHub pages 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.5.0
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          clean: true
-          branch: gh-pages
-          folder: docs
-          target-folder: ${{ github.event_name == 'pull_request' && github.head_ref || 'docs' }}
+          path: ./docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
