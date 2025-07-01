@@ -40,11 +40,6 @@ jobs:
           extra-packages: any::pkgdown, any::ragg, local::.
           needs: website
 
-      - name: Build favicon
-        run: |
-          pkgdown::build_favicons()
-        shell: Rscript {0}
-
       - name: Build site
         run: pkgdown::build_site_github_pages()
         shell: Rscript {0}
