@@ -1,12 +1,12 @@
 Package: huerd
-Title: Pure Minimax Color Palette Optimization
+Title: Color Palette Optimization with fixed colors
 Version: 0.1.0
 Authors@R: 
     person("Maximilian", "Scholz", , "dev.scholz@mailbox.org", role = c("aut", "cre"))
-Description: Generates scientifically-grounded color palettes using pure minimax 
-    optimization to maximize the minimum perceptual distance between colors. Features 
-    automatic brightness sorting, comprehensive diagnostic dashboard, and support for 
-    fixed brand colors. All optimization performed in the perceptually uniform OKLAB 
+Description: Generates color palettes using minimax optimization to maximize the
+    minimum perceptual distance between colors. Features the ability to define
+    fixed colors that are kept throughout the optimization process and a diagnostic
+    dashboard. All optimization performed in the perceptually uniform OKLAB 
     color space with integrated color vision deficiency analysis.
 License: MIT + file LICENSE
 Language: en-US
