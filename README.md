@@ -1,11 +1,12 @@
 # huerd: Herding hues
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![R-CMD-check](https://github.com/sims1253/huerd/workflows/R-CMD-check/badge.svg)](https://github.com/sims1253/huerd/actions)
-[![Actions Status](https://github.com/sims1253/huerd/workflows/Tests/badge.svg)](https://github.com/sims1253/huerd/actions)
+[![R-CMD-check](https://github.com/sims1253/huerd/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sims1253/huerd/actions/workflows/R-CMD-check.yaml)
+[![Tests](https://github.com/sims1253/huerd/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/sims1253/huerd/actions/workflows/test-coverage.yaml)
 [![Codecov test coverage](https://codecov.io/gh/sims1253/huerd/graph/badge.svg)](https://app.codecov.io/gh/sims1253/huerd)
+[![GH-Pages](https://github.com/sims1253/huerd/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/sims1253/huerd/actions/workflows/pkgdown.yaml)
 
-A discrete color palette generation tool that creates perceptually distinct colors optimized for both normal and color vision deficient viewers and supports fixed colors.
+A discrete color palette generator with support for fixed colors optimized for both normal and color vision deficient viewers.
 
 ## Installation
 
