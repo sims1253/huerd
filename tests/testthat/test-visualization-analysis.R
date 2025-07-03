@@ -231,3 +231,72 @@ test_that("plot_palette_analysis maintains consistency", {
   expect_equal(result1$n_colors, result2$n_colors)
   expect_equal(result1$distances$min, result2$distances$min)
 })
+
+# Tests for contrast text color function
+
+test_that("get_contrast_text_color returns correct colors for edge cases", {
+  # Test pure black (L=0.0, should return white text)
+  expect_equal(huerd:::get_contrast_text_color("#000000"), "white")
+  
+  # Test pure white (L=1.0, should return black text) 
+  expect_equal(huerd:::get_contrast_text_color("#FFFFFF"), "black")
+  
+  # Test mid-gray (L~0.6, should return black text based on OKLAB lightness)
+  expect_equal(huerd:::get_contrast_text_color("#808080"), "black")
+})
+
+test_that("get_contrast_text_color works with various color formats", {
+  # Test lowercase hex (red L~0.63, green L~0.87)
+  expect_equal(huerd:::get_contrast_text_color("#ff0000"), "black")
+  expect_equal(huerd:::get_contrast_text_color("#00ff00"), "black")
+  
+  # Test uppercase hex  
+  expect_equal(huerd:::get_contrast_text_color("#FF0000"), "black")
+  expect_equal(huerd:::get_contrast_text_color("#00FF00"), "black")
+  
+  # Test mixed case hex
+  expect_equal(huerd:::get_contrast_text_color("#fF0000"), "black")
+  expect_equal(huerd:::get_contrast_text_color("#00Ff00"), "black")
+})
+
+test_that("get_contrast_text_color handles dark and light colors correctly", {
+  # Dark colors (L < 0.5) should get white text
+  # #000080 L~0.27, #800000 L~0.38, #330033 should be dark
+  dark_colors <- c("#000080", "#800000", "#330033")
+  for (color in dark_colors) {
+    expect_equal(huerd:::get_contrast_text_color(color), "white",
+                 label = paste("Dark color", color, "should get white text"))
+  }
+  
+  # Light colors (L >= 0.5) should get black text  
+  # #FFFF00 L~0.97, #00FFFF L~0.91, #FF00FF L~0.70, #008000 L~0.52, #CCCCCC should be light
+  light_colors <- c("#FFFF00", "#00FFFF", "#FF00FF", "#008000", "#CCCCCC")
+  for (color in light_colors) {
+    expect_equal(huerd:::get_contrast_text_color(color), "black",
+                 label = paste("Light color", color, "should get black text"))
+  }
+})
+
+test_that("get_contrast_text_color returns only valid colors", {
+  test_colors <- c("#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF")
+  
+  for (color in test_colors) {
+    result <- huerd:::get_contrast_text_color(color)
+    expect_true(result %in% c("black", "white"),
+                label = paste("Result for", color, "should be 'black' or 'white'"))
+  }
+})
+
+test_that("get_contrast_text_color is consistent", {
+  # Same color should always return same result
+  color <- "#FF0000"
+  result1 <- huerd:::get_contrast_text_color(color)
+  result2 <- huerd:::get_contrast_text_color(color)
+  expect_equal(result1, result2)
+  
+  # Test multiple colors
+  colors <- c("#000000", "#FFFFFF", "#FF0000", "#00FF00", "#0000FF")
+  results1 <- sapply(colors, huerd:::get_contrast_text_color)
+  results2 <- sapply(colors, huerd:::get_contrast_text_color)
+  expect_equal(results1, results2)
+})
