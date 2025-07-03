@@ -36,8 +36,8 @@ plot_palette_analysis <- function(
   on.exit(par(old_par))
 
   # Set up 2x3 layout for 6 panels with optimized spacing and margins
-  # Increased margins to prevent text cutoff and improve readability
-  par(mfrow = c(2, 3), mar = c(5.0, 5.0, 3.5, 2.5), oma = c(0, 0, 3, 0))
+  # Dramatically increased margins and spacing for publication quality
+  par(mfrow = c(2, 3), mar = c(6.5, 6.0, 4.0, 3.0), oma = c(1.5, 0, 4, 0))
 
   # Panel 1: Color Swatches with Key Metrics
   plot_color_swatches(hex_colors, evaluation)
@@ -57,8 +57,8 @@ plot_palette_analysis <- function(
   # Panel 6: Comparative Palette Analysis
   plot_comparative_palettes(hex_colors)
 
-  # Add main title
-  mtext(main_title, outer = TRUE, cex = 1.6, font = 2)
+  # Add main title with increased size for publication quality
+  mtext(main_title, outer = TRUE, cex = 2.0, font = 2)
 
   invisible(evaluation)
 }
@@ -105,7 +105,8 @@ plot_color_swatches <- function(hex_colors, evaluation) {
     axes = FALSE,
     xlab = "",
     ylab = "",
-    main = paste("Color Palette (", n, " colors)", sep = "") # Updated title
+    main = paste("Color Palette (", n, " colors)", sep = ""), # Updated title
+    cex.main = 1.4
   )
 
   if (n == 0) {
@@ -140,13 +141,13 @@ plot_color_swatches <- function(hex_colors, evaluation) {
       perf_ratio,
       cvd_min
     )
-    text(n / 2, 0.8, metrics_text, cex = 0.8, font = 1) # Positioned below the numbers
+    text(n / 2, 0.8, metrics_text, cex = 1.0, font = 1) # Positioned below the numbers
   } else if (n == 1) {
     text(
       0.5,
       0.8,
       "Single color - no distance metrics",
-      cex = 0.8,
+      cex = 1.0,
       col = "gray50"
     )
   }
@@ -173,7 +174,7 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
   
   # Store current margins and set expanded margins for legend and Y-axis label
   old_mar <- par("mar")
-  par(mar = c(4.5, 5.0, 3.0, 5.5))  # Increased left margin for Y-axis label visibility
+  par(mar = c(6.5, 6.0, 4.0, 6.5))  # Increased margins for publication quality
   on.exit(par(mar = old_mar))
 
   # Calculate distance matrix
@@ -194,12 +195,13 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
     xlab = "Color Index",
     ylab = "Color Index",
     axes = FALSE,
-    cex.main = 1.0,
-    cex.lab = 0.9
+    cex.main = 1.4,
+    cex.lab = 1.2,
+    asp = 1  # Force square aspect ratio to prevent squishing
   )
 
-  axis(1, at = 1:n, labels = 1:n, cex.axis = 0.8)
-  axis(2, at = 1:n, labels = 1:n, cex.axis = 0.8)
+  axis(1, at = 1:n, labels = 1:n, cex.axis = 1.0)
+  axis(2, at = 1:n, labels = 1:n, cex.axis = 1.0)
 
   # Add enhanced color bar legend
   dist_range <- range(dist_matrix[dist_matrix > 0], na.rm = TRUE)
@@ -250,7 +252,7 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
         legend_x2 + tick_length + (usr[2] - usr[1]) * 0.01,
         tick_positions[i],
         sprintf("%.2f", tick_values[i]),
-        cex = 0.75,
+        cex = 1.0,
         pos = 4,
         font = 1
       )
@@ -261,7 +263,7 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
       legend_x1 + legend_width / 2,
       legend_y2 + (usr[4] - usr[3]) * 0.06,
       "Distance",
-      cex = 0.8,
+      cex = 1.0,
       pos = 1,  # Center above the legend
       font = 2,  # Bold font
       adj = 0.5  # Center alignment
@@ -269,7 +271,7 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
   }
 
   if (n <= 8) {
-    text_size <- pmax(0.4, 0.9 - n * 0.05)
+    text_size <- pmax(0.6, 1.1 - n * 0.05)  # Increased minimum text size
     for (i in 1:n) {
       for (j in 1:n) {
         if (i != j) {
@@ -314,7 +316,7 @@ plot_nearest_neighbor_distances <- function(hex_colors, evaluation) {
     nn_distances[i] <- min(other_distances)
   }
 
-  # Create bar plot
+  # Create bar plot with increased text sizes
   barplot(
     nn_distances,
     names.arg = 1:n,
@@ -324,150 +326,13 @@ plot_nearest_neighbor_distances <- function(hex_colors, evaluation) {
     xlab = "Color Index",
     ylab = "Distance (OKLAB)",
     ylim = c(0, max(nn_distances) * 1.1),
-    cex.main = 1.0,
-    cex.lab = 0.9,
-    cex.axis = 0.8,
-    cex.names = 0.8
+    cex.main = 1.4,
+    cex.lab = 1.2,
+    cex.axis = 1.0,
+    cex.names = 1.0
   )
 
-  # Add horizontal line for minimum (only in this panel, not duplicate)
-  min_distance <- min(nn_distances)
-  max_distance <- max(nn_distances)
-  abline(h = min_distance, col = "red", lwd = 2, lty = 2)
-  
-  # Intelligent positioning for "Min" text label
-  # Get actual bar positions from barplot layout
-  # R's barplot uses 1.2 spacing between bar centers by default
-  bar_centers <- seq(from = 0.7, by = 1.2, length.out = n)
-  bar_width <- 1.0  # Standard barplot bar width
-  
-  # Calculate plot dimensions for positioning
-  plot_width <- n * 1.2  # Approximate plot width based on barplot spacing
-  plot_height <- max(nn_distances) * 1.1  # From ylim calculation
-  
-  # Enhanced collision detection parameters
-  min_text_clearance <- plot_height * 0.04  # Minimum vertical clearance around text
-  text_width_estimate <- plot_width * 0.15  # Estimate text width based on plot size
-  collision_threshold <- pmax(max_distance * 0.06, min_distance * 0.12)  # Tighter threshold
-  
-  # Default text position
-  default_text_x <- plot_width / 2
-  default_text_y <- min_distance + min_text_clearance
-  
-  # Check for collisions at default position
-  colliding_bars <- which(
-    abs(nn_distances - min_distance) <= collision_threshold &
-    abs(bar_centers - default_text_x) <= (text_width_estimate / 2 + bar_width / 2)
-  )
-  
-  # Choose optimal text position based on collision analysis
-  if (length(colliding_bars) == 0) {
-    # No collisions - use default position
-    text_x <- default_text_x
-    text_y <- default_text_y
-  } else {
-    # Collisions detected - find optimal alternative position
-    
-    # Strategy 1: Try positioning below the line if sufficient space
-    below_y <- min_distance - min_text_clearance
-    if (below_y > 0 && below_y > plot_height * 0.05) {
-      # Check if positioning below avoids collisions
-      below_collisions <- which(
-        abs(nn_distances - min_distance) <= collision_threshold &
-        abs(bar_centers - default_text_x) <= (text_width_estimate / 2 + bar_width / 2)
-      )
-      
-      if (length(below_collisions) <= length(colliding_bars)) {
-        text_x <- default_text_x
-        text_y <- below_y
-      } else {
-        # Strategy 2: Find best horizontal position
-        text_x <- default_text_x
-        text_y <- default_text_y
-        
-        # Try multiple horizontal positions
-        candidate_x_positions <- c(
-          plot_width * 0.2,   # Far left
-          plot_width * 0.35,  # Left-center
-          plot_width * 0.65,  # Right-center
-          plot_width * 0.8    # Far right
-        )
-        
-        best_x <- default_text_x
-        min_collisions <- length(colliding_bars)
-        
-        for (candidate_x in candidate_x_positions) {
-          # Ensure candidate position is within plot bounds
-          if (candidate_x > text_width_estimate/2 && candidate_x < (plot_width - text_width_estimate/2)) {
-            candidate_collisions <- which(
-              abs(nn_distances - min_distance) <= collision_threshold &
-              abs(bar_centers - candidate_x) <= (text_width_estimate / 2 + bar_width / 2)
-            )
-            
-            if (length(candidate_collisions) < min_collisions) {
-              best_x <- candidate_x
-              min_collisions <- length(candidate_collisions)
-            }
-          }
-        }
-        
-        text_x <- best_x
-        
-        # Strategy 3: If still collisions, move further above
-        if (min_collisions > 0) {
-          text_y <- min_distance + min_text_clearance * 2
-        } else {
-          text_y <- default_text_y
-        }
-      }
-    } else {
-      # Strategy 2 only: Find best horizontal position (no space below)
-      text_y <- default_text_y
-      
-      # Try multiple horizontal positions
-      candidate_x_positions <- c(
-        plot_width * 0.2,   # Far left
-        plot_width * 0.35,  # Left-center
-        plot_width * 0.65,  # Right-center
-        plot_width * 0.8    # Far right
-      )
-      
-      best_x <- default_text_x
-      min_collisions <- length(colliding_bars)
-      
-      for (candidate_x in candidate_x_positions) {
-        # Ensure candidate position is within plot bounds
-        if (candidate_x > text_width_estimate/2 && candidate_x < (plot_width - text_width_estimate/2)) {
-          candidate_collisions <- which(
-            abs(nn_distances - min_distance) <= collision_threshold &
-            abs(bar_centers - candidate_x) <= (text_width_estimate / 2 + bar_width / 2)
-          )
-          
-          if (length(candidate_collisions) < min_collisions) {
-            best_x <- candidate_x
-            min_collisions <- length(candidate_collisions)
-          }
-        }
-      }
-      
-      text_x <- best_x
-      
-      # If still collisions, move further above
-      if (min_collisions > 0) {
-        text_y <- min_distance + min_text_clearance * 2
-      }
-    }
-  }
-  
-  # Draw the text label at the calculated optimal position
-  text(
-    text_x,
-    text_y,
-    sprintf("Min: %.3f", min_distance),
-    col = "red",
-    font = 2,
-    cex = 0.8  # Smaller text to prevent cutoff
-  )
+  # No redundant min line or text - this information is available in bottom right panel
 }
 
 #' Plot Color Space Distribution
@@ -520,9 +385,9 @@ plot_color_space_distribution <- function(hex_colors) {
     ylab = "b* (blue <- -> yellow)",
     xlim = range(c(-0.4, 0.4, a_star)) * 1.1,
     ylim = range(c(-0.4, 0.4, b_star)) * 1.1,
-    cex.main = 1.0,
-    cex.lab = 0.9,
-    cex.axis = 0.8
+    cex.main = 1.4,
+    cex.lab = 1.2,
+    cex.axis = 1.0
   )
 
   abline(h = 0, v = 0, col = "gray60", lty = 2)
@@ -532,7 +397,7 @@ plot_color_space_distribution <- function(hex_colors) {
 
   # Simplified text with better positioning
   stats_text <- sprintf("Colors distributed across OKLAB space (n=%d)", n)
-  mtext(stats_text, side = 1, line = 3.5, cex = 0.8)  # Increased line spacing to prevent cutoff
+  mtext(stats_text, side = 1, line = 4.5, cex = 1.0)  # Increased line spacing to prevent cutoff
 }
 
 #' Plot CVD Simulation
@@ -573,7 +438,7 @@ plot_cvd_simulation <- function(hex_colors) {
         xlab = "",
         ylab = "",
         main = "CVD Simulation & Grayscale\n(Severity = 1.0)",
-        cex.main = 1.0
+        cex.main = 1.4
       )
 
       # Draw color strips
@@ -590,12 +455,12 @@ plot_cvd_simulation <- function(hex_colors) {
         rect(i - 1, 0, i, 1, col = gray_colors[i], border = "black")
       }
 
-      # Add labels with more spacing from swatches
-      text(-0.25, 4.5, "Orig", srt = 90, adj = 0.5, cex = 0.8)
-      text(-0.25, 3.5, "Prot", srt = 90, adj = 0.5, cex = 0.8)
-      text(-0.25, 2.5, "Deut", srt = 90, adj = 0.5, cex = 0.8)
-      text(-0.25, 1.5, "Trit", srt = 90, adj = 0.5, cex = 0.8)
-      text(-0.25, 0.5, "Gray", srt = 90, adj = 0.5, cex = 0.8)
+      # Add labels with more spacing from swatches and increased font size
+      text(-0.25, 4.5, "Orig", srt = 90, adj = 0.5, cex = 1.2)
+      text(-0.25, 3.5, "Prot", srt = 90, adj = 0.5, cex = 1.2)
+      text(-0.25, 2.5, "Deut", srt = 90, adj = 0.5, cex = 1.2)
+      text(-0.25, 1.5, "Trit", srt = 90, adj = 0.5, cex = 1.2)
+      text(-0.25, 0.5, "Gray", srt = 90, adj = 0.5, cex = 1.2)
     },
     error = function(e) {
       plot(
@@ -677,10 +542,10 @@ plot_comparative_palettes <- function(hex_colors) {
     col = c("#E8F4FD", "#FFF2CC", "#E1D5E7", "#D5E8D4"),
     border = "black",
     las = 2,  # Rotate x-axis labels to prevent cutoff
-    cex.main = 0.9,
-    cex.lab = 0.8,
-    cex.axis = 0.7,
-    cex.names = 0.7  # Smaller x-axis labels
+    cex.main = 1.4,
+    cex.lab = 1.2,
+    cex.axis = 1.0,
+    cex.names = 1.0  # Increased x-axis labels
   )
 
   # Add jittered points to show underlying distribution
@@ -718,7 +583,7 @@ plot_comparative_palettes <- function(hex_colors) {
     min_distances,
     sprintf("%.3f", min_distances),
     pos = 3,
-    cex = 0.7,
+    cex = 1.0,
     font = 2,
     col = "black"
   )
@@ -727,8 +592,8 @@ plot_comparative_palettes <- function(hex_colors) {
   mtext(
     "Black dots show minimum distances (higher is better for categorical palettes)",
     side = 1,
-    line = 4.0, # Increased to accommodate rotated labels
-    cex = 0.6,
+    line = 5.0, # Increased to accommodate rotated labels
+    cex = 0.9,
     col = "gray50"
   )
 }

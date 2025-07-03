@@ -9,7 +9,12 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  dpi = 300,  # High DPI for publication quality
+  fig.width = 12,  # Increased width for better readability
+  fig.height = 8,  # Increased height for better readability
+  dev = "png",
+  dev.args = list(type = "cairo-png")  # Use Cairo for better text rendering
 )
 ```
 
