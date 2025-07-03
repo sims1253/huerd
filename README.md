@@ -39,22 +39,22 @@ print(palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #170600
-#> [ 2] #640097
-#> [ 3] #9A0038
-#> [ 4] #0044FF
-#> [ 5] #FF0000
-#> [ 6] #00ABFF
-#> [ 7] #00FFEB
-#> [ 8] #EFFF00
+#> [ 1] #3D0000
+#> [ 2] #0000E4
+#> [ 3] #FF0000
+#> [ 4] #0091FF
+#> [ 5] #FF00E5
+#> [ 6] #BCAC5E
+#> [ 7] #FF85B7
+#> [ 8] #00DDFF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.206
-#> * Optimizer Performance Ratio      : 66.5%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.169
+#> * Min. Perceptual Distance (OKLAB): 0.188
+#> * Optimizer Performance Ratio      : 60.6%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.101
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 677
+#> * Optimizer Iterations: 861
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
@@ -73,22 +73,22 @@ print(palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #13345B
-#> [ 2] #9A3A34
+#> [ 1] #4C4100
+#> [ 2] #005156
 #> [ 3] #4A6B8A
-#> [ 4] #4E9558
-#> [ 5] #C07FA2
+#> [ 4] #427AEC
+#> [ 5] #A09EAF
 #> [ 6] #E5A04C
-#> [ 7] #70CFA4
-#> [ 8] #D3BCFF
+#> [ 7] #8EB4FF
+#> [ 8] #00EFFF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.169
-#> * Optimizer Performance Ratio      : 54.5%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.095
+#> * Min. Perceptual Distance (OKLAB): 0.115
+#> * Optimizer Performance Ratio      : 37.1%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.106
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 392
+#> * Optimizer Iterations: 573
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
@@ -117,11 +117,11 @@ evaluation <- evaluate_palette(palette)
 
 # Access raw metrics (no subjective scoring)
 cat("Minimum distance:", evaluation$distances$min, "\n")
-#> Minimum distance: 0.1539379
+#> Minimum distance: 0.09164296
 cat("Performance ratio:", evaluation$distances$performance_ratio * 100, "%\n")
-#> Performance ratio: 49.67927 %
+#> Performance ratio: 29.57528 %
 cat("CVD worst case:", evaluation$cvd_safety$worst_case_min_distance, "\n")
-#> CVD worst case: 0.1403357
+#> CVD worst case: 0.0596302
 ```
 
 ## Custom Parameters
@@ -141,22 +141,22 @@ print(palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #498F5D
-#> [ 2] #9965BC
-#> [ 3] #A294F7
-#> [ 4] #E39890
-#> [ 5] #00D1D9
-#> [ 6] #D1D770
-#> [ 7] #00F7FF
-#> [ 8] #FFF5BC
+#> [ 1] #705DB7
+#> [ 2] #C86AB6
+#> [ 3] #9C9A2F
+#> [ 4] #F17587
+#> [ 5] #27C4C1
+#> [ 6] #FDA700
+#> [ 7] #B7CE9B
+#> [ 8] #84DAFD
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.106
-#> * Optimizer Performance Ratio      : 34.2%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.102
+#> * Min. Perceptual Distance (OKLAB): 0.113
+#> * Optimizer Performance Ratio      : 36.4%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.083
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 665
+#> * Optimizer Iterations: 546
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
@@ -192,9 +192,9 @@ plot_palette_analysis(brand_palette)
 # 3. Quality evaluation
 evaluation <- evaluate_palette(brand_palette)
 cat("Min distance:", round(evaluation$distances$min, 3), "\n")
-#> Min distance: 0.134
+#> Min distance: 0.124
 cat("Performance:", round(evaluation$distances$performance_ratio * 100, 1), "%\n")
-#> Performance: 43.3 %
+#> Performance: 40.1 %
 
 # 4. CVD accessibility check
 cvd_safe <- is_cvd_safe(brand_palette)
@@ -203,7 +203,7 @@ if (cvd_safe) {
 } else {
   cat("Palette may challenge CVD viewers\n")
 }
-#> Palette may challenge CVD viewers
+#> Palette is CVD-accessible
 
 # 5. CVD simulation for verification
 cvd_simulation <- simulate_palette_cvd(brand_palette, cvd_type = "all")
@@ -211,62 +211,62 @@ print(cvd_simulation)
 #> 
 #> -- huerd CVD Simulation Result (Multiple Types, Severity: 1.00) --
 #> Palette for: original
-#>   [ 1] #1F77B4
-#>   [ 2] #BA3E9D
-#>   [ 3] #009F69
-#>   [ 4] #A581CA
-#>   [ 5] #FF7F0E
-#>   [ 6] #F28BC5
-#>   [ 7] #00FCE9
-#>   [ 8] #EFEA52
+#>   [ 1] #AC4374
+#>   [ 2] #1F77B4
+#>   [ 3] #827300
+#>   [ 4] #4CAC8E
+#>   [ 5] #AB80FF
+#>   [ 6] #FF7F0E
+#>   [ 7] #00CAE2
+#>   [ 8] #DBE9FF
 #> Palette for: protan
-#>   [ 1] #5A79B7
-#>   [ 2] #4364A0
-#>   [ 3] #9D9266
-#>   [ 4] #728FCD
-#>   [ 5] #A59100
-#>   [ 6] #93A2C7
-#>   [ 7] #EEEDE8
-#>   [ 8] #FDE13C
+#>   [ 1] #535D75
+#>   [ 2] #5A79B7
+#>   [ 3] #806F00
+#>   [ 4] #A8A28D
+#>   [ 5] #5298FF
+#>   [ 6] #A59100
+#>   [ 7] #B6C2E3
+#>   [ 8] #E2EAFF
 #> Palette for: deutan
-#>   [ 1] #456CB3
-#>   [ 2] #6A779A
-#>   [ 3] #8D866D
-#>   [ 4] #7991C8
-#>   [ 5] #C4AE05
-#>   [ 6] #AEB3C2
-#>   [ 7] #D3D9EB
-#>   [ 8] #FFE75C
+#>   [ 1] #6F7072
+#>   [ 2] #456CB3
+#>   [ 3] #84750F
+#>   [ 4] #999790
+#>   [ 5] #5C96FC
+#>   [ 6] #C4AE05
+#>   [ 7] #9DB0E2
+#>   [ 8] #DEE6FE
 #> Palette for: tritan
-#>   [ 1] #00868D
-#>   [ 2] #C44368
-#>   [ 3] #009E91
-#>   [ 4] #A08C9C
-#>   [ 5] #FF616D
-#>   [ 6] #FE8AA0
-#>   [ 7] #00FFF6
-#>   [ 8] #FFDBCB
+#>   [ 1] #B93C56
+#>   [ 2] #00868D
+#>   [ 3] #8D6961
+#>   [ 4] #1BADA3
+#>   [ 5] #9899B4
+#>   [ 6] #FF616D
+#>   [ 7] #00D5D1
+#>   [ 8] #D3EDF0
 
 # 6. Display final palette (colors are brightness-sorted)
 print(brand_palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #1F77B4
-#> [ 2] #BA3E9D
-#> [ 3] #009F69
-#> [ 4] #A581CA
-#> [ 5] #FF7F0E
-#> [ 6] #F28BC5
-#> [ 7] #00FCE9
-#> [ 8] #EFEA52
+#> [ 1] #AC4374
+#> [ 2] #1F77B4
+#> [ 3] #827300
+#> [ 4] #4CAC8E
+#> [ 5] #AB80FF
+#> [ 6] #FF7F0E
+#> [ 7] #00CAE2
+#> [ 8] #DBE9FF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.134
-#> * Optimizer Performance Ratio      : 43.3%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.073
+#> * Min. Perceptual Distance (OKLAB): 0.124
+#> * Optimizer Performance Ratio      : 40.1%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.116
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 727
+#> * Optimizer Iterations: 634
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```

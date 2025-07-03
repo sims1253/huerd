@@ -35,8 +35,8 @@ plot_palette_analysis <- function(
   old_par <- par(no.readonly = TRUE)
   on.exit(par(old_par))
 
-  # Set up 2x3 layout for 6 panels with better spacing
-  par(mfrow = c(2, 3), mar = c(3.5, 3.5, 2.5, 1.5), oma = c(0, 0, 3, 0))
+  # Set up 2x3 layout for 6 panels with better spacing and increased margins
+  par(mfrow = c(2, 3), mar = c(4.0, 4.0, 3.0, 2.0), oma = c(0, 0, 3, 0))
 
   # Panel 1: Color Swatches with Key Metrics
   plot_color_swatches(hex_colors, evaluation)
@@ -57,7 +57,7 @@ plot_palette_analysis <- function(
   plot_comparative_palettes(hex_colors)
 
   # Add main title
-  mtext(main_title, outer = TRUE, cex = 1.4, font = 2)
+  mtext(main_title, outer = TRUE, cex = 1.6, font = 2)
 
   invisible(evaluation)
 }
@@ -94,13 +94,13 @@ get_contrast_text_color <- function(hex_color) {
 plot_color_swatches <- function(hex_colors, evaluation) {
   n <- length(hex_colors)
 
-  # Create color swatches plot with updated layout
+  # Create color swatches plot with redesigned layout
   plot(
     0,
     0,
     type = "n",
     xlim = c(0, max(1, n)),
-    ylim = c(0, 4), # Reduced from 5 to 4 since removing grayscale row
+    ylim = c(0, 4.5), # Increased for better spacing
     axes = FALSE,
     xlab = "",
     ylab = "",
@@ -108,21 +108,23 @@ plot_color_swatches <- function(hex_colors, evaluation) {
   )
 
   if (n == 0) {
-    text(0.5, 2, "No colors to display", cex = 1.2, col = "gray50")
+    text(0.5, 2.5, "No colors to display", cex = 1.2, col = "gray50")
     return()
   }
 
-  # Draw color swatches (larger now that grayscale row is removed)
+  # Draw larger color swatches with hex codes inside and numbers below
   for (i in 1:n) {
-    rect(i - 1, 2, i, 3.5, col = hex_colors[i], border = "black", lwd = 1)
+    # Draw larger swatch (height increased from 1.5 to 2.0)
+    rect(i - 1, 1.5, i, 3.5, col = hex_colors[i], border = "black", lwd = 1.5)
     
     # Determine optimal text color for this background
     text_color <- get_contrast_text_color(hex_colors[i])
     
-    # Add color index on the swatch with optimal contrast
-    text(i - 0.5, 2.75, i, cex = 0.8, font = 2, col = text_color)
-    # Add hex code below the swatch
-    text(i - 0.5, 1.5, hex_colors[i], cex = 0.6, font = 1, srt = 90)
+    # Add hex code inside the swatch (larger text, centered)
+    text(i - 0.5, 2.5, hex_colors[i], cex = 0.7, font = 2, col = text_color)
+    
+    # Add color index number below the swatch
+    text(i - 0.5, 1.2, i, cex = 0.8, font = 2, col = "black")
   }
 
   # Add key metrics text if we have enough colors
@@ -137,11 +139,11 @@ plot_color_swatches <- function(hex_colors, evaluation) {
       perf_ratio,
       cvd_min
     )
-    text(n / 2, 1.1, metrics_text, cex = 0.7, font = 1) # Moved down from 4.7 to 1.1
+    text(n / 2, 0.8, metrics_text, cex = 0.8, font = 1) # Positioned below the numbers
   } else if (n == 1) {
     text(
       0.5,
-      1.1,
+      0.8,
       "Single color - no distance metrics",
       cex = 0.8,
       col = "gray50"
@@ -190,11 +192,13 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
     main = "Pairwise Distance Matrix\n(OKLAB Units)",
     xlab = "Color Index",
     ylab = "Color Index",
-    axes = FALSE
+    axes = FALSE,
+    cex.main = 1.0,
+    cex.lab = 0.9
   )
 
-  axis(1, at = 1:n, labels = 1:n)
-  axis(2, at = 1:n, labels = 1:n)
+  axis(1, at = 1:n, labels = 1:n, cex.axis = 0.8)
+  axis(2, at = 1:n, labels = 1:n, cex.axis = 0.8)
 
   # Add enhanced color bar legend
   dist_range <- range(dist_matrix[dist_matrix > 0], na.rm = TRUE)
@@ -245,7 +249,7 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
         legend_x2 + tick_length + (usr[2] - usr[1]) * 0.01,
         tick_positions[i],
         sprintf("%.2f", tick_values[i]),
-        cex = 0.65,
+        cex = 0.75,
         pos = 4,
         font = 1
       )
@@ -256,7 +260,7 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
       legend_x1 + legend_width / 2,
       legend_y2 + (usr[4] - usr[3]) * 0.06,
       "Distance",
-      cex = 0.7,
+      cex = 0.8,
       pos = 1,  # Center above the legend
       font = 2,  # Bold font
       adj = 0.5  # Center alignment
@@ -318,13 +322,17 @@ plot_nearest_neighbor_distances <- function(hex_colors, evaluation) {
     main = "Nearest Neighbor Distances",
     xlab = "Color Index",
     ylab = "Distance (OKLAB)",
-    ylim = c(0, max(nn_distances) * 1.1)
+    ylim = c(0, max(nn_distances) * 1.1),
+    cex.main = 1.0,
+    cex.lab = 0.9,
+    cex.axis = 0.8,
+    cex.names = 0.8
   )
 
   # Add horizontal line for minimum
   min_distance <- min(nn_distances)
   max_distance <- max(nn_distances)
-  abline(h = min_distance, col = "red", lwd = 2, lty = 2)
+  abline(h = min_distance, col = "black", lwd = 2, lty = 2)
   
   # Intelligent positioning for "Min" text label
   # Get actual bar positions from barplot layout
@@ -455,7 +463,7 @@ plot_nearest_neighbor_distances <- function(hex_colors, evaluation) {
     text_x,
     text_y,
     sprintf("Min: %.3f", min_distance),
-    col = "red",
+    col = "black",
     font = 2,
     cex = 0.9  # Slightly smaller text for better fit
   )
@@ -510,44 +518,20 @@ plot_color_space_distribution <- function(hex_colors) {
     xlab = "a* (green <- -> red)",
     ylab = "b* (blue <- -> yellow)",
     xlim = range(c(-0.4, 0.4, a_star)) * 1.1,
-    ylim = range(c(-0.4, 0.4, b_star)) * 1.1
+    ylim = range(c(-0.4, 0.4, b_star)) * 1.1,
+    cex.main = 1.0,
+    cex.lab = 0.9,
+    cex.axis = 0.8
   )
 
   abline(h = 0, v = 0, col = "gray60", lty = 2)
   grid(col = "lightgray", lty = 1)
 
-  if (n <= 12) {
-    label_size <- pmax(0.5, 1.0 - n * 0.03)
-    text(
-      a_star,
-      b_star,
-      1:n,
-      pos = 3,
-      cex = label_size,
-      font = 2,
-      col = "white"
-    )
-  }
+  # Removed overlapping color index numbers for better readability
 
-  if (n > 1) {
-    stats_text <- sprintf(
-      "L: %.2f+/-%.2f | a*: %.3f+/-%.3f | b*: %.3f+/-%.3f",
-      mean(L, na.rm = TRUE),
-      sd(L, na.rm = TRUE),
-      mean(a_star, na.rm = TRUE),
-      sd(a_star, na.rm = TRUE),
-      mean(b_star, na.rm = TRUE),
-      sd(b_star, na.rm = TRUE)
-    )
-  } else {
-    stats_text <- sprintf(
-      "L: %.2f | a*: %.3f | b*: %.3f",
-      L[1],
-      a_star[1],
-      b_star[1]
-    )
-  }
-  mtext(stats_text, side = 1, line = 2.5, cex = 0.8)
+  # Simplified text - removed complex coordinate statistics for better readability
+  stats_text <- sprintf("Colors distributed across OKLAB space (n=%d)", n)
+  mtext(stats_text, side = 1, line = 2.5, cex = 0.9)
 }
 
 #' Plot CVD Simulation
@@ -587,7 +571,8 @@ plot_cvd_simulation <- function(hex_colors) {
         axes = FALSE,
         xlab = "",
         ylab = "",
-        main = "CVD Simulation & Grayscale\n(Severity = 1.0)"
+        main = "CVD Simulation & Grayscale\n(Severity = 1.0)",
+        cex.main = 1.0
       )
 
       # Draw color strips
@@ -605,11 +590,11 @@ plot_cvd_simulation <- function(hex_colors) {
       }
 
       # Add labels
-      text(-0.1, 4.5, "Orig", srt = 90, adj = 0.5, cex = 0.7)
-      text(-0.1, 3.5, "Prot", srt = 90, adj = 0.5, cex = 0.7)
-      text(-0.1, 2.5, "Deut", srt = 90, adj = 0.5, cex = 0.7)
-      text(-0.1, 1.5, "Trit", srt = 90, adj = 0.5, cex = 0.7)
-      text(-0.1, 0.5, "Gray", srt = 90, adj = 0.5, cex = 0.7)
+      text(-0.1, 4.5, "Orig", srt = 90, adj = 0.5, cex = 0.8)
+      text(-0.1, 3.5, "Prot", srt = 90, adj = 0.5, cex = 0.8)
+      text(-0.1, 2.5, "Deut", srt = 90, adj = 0.5, cex = 0.8)
+      text(-0.1, 1.5, "Trit", srt = 90, adj = 0.5, cex = 0.8)
+      text(-0.1, 0.5, "Gray", srt = 90, adj = 0.5, cex = 0.8)
     },
     error = function(e) {
       plot(
@@ -723,7 +708,7 @@ plot_comparative_palettes <- function(hex_colors) {
 
   # Highlight the minimum distances with points
   min_distances <- sapply(distance_list, min)
-  points(1:4, min_distances, pch = 19, col = "red", cex = 1.2)
+  points(1:4, min_distances, pch = 19, col = "black", cex = 1.2)
 
   # Add text showing minimum distances
   text(
@@ -733,12 +718,12 @@ plot_comparative_palettes <- function(hex_colors) {
     pos = 3,
     cex = 0.7,
     font = 2,
-    col = "red"
+    col = "black"
   )
 
   # Add explanation with better sizing
   mtext(
-    "Red dots show minimum distances (higher is better for categorical palettes)",
+    "Black dots show minimum distances (higher is better for categorical palettes)",
     side = 1,
     line = 2.5, # Reduced from 3
     cex = 0.6, # Reduced from 0.7
