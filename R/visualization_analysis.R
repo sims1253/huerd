@@ -62,6 +62,33 @@ plot_palette_analysis <- function(
   invisible(evaluation)
 }
 
+#' Get Optimal Text Color for Background Contrast
+#' 
+#' Determines whether black or white text provides better contrast against
+#' a given background color using perceptual lightness from OKLAB space.
+#' 
+#' @param hex_color Character. A single hex color code (e.g., "#FF0000")
+#' @return Character. Either "black" or "white" for optimal contrast
+#' @noRd
+get_contrast_text_color <- function(hex_color) {
+  # Convert hex to OKLAB to get perceptual lightness
+  oklab_color <- farver::convert_colour(
+    farver::decode_colour(hex_color), 
+    from = "rgb", 
+    to = "oklab"
+  )
+  
+  # Use OKLAB lightness (L component) for perceptual accuracy
+  lightness <- oklab_color[1, 1]  # L component is first column
+  
+  # Use threshold of 0.5: if L < 0.5 use white text, if L >= 0.5 use black text
+  if (lightness < 0.5) {
+    return("white")
+  } else {
+    return("black")
+  }
+}
+
 #' Plot Color Swatches with Key Metrics and Grayscale
 #' @noRd
 plot_color_swatches <- function(hex_colors, evaluation) {
@@ -88,8 +115,12 @@ plot_color_swatches <- function(hex_colors, evaluation) {
   # Draw color swatches (larger now that grayscale row is removed)
   for (i in 1:n) {
     rect(i - 1, 2, i, 3.5, col = hex_colors[i], border = "black", lwd = 1)
-    # Add color index above the swatch
-    text(i - 0.5, 1.8, i, cex = 0.8, font = 2)
+    
+    # Determine optimal text color for this background
+    text_color <- get_contrast_text_color(hex_colors[i])
+    
+    # Add color index on the swatch with optimal contrast
+    text(i - 0.5, 2.75, i, cex = 0.8, font = 2, col = text_color)
     # Add hex code below the swatch
     text(i - 0.5, 1.5, hex_colors[i], cex = 0.6, font = 1, srt = 90)
   }
@@ -136,6 +167,11 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
     text(0, 0, "Insufficient colors", cex = 1.2, col = "gray50")
     return()
   }
+  
+  # Store current margins and set expanded right margin for legend
+  old_mar <- par("mar")
+  par(mar = c(3.5, 3.5, 2.5, 4.5))  # Increased right margin from 1.5 to 4.5
+  on.exit(par(mar = old_mar))
 
   # Calculate distance matrix
   oklab_colors <- farver::convert_colour(
@@ -160,54 +196,70 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
   axis(1, at = 1:n, labels = 1:n)
   axis(2, at = 1:n, labels = 1:n)
 
-  # Add color bar legend
+  # Add enhanced color bar legend
   dist_range <- range(dist_matrix[dist_matrix > 0], na.rm = TRUE)
   if (diff(dist_range) > 0) {
-    # Create color bar in the right margin
+    # Create color bar in the right margin with improved positioning
     usr <- par("usr")
-    legend_width <- (usr[2] - usr[1]) * 0.15
-    legend_x1 <- usr[2] + (usr[2] - usr[1]) * 0.05
+    legend_width <- (usr[2] - usr[1]) * 0.12  # Slightly narrower
+    legend_x1 <- usr[2] + (usr[2] - usr[1]) * 0.08  # Better spacing from plot
     legend_x2 <- legend_x1 + legend_width
-    legend_y1 <- usr[3] + (usr[4] - usr[3]) * 0.2
-    legend_y2 <- usr[4] - (usr[4] - usr[3]) * 0.2
+    legend_y1 <- usr[3] + (usr[4] - usr[3]) * 0.15  # Better vertical positioning
+    legend_y2 <- usr[4] - (usr[4] - usr[3]) * 0.15
 
-    # Draw color bar
-    legend_vals <- seq(dist_range[1], dist_range[2], length.out = 20)
-    legend_colors <- hcl.colors(20, "Viridis")
+    # Draw color bar with border for professional appearance
+    legend_vals <- seq(dist_range[1], dist_range[2], length.out = 25)  # More segments for smoother gradient
+    legend_colors <- hcl.colors(25, "Viridis")
 
-    for (i in 1:20) {
+    # Draw individual color segments
+    for (i in 1:25) {
       rect(
         legend_x1,
-        legend_y1 + (i - 1) * (legend_y2 - legend_y1) / 20,
+        legend_y1 + (i - 1) * (legend_y2 - legend_y1) / 25,
         legend_x2,
-        legend_y1 + i * (legend_y2 - legend_y1) / 20,
+        legend_y1 + i * (legend_y2 - legend_y1) / 25,
         col = legend_colors[i],
         border = NA
       )
     }
-
-    # Add legend labels
+    
+    # Add border around entire legend
+    rect(legend_x1, legend_y1, legend_x2, legend_y2, 
+         col = NA, border = "black", lwd = 1)
+    
+    # Calculate tick positions and values for better readability
+    n_ticks <- 5  # Number of tick marks including min and max
+    tick_positions <- seq(legend_y1, legend_y2, length.out = n_ticks)
+    tick_values <- seq(dist_range[1], dist_range[2], length.out = n_ticks)
+    
+    # Add tick marks
+    tick_length <- (usr[2] - usr[1]) * 0.015
+    for (i in 1:n_ticks) {
+      # Draw tick mark
+      lines(c(legend_x2, legend_x2 + tick_length), 
+            c(tick_positions[i], tick_positions[i]), 
+            col = "black", lwd = 1)
+      
+      # Add value label
+      text(
+        legend_x2 + tick_length + (usr[2] - usr[1]) * 0.01,
+        tick_positions[i],
+        sprintf("%.2f", tick_values[i]),
+        cex = 0.65,
+        pos = 4,
+        font = 1
+      )
+    }
+    
+    # Add legend title with better positioning
     text(
-      legend_x2 + (usr[2] - usr[1]) * 0.02,
-      legend_y2,
-      sprintf("%.2f", dist_range[2]),
-      cex = 0.6,
-      pos = 4
-    )
-    text(
-      legend_x2 + (usr[2] - usr[1]) * 0.02,
-      legend_y1,
-      sprintf("%.2f", dist_range[1]),
-      cex = 0.6,
-      pos = 4
-    )
-    text(
-      legend_x2 + (usr[2] - usr[1]) * 0.02,
-      (legend_y1 + legend_y2) / 2,
+      legend_x1 + legend_width / 2,
+      legend_y2 + (usr[4] - usr[3]) * 0.06,
       "Distance",
-      cex = 0.6,
-      pos = 4,
-      srt = 90
+      cex = 0.7,
+      pos = 1,  # Center above the legend
+      font = 2,  # Bold font
+      adj = 0.5  # Center alignment
     )
   }
 
@@ -270,13 +322,142 @@ plot_nearest_neighbor_distances <- function(hex_colors, evaluation) {
   )
 
   # Add horizontal line for minimum
-  abline(h = min(nn_distances), col = "red", lwd = 2, lty = 2)
+  min_distance <- min(nn_distances)
+  max_distance <- max(nn_distances)
+  abline(h = min_distance, col = "red", lwd = 2, lty = 2)
+  
+  # Intelligent positioning for "Min" text label
+  # Get actual bar positions from barplot layout
+  # R's barplot uses 1.2 spacing between bar centers by default
+  bar_centers <- seq(from = 0.7, by = 1.2, length.out = n)
+  bar_width <- 1.0  # Standard barplot bar width
+  
+  # Calculate plot dimensions for positioning
+  plot_width <- n * 1.2  # Approximate plot width based on barplot spacing
+  plot_height <- max(nn_distances) * 1.1  # From ylim calculation
+  
+  # Enhanced collision detection parameters
+  min_text_clearance <- plot_height * 0.04  # Minimum vertical clearance around text
+  text_width_estimate <- plot_width * 0.15  # Estimate text width based on plot size
+  collision_threshold <- pmax(max_distance * 0.06, min_distance * 0.12)  # Tighter threshold
+  
+  # Default text position
+  default_text_x <- plot_width / 2
+  default_text_y <- min_distance + min_text_clearance
+  
+  # Check for collisions at default position
+  colliding_bars <- which(
+    abs(nn_distances - min_distance) <= collision_threshold &
+    abs(bar_centers - default_text_x) <= (text_width_estimate / 2 + bar_width / 2)
+  )
+  
+  # Choose optimal text position based on collision analysis
+  if (length(colliding_bars) == 0) {
+    # No collisions - use default position
+    text_x <- default_text_x
+    text_y <- default_text_y
+  } else {
+    # Collisions detected - find optimal alternative position
+    
+    # Strategy 1: Try positioning below the line if sufficient space
+    below_y <- min_distance - min_text_clearance
+    if (below_y > 0 && below_y > plot_height * 0.05) {
+      # Check if positioning below avoids collisions
+      below_collisions <- which(
+        abs(nn_distances - min_distance) <= collision_threshold &
+        abs(bar_centers - default_text_x) <= (text_width_estimate / 2 + bar_width / 2)
+      )
+      
+      if (length(below_collisions) <= length(colliding_bars)) {
+        text_x <- default_text_x
+        text_y <- below_y
+      } else {
+        # Strategy 2: Find best horizontal position
+        text_x <- default_text_x
+        text_y <- default_text_y
+        
+        # Try multiple horizontal positions
+        candidate_x_positions <- c(
+          plot_width * 0.2,   # Far left
+          plot_width * 0.35,  # Left-center
+          plot_width * 0.65,  # Right-center
+          plot_width * 0.8    # Far right
+        )
+        
+        best_x <- default_text_x
+        min_collisions <- length(colliding_bars)
+        
+        for (candidate_x in candidate_x_positions) {
+          # Ensure candidate position is within plot bounds
+          if (candidate_x > text_width_estimate/2 && candidate_x < (plot_width - text_width_estimate/2)) {
+            candidate_collisions <- which(
+              abs(nn_distances - min_distance) <= collision_threshold &
+              abs(bar_centers - candidate_x) <= (text_width_estimate / 2 + bar_width / 2)
+            )
+            
+            if (length(candidate_collisions) < min_collisions) {
+              best_x <- candidate_x
+              min_collisions <- length(candidate_collisions)
+            }
+          }
+        }
+        
+        text_x <- best_x
+        
+        # Strategy 3: If still collisions, move further above
+        if (min_collisions > 0) {
+          text_y <- min_distance + min_text_clearance * 2
+        } else {
+          text_y <- default_text_y
+        }
+      }
+    } else {
+      # Strategy 2 only: Find best horizontal position (no space below)
+      text_y <- default_text_y
+      
+      # Try multiple horizontal positions
+      candidate_x_positions <- c(
+        plot_width * 0.2,   # Far left
+        plot_width * 0.35,  # Left-center
+        plot_width * 0.65,  # Right-center
+        plot_width * 0.8    # Far right
+      )
+      
+      best_x <- default_text_x
+      min_collisions <- length(colliding_bars)
+      
+      for (candidate_x in candidate_x_positions) {
+        # Ensure candidate position is within plot bounds
+        if (candidate_x > text_width_estimate/2 && candidate_x < (plot_width - text_width_estimate/2)) {
+          candidate_collisions <- which(
+            abs(nn_distances - min_distance) <= collision_threshold &
+            abs(bar_centers - candidate_x) <= (text_width_estimate / 2 + bar_width / 2)
+          )
+          
+          if (length(candidate_collisions) < min_collisions) {
+            best_x <- candidate_x
+            min_collisions <- length(candidate_collisions)
+          }
+        }
+      }
+      
+      text_x <- best_x
+      
+      # If still collisions, move further above
+      if (min_collisions > 0) {
+        text_y <- min_distance + min_text_clearance * 2
+      }
+    }
+  }
+  
+  # Draw the text label at the calculated optimal position
   text(
-    n / 2,
-    min(nn_distances) + max(nn_distances) * 0.05,
-    sprintf("Min: %.3f", min(nn_distances)),
+    text_x,
+    text_y,
+    sprintf("Min: %.3f", min_distance),
     col = "red",
-    font = 2
+    font = 2,
+    cex = 0.9  # Slightly smaller text for better fit
   )
 }
 
