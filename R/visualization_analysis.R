@@ -696,6 +696,28 @@ plot_comparative_palettes <- function(hex_colors) {
     cex.axis = 0.7 # Reduced from 0.8
   )
 
+  # Add jittered points to show underlying distribution
+  # Calculate appropriate jitter width (proportion of box width)
+  jitter_width <- 0.15  # 15% of unit width for good spread without overlap
+  point_alpha <- 0.5    # Semi-transparent points
+  point_size <- 0.7     # Smaller points to avoid visual clutter
+  
+  # Add jittered points for each palette
+  for (i in 1:4) {
+    # Generate jittered x-positions around the box center
+    n_points <- length(distance_list[[i]])
+    jittered_x <- i + runif(n_points, -jitter_width, jitter_width)
+    
+    # Add points with transparency and appropriate size
+    points(
+      jittered_x,
+      distance_list[[i]],
+      pch = 19,
+      col = adjustcolor("gray30", alpha.f = point_alpha),
+      cex = point_size
+    )
+  }
+
   # Add grid for easier reading
   grid(col = "lightgray", lty = 1, lwd = 0.5)
 
