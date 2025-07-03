@@ -35,8 +35,9 @@ plot_palette_analysis <- function(
   old_par <- par(no.readonly = TRUE)
   on.exit(par(old_par))
 
-  # Set up 2x3 layout for 6 panels with better spacing and increased margins
-  par(mfrow = c(2, 3), mar = c(4.0, 4.0, 3.0, 2.0), oma = c(0, 0, 3, 0))
+  # Set up 2x3 layout for 6 panels with optimized spacing and margins
+  # Increased margins to prevent text cutoff and improve readability
+  par(mfrow = c(2, 3), mar = c(5.0, 5.0, 3.5, 2.5), oma = c(0, 0, 3, 0))
 
   # Panel 1: Color Swatches with Key Metrics
   plot_color_swatches(hex_colors, evaluation)
@@ -120,8 +121,8 @@ plot_color_swatches <- function(hex_colors, evaluation) {
     # Determine optimal text color for this background
     text_color <- get_contrast_text_color(hex_colors[i])
     
-    # Add hex code inside the swatch (larger text, centered)
-    text(i - 0.5, 2.5, hex_colors[i], cex = 0.7, font = 2, col = text_color)
+    # Add hex code inside the swatch (rotated text to prevent bleeding)
+    text(i - 0.5, 2.5, hex_colors[i], cex = 0.6, font = 2, col = text_color, srt = 90)
     
     # Add color index number below the swatch
     text(i - 0.5, 1.2, i, cex = 0.8, font = 2, col = "black")
@@ -170,9 +171,9 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
     return()
   }
   
-  # Store current margins and set expanded right margin for legend
+  # Store current margins and set expanded margins for legend and Y-axis label
   old_mar <- par("mar")
-  par(mar = c(3.5, 3.5, 2.5, 4.5))  # Increased right margin from 1.5 to 4.5
+  par(mar = c(4.5, 5.0, 3.0, 5.5))  # Increased left margin for Y-axis label visibility
   on.exit(par(mar = old_mar))
 
   # Calculate distance matrix
@@ -329,10 +330,10 @@ plot_nearest_neighbor_distances <- function(hex_colors, evaluation) {
     cex.names = 0.8
   )
 
-  # Add horizontal line for minimum
+  # Add horizontal line for minimum (only in this panel, not duplicate)
   min_distance <- min(nn_distances)
   max_distance <- max(nn_distances)
-  abline(h = min_distance, col = "black", lwd = 2, lty = 2)
+  abline(h = min_distance, col = "red", lwd = 2, lty = 2)
   
   # Intelligent positioning for "Min" text label
   # Get actual bar positions from barplot layout
@@ -463,9 +464,9 @@ plot_nearest_neighbor_distances <- function(hex_colors, evaluation) {
     text_x,
     text_y,
     sprintf("Min: %.3f", min_distance),
-    col = "black",
+    col = "red",
     font = 2,
-    cex = 0.9  # Slightly smaller text for better fit
+    cex = 0.8  # Smaller text to prevent cutoff
   )
 }
 
@@ -529,9 +530,9 @@ plot_color_space_distribution <- function(hex_colors) {
 
   # Removed overlapping color index numbers for better readability
 
-  # Simplified text - removed complex coordinate statistics for better readability
+  # Simplified text with better positioning
   stats_text <- sprintf("Colors distributed across OKLAB space (n=%d)", n)
-  mtext(stats_text, side = 1, line = 2.5, cex = 0.9)
+  mtext(stats_text, side = 1, line = 3.5, cex = 0.8)  # Increased line spacing to prevent cutoff
 }
 
 #' Plot CVD Simulation
@@ -589,12 +590,12 @@ plot_cvd_simulation <- function(hex_colors) {
         rect(i - 1, 0, i, 1, col = gray_colors[i], border = "black")
       }
 
-      # Add labels
-      text(-0.1, 4.5, "Orig", srt = 90, adj = 0.5, cex = 0.8)
-      text(-0.1, 3.5, "Prot", srt = 90, adj = 0.5, cex = 0.8)
-      text(-0.1, 2.5, "Deut", srt = 90, adj = 0.5, cex = 0.8)
-      text(-0.1, 1.5, "Trit", srt = 90, adj = 0.5, cex = 0.8)
-      text(-0.1, 0.5, "Gray", srt = 90, adj = 0.5, cex = 0.8)
+      # Add labels with more spacing from swatches
+      text(-0.25, 4.5, "Orig", srt = 90, adj = 0.5, cex = 0.8)
+      text(-0.25, 3.5, "Prot", srt = 90, adj = 0.5, cex = 0.8)
+      text(-0.25, 2.5, "Deut", srt = 90, adj = 0.5, cex = 0.8)
+      text(-0.25, 1.5, "Trit", srt = 90, adj = 0.5, cex = 0.8)
+      text(-0.25, 0.5, "Gray", srt = 90, adj = 0.5, cex = 0.8)
     },
     error = function(e) {
       plot(
@@ -667,7 +668,7 @@ plot_comparative_palettes <- function(hex_colors) {
     "Batlow" = batlow_distances
   )
 
-  # Create boxplot comparison with better sizing for various devices
+  # Create boxplot comparison with better sizing and axis labels
   boxplot(
     distance_list,
     main = "Distance Distribution Comparison\n(OKLAB Perceptual Units)",
@@ -675,10 +676,11 @@ plot_comparative_palettes <- function(hex_colors) {
     xlab = "Palette Type",
     col = c("#E8F4FD", "#FFF2CC", "#E1D5E7", "#D5E8D4"),
     border = "black",
-    las = 1,
-    cex.main = 0.9, # Reduced from 1.0
-    cex.lab = 0.8, # Reduced from 0.9
-    cex.axis = 0.7 # Reduced from 0.8
+    las = 2,  # Rotate x-axis labels to prevent cutoff
+    cex.main = 0.9,
+    cex.lab = 0.8,
+    cex.axis = 0.7,
+    cex.names = 0.7  # Smaller x-axis labels
   )
 
   # Add jittered points to show underlying distribution
@@ -721,12 +723,12 @@ plot_comparative_palettes <- function(hex_colors) {
     col = "black"
   )
 
-  # Add explanation with better sizing
+  # Add explanation with better sizing and positioning
   mtext(
     "Black dots show minimum distances (higher is better for categorical palettes)",
     side = 1,
-    line = 2.5, # Reduced from 3
-    cex = 0.6, # Reduced from 0.7
+    line = 4.0, # Increased to accommodate rotated labels
+    cex = 0.6,
     col = "gray50"
   )
 }
