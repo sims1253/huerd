@@ -8,9 +8,10 @@
 #' @param colors A character vector of hex colors or a matrix of colors in OKLAB space.
 #' @param main_title Character. Main title for the dashboard. Default: "Palette Analysis Dashboard"
 #' @param new_device Logical. Whether to create a new graphics device. Default: FALSE.
-#'   When TRUE, creates a new device with optimal size for the dashboard.
-#'   When FALSE, uses the current device with adaptive margins. If no graphics 
-#'   device is active, one will be automatically created.
+#'   When TRUE, creates a new device with optimal size for the dashboard. In
+#'   interactive IDE environments (RStudio/Positron), respects the IDE's graphics
+#'   system. When FALSE, uses the current device or creates one automatically if
+#'   none exists, preferring the IDE's plot pane in interactive environments.
 #' @param device_width Numeric. Width of new device in inches. Default: 12.
 #' @param device_height Numeric. Height of new device in inches. Default: 9.
 #' @return Invisibly returns the evaluation result from evaluate_palette.
@@ -34,9 +35,22 @@ plot_palette_analysis <- function(
   device_width = 12,
   device_height = 9
 ) {
-  # Handle device creation if requested
+  # Detect if we're in an interactive IDE environment
+  in_rstudio <- exists("RStudio.Version", mode = "function")
+  in_positron <- Sys.getenv("POSITRON") != ""
+  in_interactive_ide <- in_rstudio || in_positron
+  is_interactive <- interactive()
+  
+  # Handle device creation based on environment and user preference
   if (new_device) {
-    dev.new(width = device_width, height = device_height, noRStudioGD = TRUE)
+    # User explicitly requested new device
+    if (in_interactive_ide) {
+      # In interactive IDE, respect the IDE's graphics system unless user forces external
+      dev.new(width = device_width, height = device_height)
+    } else {
+      # Not in IDE, create appropriate external device
+      dev.new(width = device_width, height = device_height, noRStudioGD = TRUE)
+    }
     on.exit(dev.off())
   }
 
@@ -47,21 +61,28 @@ plot_palette_analysis <- function(
     farver::encode_colour(colors, from = "oklab")
   }
 
-  # Ensure we have a valid graphics device before calling layout()
-  # Check if any device is active, if not, create one
+  # Smart device management: prefer existing device in interactive environments
   if (dev.cur() == 1) { # Device 1 is the null device (no active device)
-    # Create a default graphics device for plotting
-    if (capabilities("X11") && Sys.getenv("DISPLAY") != "") {
-      X11()
-    } else if (capabilities("png")) {
-      # Use png device as fallback for headless environments
-      temp_file <- tempfile(fileext = ".png")
-      png(temp_file, width = device_width * 100, height = device_height * 100, res = 100)
-      on.exit(dev.off(), add = TRUE)
+    # Need to create a device
+    created_device <- FALSE
+    if (in_interactive_ide && is_interactive) {
+      # In interactive IDE: try to create a device that works with the IDE
+      tryCatch({
+        # Try the IDE's default graphics device first
+        dev.new(width = device_width, height = device_height)
+        created_device <- TRUE
+      }, error = function(e) {
+        # If IDE device creation fails, fall back to other options
+        created_device <<- .create_fallback_device(device_width, device_height)
+      })
     } else {
-      # Final fallback to pdf device
-      temp_file <- tempfile(fileext = ".pdf")
-      pdf(temp_file, width = device_width, height = device_height)
+      # Not in interactive IDE: create appropriate device for environment
+      created_device <- .create_fallback_device(device_width, device_height)
+    }
+    
+    # Set up cleanup for created device only for truly headless/batch environments
+    # In any interactive session (IDE or not), leave device open for user convenience
+    if (created_device && !new_device && !is_interactive) {
       on.exit(dev.off(), add = TRUE)
     }
   }
@@ -102,6 +123,38 @@ plot_palette_analysis <- function(
   mtext(main_title, outer = TRUE, cex = 2.0, font = 2, line = 2)
 
   invisible(evaluation)
+}
+
+#' Create Fallback Graphics Device
+#' 
+#' Helper function to create an appropriate graphics device for non-interactive
+#' environments or when IDE device creation fails.
+#' 
+#' @param device_width Numeric. Width in inches.
+#' @param device_height Numeric. Height in inches.
+#' @return Logical. TRUE if device was successfully created, FALSE otherwise.
+#' @noRd
+.create_fallback_device <- function(device_width, device_height) {
+  # Try different device types in order of preference for headless/batch environments
+  tryCatch({
+    if (capabilities("X11") && Sys.getenv("DISPLAY") != "") {
+      # X11 available and DISPLAY set
+      X11(width = device_width, height = device_height)
+      return(TRUE)
+    } else if (capabilities("png")) {
+      # Use png device as fallback for headless environments
+      temp_file <- tempfile(fileext = ".png")
+      png(temp_file, width = device_width * 100, height = device_height * 100, res = 100)
+      return(TRUE)
+    } else {
+      # Final fallback to pdf device
+      temp_file <- tempfile(fileext = ".pdf")
+      pdf(temp_file, width = device_width, height = device_height)
+      return(TRUE)
+    }
+  }, error = function(e) {
+    return(FALSE)
+  })
 }
 
 #' Calculate Safe Margins for Current Device
