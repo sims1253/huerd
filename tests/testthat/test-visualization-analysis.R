@@ -191,6 +191,73 @@ test_that("plot_palette_analysis can save to file", {
   }
 })
 
+# Device size adaptation tests
+
+test_that("plot_palette_analysis works with small device sizes", {
+  skip_on_cran()
+  
+  colors <- c("#FF0000", "#00FF00", "#0000FF", "#FFFF00")
+  
+  # Test with very small device that would trigger the "figure margins too large" error
+  # with the old fixed margins
+  expect_no_error({
+    pdf(NULL, width = 4, height = 3)  # Small device
+    tryCatch({
+      result <- plot_palette_analysis(colors)
+      expect_true(inherits(result, "huerd_evaluation"))
+    }, finally = {
+      dev.off()
+    })
+  })
+})
+
+test_that("plot_palette_analysis works with large device sizes", {
+  skip_on_cran()
+  
+  colors <- c("#FF0000", "#00FF00", "#0000FF", "#FFFF00")
+  
+  # Test with large device to ensure we still get good quality output
+  expect_no_error({
+    pdf(NULL, width = 12, height = 8)  # Large device
+    tryCatch({
+      result <- plot_palette_analysis(colors)
+      expect_true(inherits(result, "huerd_evaluation"))
+    }, finally = {
+      dev.off()
+    })
+  })
+})
+
+test_that("plot_palette_analysis adapts margins correctly", {
+  skip_on_cran()
+  
+  colors <- c("#FF0000", "#00FF00", "#0000FF")
+  
+  # Test the calculate_safe_margins function directly
+  expect_no_error({
+    # Set up a small device context
+    pdf(NULL, width = 4, height = 3)
+    tryCatch({
+      safe_margins <- huerd:::calculate_safe_margins(
+        desired_mar = c(6.5, 6.0, 4.0, 3.0),
+        desired_oma = c(1.5, 0, 4, 0),
+        mfrow = c(2, 3)
+      )
+      
+      expect_true(is.list(safe_margins))
+      expect_true(all(names(safe_margins) %in% c("mar", "oma")))
+      expect_true(all(safe_margins$mar >= 0))
+      expect_true(all(safe_margins$oma >= 0))
+      
+      # For small device, margins should be scaled down
+      expect_true(all(safe_margins$mar <= c(6.5, 6.0, 4.0, 3.0)))
+      
+    }, finally = {
+      dev.off()
+    })
+  })
+})
+
 # Performance and robustness tests
 
 test_that("plot_palette_analysis handles various color formats", {

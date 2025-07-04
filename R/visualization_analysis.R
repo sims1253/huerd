@@ -1,3 +1,58 @@
+#' Calculate Safe Margins for Plotting
+#'
+#' Calculates plot margins that are safe for the current plotting device,
+#' adapting to available space while maintaining publication quality when possible.
+#'
+#' @param desired_mar Numeric vector of desired margins (bottom, left, top, right)
+#' @param desired_oma Numeric vector of desired outer margins
+#' @param mfrow Numeric vector of layout (rows, columns)
+#' @return List with 'mar' and 'oma' elements containing safe margin values
+#' @noRd
+calculate_safe_margins <- function(desired_mar = c(6.5, 6.0, 4.0, 3.0),
+                                  desired_oma = c(1.5, 0, 4, 0),
+                                  mfrow = c(2, 3)) {
+  # Get current device dimensions in inches
+  dev_size <- par("din")
+  
+  # Calculate available space per subplot
+  available_width <- dev_size[1] / mfrow[2]
+  available_height <- dev_size[2] / mfrow[1]
+  
+  # Convert margins from lines to inches (approximate)
+  # Default line height is about 0.2 inches, but varies by device
+  line_height <- par("cin")[2] * par("cex")
+  
+  # Calculate total margin space needed in inches
+  total_mar_width <- (desired_mar[2] + desired_mar[4]) * line_height
+  total_mar_height <- (desired_mar[1] + desired_mar[3]) * line_height
+  total_oma_width <- (desired_oma[2] + desired_oma[4]) * line_height
+  total_oma_height <- (desired_oma[1] + desired_oma[3]) * line_height
+  
+  # Calculate available space for actual plot area
+  plot_width <- available_width - total_mar_width - total_oma_width/mfrow[2]
+  plot_height <- available_height - total_mar_height - total_oma_height/mfrow[1]
+  
+  # If plot area would be too small, scale down margins proportionally
+  min_plot_size <- 1.5 # minimum 1.5 inches for plot area
+  
+  scale_factor <- 1.0
+  if (plot_width < min_plot_size) {
+    scale_factor <- min(scale_factor, (available_width - min_plot_size) / (total_mar_width + total_oma_width/mfrow[2]))
+  }
+  if (plot_height < min_plot_size) {
+    scale_factor <- min(scale_factor, (available_height - min_plot_size) / (total_mar_height + total_oma_height/mfrow[1]))
+  }
+  
+  # Apply scaling, but don't go below minimum usable margins
+  min_mar <- c(3.0, 3.0, 2.0, 1.0)  # minimum margins for readability
+  min_oma <- c(0.5, 0, 2.0, 0)      # minimum outer margins
+  
+  safe_mar <- pmax(desired_mar * scale_factor, min_mar)
+  safe_oma <- pmax(desired_oma * scale_factor, min_oma)
+  
+  return(list(mar = safe_mar, oma = safe_oma))
+}
+
 #' Comprehensive Palette Analysis Dashboard
 #'
 #' Creates a scicomap-inspired comprehensive diagnostic dashboard for color palettes.
@@ -8,8 +63,8 @@
 #' @param colors A character vector of hex colors or a matrix of colors in OKLAB space.
 #' @param main_title Character. Main title for the dashboard. Default: "Palette Analysis Dashboard"
 #' @return Invisibly returns the evaluation result from evaluate_palette.
-#' @importFrom graphics abline axis barplot boxplot grid image mtext par points rect text
-#' @importFrom grDevices hcl.colors
+#' @importFrom graphics abline axis barplot boxplot grid image mtext par points rect text lines
+#' @importFrom grDevices hcl.colors adjustcolor
 #' @export
 #' @examples
 #' colors <- c("#ff0000", "#00ff00", "#0000ff")
@@ -35,9 +90,15 @@ plot_palette_analysis <- function(
   old_par <- par(no.readonly = TRUE)
   on.exit(par(old_par))
 
-  # Set up 2x3 layout for 6 panels with optimized spacing and margins
-  # Dramatically increased margins and spacing for publication quality
-  par(mfrow = c(2, 3), mar = c(6.5, 6.0, 4.0, 3.0), oma = c(1.5, 0, 4, 0))
+  # Calculate safe margins based on device size
+  safe_margins <- calculate_safe_margins(
+    desired_mar = c(6.5, 6.0, 4.0, 3.0),
+    desired_oma = c(1.5, 0, 4, 0),
+    mfrow = c(2, 3)
+  )
+
+  # Set up 2x3 layout for 6 panels with adaptive margins
+  par(mfrow = c(2, 3), mar = safe_margins$mar, oma = safe_margins$oma)
 
   # Panel 1: Color Swatches with Key Metrics
   plot_color_swatches(hex_colors, evaluation)
@@ -174,7 +235,35 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
   
   # Store current margins and set expanded margins for legend and Y-axis label
   old_mar <- par("mar")
-  par(mar = c(6.5, 6.0, 4.0, 6.5))  # Increased margins for publication quality
+  
+  # Calculate safe margins for this subplot, accounting for legend space
+  desired_mar <- c(6.5, 6.0, 4.0, 6.5)  # Extra space on right for legend
+  
+  # Get current device dimensions and calculate safe margins
+  dev_size <- par("din")
+  line_height <- par("cin")[2] * par("cex")
+  
+  # Calculate available space (considering we're in a 2x3 layout)
+  available_width <- dev_size[1] / 3  # 3 columns
+  available_height <- dev_size[2] / 2  # 2 rows
+  
+  # Ensure minimum space for plot and legend
+  min_plot_width <- 1.5  # minimum plot area
+  min_legend_width <- 0.8  # minimum legend width
+  required_width <- min_plot_width + min_legend_width
+  
+  # Scale margins if necessary
+  scale_factor <- 1.0
+  if (available_width < required_width + (desired_mar[2] + desired_mar[4]) * line_height) {
+    scale_factor <- (available_width - required_width) / ((desired_mar[2] + desired_mar[4]) * line_height)
+    scale_factor <- max(scale_factor, 0.3)  # Don't scale below 30% of desired
+  }
+  
+  # Apply scaling with minimums
+  min_mar <- c(3.0, 3.0, 2.0, 3.0)  # minimum margins including legend space
+  safe_mar <- pmax(desired_mar * scale_factor, min_mar)
+  
+  par(mar = safe_mar)
   on.exit(par(mar = old_mar))
 
   # Calculate distance matrix
