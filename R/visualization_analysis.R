@@ -1,58 +1,3 @@
-#' Calculate Safe Margins for Plotting
-#'
-#' Calculates plot margins that are safe for the current plotting device,
-#' adapting to available space while maintaining publication quality when possible.
-#'
-#' @param desired_mar Numeric vector of desired margins (bottom, left, top, right)
-#' @param desired_oma Numeric vector of desired outer margins
-#' @param mfrow Numeric vector of layout (rows, columns)
-#' @return List with 'mar' and 'oma' elements containing safe margin values
-#' @noRd
-calculate_safe_margins <- function(desired_mar = c(6.5, 6.0, 4.0, 3.0),
-                                  desired_oma = c(1.5, 0, 4, 0),
-                                  mfrow = c(2, 3)) {
-  # Get current device dimensions in inches
-  dev_size <- par("din")
-  
-  # Calculate available space per subplot
-  available_width <- dev_size[1] / mfrow[2]
-  available_height <- dev_size[2] / mfrow[1]
-  
-  # Convert margins from lines to inches (approximate)
-  # Default line height is about 0.2 inches, but varies by device
-  line_height <- par("cin")[2] * par("cex")
-  
-  # Calculate total margin space needed in inches
-  total_mar_width <- (desired_mar[2] + desired_mar[4]) * line_height
-  total_mar_height <- (desired_mar[1] + desired_mar[3]) * line_height
-  total_oma_width <- (desired_oma[2] + desired_oma[4]) * line_height
-  total_oma_height <- (desired_oma[1] + desired_oma[3]) * line_height
-  
-  # Calculate available space for actual plot area
-  plot_width <- available_width - total_mar_width - total_oma_width/mfrow[2]
-  plot_height <- available_height - total_mar_height - total_oma_height/mfrow[1]
-  
-  # If plot area would be too small, scale down margins proportionally
-  min_plot_size <- 1.5 # minimum 1.5 inches for plot area
-  
-  scale_factor <- 1.0
-  if (plot_width < min_plot_size) {
-    scale_factor <- min(scale_factor, (available_width - min_plot_size) / (total_mar_width + total_oma_width/mfrow[2]))
-  }
-  if (plot_height < min_plot_size) {
-    scale_factor <- min(scale_factor, (available_height - min_plot_size) / (total_mar_height + total_oma_height/mfrow[1]))
-  }
-  
-  # Apply scaling, but don't go below minimum usable margins
-  min_mar <- c(3.0, 3.0, 2.0, 1.0)  # minimum margins for readability
-  min_oma <- c(0.5, 0, 2.0, 0)      # minimum outer margins
-  
-  safe_mar <- pmax(desired_mar * scale_factor, min_mar)
-  safe_oma <- pmax(desired_oma * scale_factor, min_oma)
-  
-  return(list(mar = safe_mar, oma = safe_oma))
-}
-
 #' Comprehensive Palette Analysis Dashboard
 #'
 #' Creates a scicomap-inspired comprehensive diagnostic dashboard for color palettes.
@@ -62,6 +7,11 @@ calculate_safe_margins <- function(desired_mar = c(6.5, 6.0, 4.0, 3.0),
 #'
 #' @param colors A character vector of hex colors or a matrix of colors in OKLAB space.
 #' @param main_title Character. Main title for the dashboard. Default: "Palette Analysis Dashboard"
+#' @param new_device Logical. Whether to create a new graphics device. Default: FALSE.
+#'   When TRUE, creates a new device with optimal size for the dashboard.
+#'   When FALSE, uses the current device with adaptive margins.
+#' @param device_width Numeric. Width of new device in inches. Default: 12.
+#' @param device_height Numeric. Height of new device in inches. Default: 9.
 #' @return Invisibly returns the evaluation result from evaluate_palette.
 #' @importFrom graphics abline axis barplot boxplot grid image mtext par points rect text lines
 #' @importFrom grDevices hcl.colors adjustcolor
@@ -69,80 +19,140 @@ calculate_safe_margins <- function(desired_mar = c(6.5, 6.0, 4.0, 3.0),
 #' @examples
 #' colors <- c("#ff0000", "#00ff00", "#0000ff")
 #' plot_palette_analysis(colors)
+#' 
+#' # For file output, you might want a new device:
+#' \dontrun{
+#' png("my_palette.png", width = 12, height = 9, units = "in", res = 300)
+#' plot_palette_analysis(colors)
+#' dev.off()
+#' }
 plot_palette_analysis <- function(
   colors,
-  main_title = "Palette Analysis Dashboard"
+  main_title = "Palette Analysis Dashboard",
+  new_device = FALSE,
+  device_width = 12,
+  device_height = 9
 ) {
-  # Evaluate the palette first
-  evaluation <- evaluate_palette(colors)
-
-  # Convert colors to consistent format
-  if (is.character(colors)) {
-    hex_colors <- colors
-  } else {
-    # Assume OKLAB matrix, convert to hex
-    hex_colors <- farver::encode_colour(colors, from = "oklab")
+  # Handle device creation if requested
+  if (new_device) {
+    dev.new(width = device_width, height = device_height, noRStudioGD = TRUE)
+    on.exit(dev.off())
   }
 
-  n_colors <- length(hex_colors)
+  evaluation <- evaluate_palette(colors)
+  hex_colors <- if (is.character(colors)) {
+    colors
+  } else {
+    farver::encode_colour(colors, from = "oklab")
+  }
 
-  # Store current graphics parameters to restore later
-  old_par <- par(no.readonly = TRUE)
-  on.exit(par(old_par))
-
-  # Calculate safe margins based on device size
+  layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE))
+  
+  # Calculate safe margins based on current device size
   safe_margins <- calculate_safe_margins(
-    desired_mar = c(6.5, 6.0, 4.0, 3.0),
-    desired_oma = c(1.5, 0, 4, 0),
+    desired_mar = c(6, 5, 5, 5),
+    desired_oma = c(2, 1, 5, 1),
     mfrow = c(2, 3)
   )
+  
+  par(
+    oma = safe_margins$oma,
+    mar = safe_margins$mar
+  )
 
-  # Set up 2x3 layout for 6 panels with adaptive margins
-  par(mfrow = c(2, 3), mar = safe_margins$mar, oma = safe_margins$oma)
-
-  # Panel 1: Color Swatches with Key Metrics
   plot_color_swatches(hex_colors, evaluation)
-
-  # Panel 2: Pairwise Distance Heatmap
   plot_distance_heatmap(hex_colors, evaluation)
-
-  # Panel 3: Nearest Neighbor Distances
   plot_nearest_neighbor_distances(hex_colors, evaluation)
-
-  # Panel 4: Color Space Distribution
   plot_color_space_distribution(hex_colors)
-
-  # Panel 5: CVD Simulation
   plot_cvd_simulation(hex_colors)
-
-  # Panel 6: Comparative Palette Analysis
   plot_comparative_palettes(hex_colors)
 
-  # Add main title with increased size for publication quality
-  mtext(main_title, outer = TRUE, cex = 2.0, font = 2)
+  # Add main title to the outer margin
+  mtext(main_title, outer = TRUE, cex = 2.0, font = 2, line = 2)
 
   invisible(evaluation)
 }
 
+#' Calculate Safe Margins for Current Device
+#'
+#' Calculates margins that will fit within the current graphics device,
+#' automatically scaling down if the desired margins would cause 
+#' "figure margins too large" errors.
+#'
+#' @param desired_mar Numeric vector of length 4. Desired margins in lines
+#'   (bottom, left, top, right).
+#' @param desired_oma Numeric vector of length 4. Desired outer margins in lines
+#'   (bottom, left, top, right).
+#' @param mfrow Numeric vector of length 2. Number of subplot rows and columns.
+#' @return List with components 'mar' and 'oma' containing safe margin values.
+#' @noRd
+calculate_safe_margins <- function(desired_mar, desired_oma, mfrow) {
+  # Get current device dimensions
+  pin <- par("pin")  # Plot region size in inches
+  cin <- par("cin")  # Character size in inches
+  
+  if (length(pin) != 2 || any(is.na(pin)) || any(pin <= 0)) {
+    # Fallback to conservative margins if device info unavailable
+    return(list(
+      mar = pmin(desired_mar, c(4, 4, 3, 2)),
+      oma = pmin(desired_oma, c(1, 1, 3, 1))
+    ))
+  }
+  
+  # Calculate available space per subplot
+  n_rows <- mfrow[1]
+  n_cols <- mfrow[2]
+  
+  # Available space for each subplot (in inches)
+  available_width <- pin[1] / n_cols
+  available_height <- pin[2] / n_rows
+  
+  # Convert desired margins from lines to inches
+  desired_mar_inches <- desired_mar * cin[2]  # cin[2] is line height
+  desired_oma_inches <- desired_oma * cin[2]
+  
+  # Calculate required space for margins
+  required_width <- desired_mar_inches[2] + desired_mar_inches[4] + 
+                   desired_oma_inches[2] + desired_oma_inches[4]
+  required_height <- desired_mar_inches[1] + desired_mar_inches[3] + 
+                    desired_oma_inches[1] + desired_oma_inches[3]
+  
+  # Calculate scaling factors (if < 1, we need to scale down)
+  width_scale <- max(0.1, (available_width - 1) / required_width)  # Leave 1 inch for plot
+  height_scale <- max(0.1, (available_height - 1) / required_height)  # Leave 1 inch for plot
+  
+  # Use the most restrictive scaling factor
+  scale_factor <- min(1, width_scale, height_scale)
+  
+  # Apply scaling to margins
+  safe_mar <- pmax(0.5, desired_mar * scale_factor)  # Minimum 0.5 lines
+  safe_oma <- pmax(0.1, desired_oma * scale_factor)  # Minimum 0.1 lines
+  
+  return(list(
+    mar = safe_mar,
+    oma = safe_oma
+  ))
+}
+
 #' Get Optimal Text Color for Background Contrast
-#' 
+#'
 #' Determines whether black or white text provides better contrast against
 #' a given background color using perceptual lightness from OKLAB space.
-#' 
+#'
 #' @param hex_color Character. A single hex color code (e.g., "#FF0000")
 #' @return Character. Either "black" or "white" for optimal contrast
 #' @noRd
 get_contrast_text_color <- function(hex_color) {
   # Convert hex to OKLAB to get perceptual lightness
   oklab_color <- farver::convert_colour(
-    farver::decode_colour(hex_color), 
-    from = "rgb", 
+    farver::decode_colour(hex_color),
+    from = "rgb",
     to = "oklab"
   )
-  
+
   # Use OKLAB lightness (L component) for perceptual accuracy
-  lightness <- oklab_color[1, 1]  # L component is first column
-  
+  lightness <- oklab_color[1, 1] # L component is first column
+
   # Use threshold of 0.5: if L < 0.5 use white text, if L >= 0.5 use black text
   if (lightness < 0.5) {
     return("white")
@@ -179,13 +189,21 @@ plot_color_swatches <- function(hex_colors, evaluation) {
   for (i in 1:n) {
     # Draw larger swatch (height increased from 1.5 to 2.0)
     rect(i - 1, 1.5, i, 3.5, col = hex_colors[i], border = "black", lwd = 1.5)
-    
+
     # Determine optimal text color for this background
     text_color <- get_contrast_text_color(hex_colors[i])
-    
+
     # Add hex code inside the swatch (rotated text to prevent bleeding)
-    text(i - 0.5, 2.5, hex_colors[i], cex = 0.6, font = 2, col = text_color, srt = 90)
-    
+    text(
+      i - 0.5,
+      2.5,
+      hex_colors[i],
+      cex = 0.6,
+      font = 2,
+      col = text_color,
+      srt = 90
+    )
+
     # Add color index number below the swatch
     text(i - 0.5, 1.2, i, cex = 0.8, font = 2, col = "black")
   }
@@ -218,149 +236,38 @@ plot_color_swatches <- function(hex_colors, evaluation) {
 #' @noRd
 plot_distance_heatmap <- function(hex_colors, evaluation) {
   n <- length(hex_colors)
-
   if (n < 2) {
-    plot(
-      0,
-      0,
-      type = "n",
-      axes = FALSE,
-      xlab = "",
-      ylab = "",
-      main = "Pairwise Distances\n(Need >=2 colors)"
-    )
-    text(0, 0, "Insufficient colors", cex = 1.2, col = "gray50")
+    plot.new()
+    text(0.5, 0.5, "Insufficient colors")
     return()
   }
-  
-  # Store current margins and set expanded margins for legend and Y-axis label
-  old_mar <- par("mar")
-  
-  # Calculate safe margins for this subplot, accounting for legend space
-  desired_mar <- c(6.5, 6.0, 4.0, 6.5)  # Extra space on right for legend
-  
-  # Get current device dimensions and calculate safe margins
-  dev_size <- par("din")
-  line_height <- par("cin")[2] * par("cex")
-  
-  # Calculate available space (considering we're in a 2x3 layout)
-  available_width <- dev_size[1] / 3  # 3 columns
-  available_height <- dev_size[2] / 2  # 2 rows
-  
-  # Ensure minimum space for plot and legend
-  min_plot_width <- 1.5  # minimum plot area
-  min_legend_width <- 0.8  # minimum legend width
-  required_width <- min_plot_width + min_legend_width
-  
-  # Scale margins if necessary
-  scale_factor <- 1.0
-  if (available_width < required_width + (desired_mar[2] + desired_mar[4]) * line_height) {
-    scale_factor <- (available_width - required_width) / ((desired_mar[2] + desired_mar[4]) * line_height)
-    scale_factor <- max(scale_factor, 0.3)  # Don't scale below 30% of desired
-  }
-  
-  # Apply scaling with minimums
-  min_mar <- c(3.0, 3.0, 2.0, 3.0)  # minimum margins including legend space
-  safe_mar <- pmax(desired_mar * scale_factor, min_mar)
-  
-  par(mar = safe_mar)
-  on.exit(par(mar = old_mar))
 
-  # Calculate distance matrix
-  oklab_colors <- farver::convert_colour(
-    farver::decode_colour(hex_colors),
-    from = "rgb",
-    to = "oklab"
+  dist_matrix <- calculate_perceptual_distances(
+    farver::convert_colour(
+      farver::decode_colour(hex_colors),
+      from = "rgb",
+      to = "oklab"
+    )
   )
-  dist_matrix <- calculate_perceptual_distances(oklab_colors)
 
-  viridis_colors <- hcl.colors(100, "Viridis")
   image(
     1:n,
     1:n,
     dist_matrix,
-    col = viridis_colors,
+    col = hcl.colors(100, "Viridis"),
     main = "Pairwise Distance Matrix\n(OKLAB Units)",
     xlab = "Color Index",
     ylab = "Color Index",
     axes = FALSE,
     cex.main = 1.4,
     cex.lab = 1.2,
-    asp = 1  # Force square aspect ratio to prevent squishing
+    asp = 1
   )
-
   axis(1, at = 1:n, labels = 1:n, cex.axis = 1.0)
   axis(2, at = 1:n, labels = 1:n, cex.axis = 1.0)
 
-  # Add enhanced color bar legend
-  dist_range <- range(dist_matrix[dist_matrix > 0], na.rm = TRUE)
-  if (diff(dist_range) > 0) {
-    # Create color bar in the right margin with improved positioning
-    usr <- par("usr")
-    legend_width <- (usr[2] - usr[1]) * 0.12  # Slightly narrower
-    legend_x1 <- usr[2] + (usr[2] - usr[1]) * 0.08  # Better spacing from plot
-    legend_x2 <- legend_x1 + legend_width
-    legend_y1 <- usr[3] + (usr[4] - usr[3]) * 0.15  # Better vertical positioning
-    legend_y2 <- usr[4] - (usr[4] - usr[3]) * 0.15
-
-    # Draw color bar with border for professional appearance
-    legend_vals <- seq(dist_range[1], dist_range[2], length.out = 25)  # More segments for smoother gradient
-    legend_colors <- hcl.colors(25, "Viridis")
-
-    # Draw individual color segments
-    for (i in 1:25) {
-      rect(
-        legend_x1,
-        legend_y1 + (i - 1) * (legend_y2 - legend_y1) / 25,
-        legend_x2,
-        legend_y1 + i * (legend_y2 - legend_y1) / 25,
-        col = legend_colors[i],
-        border = NA
-      )
-    }
-    
-    # Add border around entire legend
-    rect(legend_x1, legend_y1, legend_x2, legend_y2, 
-         col = NA, border = "black", lwd = 1)
-    
-    # Calculate tick positions and values for better readability
-    n_ticks <- 5  # Number of tick marks including min and max
-    tick_positions <- seq(legend_y1, legend_y2, length.out = n_ticks)
-    tick_values <- seq(dist_range[1], dist_range[2], length.out = n_ticks)
-    
-    # Add tick marks
-    tick_length <- (usr[2] - usr[1]) * 0.015
-    for (i in 1:n_ticks) {
-      # Draw tick mark
-      lines(c(legend_x2, legend_x2 + tick_length), 
-            c(tick_positions[i], tick_positions[i]), 
-            col = "black", lwd = 1)
-      
-      # Add value label
-      text(
-        legend_x2 + tick_length + (usr[2] - usr[1]) * 0.01,
-        tick_positions[i],
-        sprintf("%.2f", tick_values[i]),
-        cex = 1.0,
-        pos = 4,
-        font = 1
-      )
-    }
-    
-    # Add legend title with better positioning
-    text(
-      legend_x1 + legend_width / 2,
-      legend_y2 + (usr[4] - usr[3]) * 0.06,
-      "Distance",
-      cex = 1.0,
-      pos = 1,  # Center above the legend
-      font = 2,  # Bold font
-      adj = 0.5  # Center alignment
-    )
-  }
-
   if (n <= 8) {
-    text_size <- pmax(0.6, 1.1 - n * 0.05)  # Increased minimum text size
+    text_size <- pmax(0.6, 1.1 - n * 0.05)
     for (i in 1:n) {
       for (j in 1:n) {
         if (i != j) {
@@ -368,6 +275,44 @@ plot_distance_heatmap <- function(hex_colors, evaluation) {
         }
       }
     }
+  }
+
+  # --- Safe Legend Drawing (with cleanup) ---
+  old_xpd <- par("xpd")
+  on.exit(par(xpd = old_xpd))
+  par(xpd = NA)
+
+  dist_range <- range(dist_matrix[dist_matrix > 0], na.rm = TRUE)
+  if (any(is.finite(dist_range))) {
+    usr <- par("usr")
+    # ** ADJUSTMENT: Slightly less aggressive positioning **
+    legend_x1 <- usr[2] + 0.5
+    legend_x2 <- legend_x1 + 0.5
+
+    legend_colors <- hcl.colors(100, "Viridis")
+    for (i in 1:100) {
+      y1 <- usr[3] + (usr[4] - usr[3]) * (i - 1) / 100
+      y2 <- usr[3] + (usr[4] - usr[3]) * i / 100
+      rect(legend_x1, y1, legend_x2, y2, col = legend_colors[i], border = NA)
+    }
+    rect(legend_x1, usr[3], legend_x2, usr[4], border = "black")
+
+    tick_values <- pretty(dist_range, n = 5)
+    tick_pos <- usr[3] +
+      (usr[4] - usr[3]) * (tick_values - dist_range[1]) / diff(dist_range)
+
+    for (i in seq_along(tick_values)) {
+      lines(c(legend_x2, legend_x2 + 0.1), c(tick_pos[i], tick_pos[i]))
+      text(
+        legend_x2 + 0.15,
+        tick_pos[i],
+        sprintf("%.2f", tick_values[i]),
+        pos = 4,
+        cex = 0.9
+      )
+    }
+
+    text(mean(c(legend_x1, legend_x2)), usr[4], "Distance", pos = 3, font = 2)
   }
 }
 
@@ -486,7 +431,7 @@ plot_color_space_distribution <- function(hex_colors) {
 
   # Simplified text with better positioning
   stats_text <- sprintf("Colors distributed across OKLAB space (n=%d)", n)
-  mtext(stats_text, side = 1, line = 4.5, cex = 1.0)  # Increased line spacing to prevent cutoff
+  mtext(stats_text, side = 1, line = 4.5, cex = 1.0) # Increased line spacing to prevent cutoff
 }
 
 #' Plot CVD Simulation
@@ -508,62 +453,48 @@ plot_cvd_simulation <- function(hex_colors) {
     return()
   }
 
-  # Simulate CVD and grayscale
-  tryCatch(
-    {
-      protan_colors <- colorspace::protan(hex_colors, severity = 1.0)
-      deutan_colors <- colorspace::deutan(hex_colors, severity = 1.0)
-      tritan_colors <- colorspace::tritan(hex_colors, severity = 1.0)
-      gray_colors <- colorspace::desaturate(hex_colors)
+  protan_colors <- colorspace::protan(hex_colors, severity = 1.0)
+  deutan_colors <- colorspace::deutan(hex_colors, severity = 1.0)
+  tritan_colors <- colorspace::tritan(hex_colors, severity = 1.0)
+  gray_colors <- colorspace::desaturate(hex_colors)
 
-      # Create comparison plot (increased height for grayscale row)
-      plot(
-        0,
-        0,
-        type = "n",
-        xlim = c(0, max(1, n)),
-        ylim = c(0, 5), # Increased from 4 to 5 for grayscale row
-        axes = FALSE,
-        xlab = "",
-        ylab = "",
-        main = "CVD Simulation & Grayscale\n(Severity = 1.0)",
-        cex.main = 1.4
-      )
-
-      # Draw color strips
-      for (i in 1:n) {
-        # Original
-        rect(i - 1, 4, i, 5, col = hex_colors[i], border = "black")
-        # Protanopia
-        rect(i - 1, 3, i, 4, col = protan_colors[i], border = "black")
-        # Deuteranopia
-        rect(i - 1, 2, i, 3, col = deutan_colors[i], border = "black")
-        # Tritanopia
-        rect(i - 1, 1, i, 2, col = tritan_colors[i], border = "black")
-        # Grayscale
-        rect(i - 1, 0, i, 1, col = gray_colors[i], border = "black")
-      }
-
-      # Add labels with more spacing from swatches and increased font size
-      text(-0.25, 4.5, "Orig", srt = 90, adj = 0.5, cex = 1.2)
-      text(-0.25, 3.5, "Prot", srt = 90, adj = 0.5, cex = 1.2)
-      text(-0.25, 2.5, "Deut", srt = 90, adj = 0.5, cex = 1.2)
-      text(-0.25, 1.5, "Trit", srt = 90, adj = 0.5, cex = 1.2)
-      text(-0.25, 0.5, "Gray", srt = 90, adj = 0.5, cex = 1.2)
-    },
-    error = function(e) {
-      plot(
-        0,
-        0,
-        type = "n",
-        axes = FALSE,
-        xlab = "",
-        ylab = "",
-        main = "CVD Simulation\n(Error)"
-      )
-      text(0, 0, "CVD simulation failed", cex = 1.2, col = "red")
-    }
+  plot(
+    0,
+    0,
+    type = "n",
+    xlim = c(0, n),
+    ylim = c(0, 5),
+    axes = FALSE,
+    xlab = "",
+    ylab = "",
+    main = "CVD Simulation & Grayscale\n(Severity = 1.0)",
+    cex.main = 1.4
   )
+
+  y_coords <- 0:4
+  colors_list <- list(
+    gray_colors,
+    tritan_colors,
+    deutan_colors,
+    protan_colors,
+    hex_colors
+  )
+  labels <- c("Gray", "Trit", "Deut", "Prot", "Orig")
+
+  for (i in 1:n) {
+    for (j in 1:5) {
+      rect(
+        i - 1,
+        y_coords[j],
+        i,
+        y_coords[j] + 1,
+        col = colors_list[[j]][i],
+        border = "black"
+      )
+    }
+  }
+
+  mtext(labels, side = 2, at = y_coords + 0.5, las = 1, cex = 1.0, line = 0.5)
 }
 
 #' Plot Distance Distribution Comparison
@@ -630,25 +561,25 @@ plot_comparative_palettes <- function(hex_colors) {
     xlab = "Palette Type",
     col = c("#E8F4FD", "#FFF2CC", "#E1D5E7", "#D5E8D4"),
     border = "black",
-    las = 2,  # Rotate x-axis labels to prevent cutoff
+    las = 2, # Rotate x-axis labels to prevent cutoff
     cex.main = 1.4,
     cex.lab = 1.2,
     cex.axis = 1.0,
-    cex.names = 1.0  # Increased x-axis labels
+    cex.names = 1.0 # Increased x-axis labels
   )
 
   # Add jittered points to show underlying distribution
   # Calculate appropriate jitter width (proportion of box width)
-  jitter_width <- 0.15  # 15% of unit width for good spread without overlap
-  point_alpha <- 0.5    # Semi-transparent points
-  point_size <- 0.7     # Smaller points to avoid visual clutter
-  
+  jitter_width <- 0.15 # 15% of unit width for good spread without overlap
+  point_alpha <- 0.5 # Semi-transparent points
+  point_size <- 0.7 # Smaller points to avoid visual clutter
+
   # Add jittered points for each palette
   for (i in 1:4) {
     # Generate jittered x-positions around the box center
     n_points <- length(distance_list[[i]])
     jittered_x <- i + runif(n_points, -jitter_width, jitter_width)
-    
+
     # Add points with transparency and appropriate size
     points(
       jittered_x,
