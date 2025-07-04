@@ -9,7 +9,8 @@
 #' @param main_title Character. Main title for the dashboard. Default: "Palette Analysis Dashboard"
 #' @param new_device Logical. Whether to create a new graphics device. Default: FALSE.
 #'   When TRUE, creates a new device with optimal size for the dashboard.
-#'   When FALSE, uses the current device with adaptive margins.
+#'   When FALSE, uses the current device with adaptive margins. If no graphics 
+#'   device is active, one will be automatically created.
 #' @param device_width Numeric. Width of new device in inches. Default: 12.
 #' @param device_height Numeric. Height of new device in inches. Default: 9.
 #' @return Invisibly returns the evaluation result from evaluate_palette.
@@ -46,19 +47,49 @@ plot_palette_analysis <- function(
     farver::encode_colour(colors, from = "oklab")
   }
 
-  layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE))
+  # Ensure we have a valid graphics device before calling layout()
+  # Check if any device is active, if not, create one
+  if (dev.cur() == 1) { # Device 1 is the null device (no active device)
+    # Create a default graphics device for plotting
+    if (capabilities("X11") && Sys.getenv("DISPLAY") != "") {
+      X11()
+    } else if (capabilities("png")) {
+      # Use png device as fallback for headless environments
+      temp_file <- tempfile(fileext = ".png")
+      png(temp_file, width = device_width * 100, height = device_height * 100, res = 100)
+      on.exit(dev.off(), add = TRUE)
+    } else {
+      # Final fallback to pdf device
+      temp_file <- tempfile(fileext = ".pdf")
+      pdf(temp_file, width = device_width, height = device_height)
+      on.exit(dev.off(), add = TRUE)
+    }
+  }
   
-  # Calculate safe margins based on current device size
-  safe_margins <- calculate_safe_margins(
-    desired_mar = c(6, 5, 5, 5),
-    desired_oma = c(2, 1, 5, 1),
-    mfrow = c(2, 3)
-  )
-  
-  par(
-    oma = safe_margins$oma,
-    mar = safe_margins$mar
-  )
+  # Verify we have a valid plotting device before layout
+  if (dev.cur() == 1) {
+    stop("Unable to create a graphics device for plotting")
+  }
+
+  # Safely set up the layout and graphics parameters
+  tryCatch({
+    layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE))
+    
+    # Calculate safe margins based on current device size
+    safe_margins <- calculate_safe_margins(
+      desired_mar = c(6, 5, 5, 5),
+      desired_oma = c(2, 1, 5, 1),
+      mfrow = c(2, 3)
+    )
+    
+    par(
+      oma = safe_margins$oma,
+      mar = safe_margins$mar
+    )
+  }, error = function(e) {
+    stop("Graphics device setup failed: ", e$message, 
+         "\nTry setting new_device = TRUE or manually creating a graphics device.")
+  })
 
   plot_color_swatches(hex_colors, evaluation)
   plot_distance_heatmap(hex_colors, evaluation)

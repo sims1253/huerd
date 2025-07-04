@@ -299,6 +299,25 @@ test_that("plot_palette_analysis maintains consistency", {
   expect_equal(result1$distances$min, result2$distances$min)
 })
 
+test_that("plot_palette_analysis handles graphics device state issues", {
+  skip_on_cran()
+  
+  colors <- c("#FF0000", "#00FF00", "#0000FF")
+  
+  # Close all graphics devices to simulate "invalid graphics state" scenario
+  graphics.off()
+  
+  # Function should automatically create a device and work correctly
+  expect_no_error({
+    result <- plot_palette_analysis(colors)
+    expect_true(inherits(result, "huerd_evaluation"))
+    expect_equal(result$n_colors, 3)
+  })
+  
+  # Verify that a device was created during the call
+  expect_true(dev.cur() > 1)  # Device number > 1 means a real device exists
+})
+
 # Tests for contrast text color function
 
 test_that("get_contrast_text_color returns correct colors for edge cases", {
