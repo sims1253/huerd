@@ -33,6 +33,93 @@ test_that(".get_estimated_max_dist works with valid data", {
   expect_false(is.na(result))
 })
 
+# Tests for new utility functions
+test_that(".hex_to_oklab works correctly", {
+  # Test with single color
+  hex_color <- "#FF0000"
+  result <- .hex_to_oklab(hex_color)
+  expect_true(is.matrix(result))
+  expect_equal(ncol(result), 3)
+  expect_equal(nrow(result), 1)
+  expect_true(all(is.finite(result)))
+  
+  # Test with multiple colors
+  hex_colors <- c("#FF0000", "#00FF00", "#0000FF")
+  result <- .hex_to_oklab(hex_colors)
+  expect_true(is.matrix(result))
+  expect_equal(ncol(result), 3)
+  expect_equal(nrow(result), 3)
+  expect_true(all(is.finite(result)))
+  
+  # Test with empty vector
+  result <- .hex_to_oklab(character(0))
+  expect_true(is.matrix(result))
+  expect_equal(ncol(result), 3)
+  expect_equal(nrow(result), 0)
+})
+
+test_that(".oklab_to_hex works correctly", {
+  # Test with single color
+  oklab_color <- matrix(c(0.6, 0.2, -0.1), nrow = 1)
+  result <- .oklab_to_hex(oklab_color)
+  expect_true(is.character(result))
+  expect_equal(length(result), 1)
+  expect_true(grepl("^#[0-9A-Fa-f]{6}$", result))
+  
+  # Test with multiple colors
+  oklab_colors <- matrix(c(0.6, 0.2, -0.1,
+                          0.4, -0.1, 0.3,
+                          0.8, 0.0, 0.0), nrow = 3, byrow = TRUE)
+  result <- .oklab_to_hex(oklab_colors)
+  expect_true(is.character(result))
+  expect_equal(length(result), 3)
+  expect_true(all(grepl("^#[0-9A-Fa-f]{6}$", result)))
+  
+  # Test with empty matrix
+  empty_matrix <- matrix(numeric(0), nrow = 0, ncol = 3)
+  result <- .oklab_to_hex(empty_matrix)
+  expect_true(is.character(result))
+  expect_equal(length(result), 0)
+})
+
+test_that("utility functions are inverses (round-trip)", {
+  # Test round-trip conversion
+  original_hex <- c("#FF0000", "#00FF00", "#0000FF", "#FFFFFF", "#000000")
+  oklab_result <- .hex_to_oklab(original_hex)
+  hex_result <- .oklab_to_hex(oklab_result)
+  
+  # Convert back to OKLAB to compare (accounting for gamut clamping)
+  final_oklab <- .hex_to_oklab(hex_result)
+  
+  # Should be very close (within reasonable tolerance for gamut effects)
+  expect_true(all(abs(oklab_result - final_oklab) < 1e-6))
+})
+
+test_that("utility functions handle edge cases gracefully", {
+  # Test with colors at gamut boundaries
+  boundary_colors <- c("#000000", "#FFFFFF", "#FF0000", "#00FF00", "#0000FF")
+  
+  expect_no_error({
+    oklab_result <- .hex_to_oklab(boundary_colors)
+    hex_result <- .oklab_to_hex(oklab_result)
+  })
+  
+  # Test consistency with existing farver patterns
+  hex_colors <- c("#FF0000", "#00FF00", "#0000FF")
+  
+  # Our utility function
+  util_result <- .hex_to_oklab(hex_colors)
+  
+  # Direct farver equivalent
+  farver_result <- farver::convert_colour(
+    farver::decode_colour(hex_colors),
+    from = "rgb",
+    to = "oklab"
+  )
+  
+  expect_equal(util_result, farver_result)
+})
+
 # Tests for print methods - S3 print methods defined in utils.R
 
 test_that("print.huerd_palette runs without error for basic palette", {
