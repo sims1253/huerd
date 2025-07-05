@@ -117,7 +117,7 @@ test_that("optimize_colors_constrained applies aesthetic penalties", {
     initial_colors_oklab = colors,
     fixed_mask = c(FALSE, FALSE), # Both colors are free
     max_iterations = 3,
- # High aesthetic penalty
+    # High aesthetic penalty
   )
 
   # Should return valid optimization result
@@ -361,8 +361,8 @@ test_that("optimize_colors_constrained with cvd_safe mode works with brand palet
     result <- optimize_colors_constrained(
       initial_colors_oklab = brand_colors,
       fixed_mask = c(TRUE, TRUE, FALSE), # Only optimize the third color
-        max_iterations = 5,
-            )
+      max_iterations = 5,
+    )
   })
 
   # Should return valid result structure
@@ -477,7 +477,7 @@ test_that("optimize_colors_sann handles constraint violations with penalty", {
   expect_true("details" %in% names(result))
   expect_true(is.matrix(result$palette))
   expect_equal(nrow(result$palette), 2)
-  
+
   # Colors should be clamped to valid bounds
   expect_true(all(result$palette[, 1] >= 0.001 & result$palette[, 1] <= 0.999))
   expect_true(all(result$palette[, 2] >= -0.4 & result$palette[, 2] <= 0.4))
@@ -786,7 +786,11 @@ test_that("optimize_colors_nlopt_direct is deterministic", {
 
   # Results should be identical for deterministic optimizer
   expect_equal(result1$palette, result2$palette, tolerance = 1e-10)
-  expect_equal(result1$details$final_objective_value, result2$details$final_objective_value, tolerance = 1e-10)
+  expect_equal(
+    result1$details$final_objective_value,
+    result2$details$final_objective_value,
+    tolerance = 1e-10
+  )
 })
 
 # Tests for optimize_colors_nlopt_neldermead
@@ -938,7 +942,10 @@ test_that("optimize_colors_nlopt_neldermead handles optimization failures gracef
 
   # Error handling should set status to -999
   expect_equal(result$details$nloptr_status, -999)
-  expect_true(grepl("Error in nloptr Nelder-Mead", result$details$status_message))
+  expect_true(grepl(
+    "Error in nloptr Nelder-Mead",
+    result$details$status_message
+  ))
 })
 
 test_that("optimize_colors_nlopt_neldermead with cvd_safe mode works with brand palette", {
@@ -1018,5 +1025,9 @@ test_that("optimize_colors_nlopt_neldermead produces consistent results", {
   # Results should be reasonably consistent for local optimizer
   # (allowing more tolerance than for global optimizers like DIRECT)
   expect_equal(result1$palette, result2$palette, tolerance = 1e-3)
-  expect_equal(result1$details$final_objective_value, result2$details$final_objective_value, tolerance = 1e-3)
+  expect_equal(
+    result1$details$final_objective_value,
+    result2$details$final_objective_value,
+    tolerance = 1e-3
+  )
 })

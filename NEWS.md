@@ -1,3 +1,33 @@
+# huerd 0.3.0 (2025-07-04)
+
+## Major Changes
+
+*   **Multi-Optimizer Framework**: The `generate_palette()` function now supports four different optimization algorithms through the new `optimizer` parameter:
+    - `"nloptr_cobyla"` (default): Deterministic optimization with constraint handling
+    - `"sann"`: Stochastic simulated annealing for excellent quality
+    - `"nlopt_direct"`: Deterministic global optimization using DIRECT algorithm
+    - `"nlopt_neldermead"`: Derivative-free local optimization using Nelder-Mead simplex
+
+*   **Multi-Objective Optimization Foundation**: Added infrastructure for multi-objective optimization with the new `weights` parameter. Currently supports distance-based optimization with framework for future expansion to other objectives.
+
+# huerd 0.2.0 (2025-07-03)
+
+## Major Changes
+
+*   **Grid Graphics Visualization System**: Replaced base R graphics with grid graphics for robust, cross-platform visualization in `plot_palette_analysis()`.
+
+*   **Automatic Font Scaling**: Added responsive font scaling to `plot_palette_analysis()` that automatically adjusts text sizes based on device dimensions, preventing text overlap and out-of-frame issues.
+
+*   **Enhanced Dashboard Panels**: Improved all six diagnostic panels with better layout, styling, and readability.
+
+## Minor Changes
+
+*   **DRY Code Improvements**: Added internal utility functions `.hex_to_oklab()` and `.oklab_to_hex()` to eliminate repetitive color conversion patterns throughout the codebase.
+
+*   **Test Suite Improvements**: Fixed all failing visualization tests and added comprehensive test coverage for new utility functions.
+
+*   **Package Dependencies**: Moved `gridExtra` from Suggests to Imports for reliable grid graphics support.
+
 # huerd 0.1.1 (2025-07-01)
 
 ## Minor Changes

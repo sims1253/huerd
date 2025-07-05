@@ -6,3 +6,11 @@
 ^Meta$
 ^README\.Rmd$
 ^pkgdown/
+^create_hex_logo\.R$
+^large_thesis_study/
+^research/
+^roadmap\.md$
+^scratchpad\.md$
+^scripts/
+^thesis_study_results/
+^todo\.md$
