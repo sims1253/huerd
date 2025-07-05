@@ -4,7 +4,7 @@
 \alias{plot_palette_analysis}
 \title{Comprehensive Palette Analysis Dashboard}
 \usage{
-plot_palette_analysis(colors, main_title = "Palette Analysis Dashboard")
+plot_palette_analysis(colors)
 }
 \arguments{
 \item{colors}{A character vector of hex colors or a matrix of colors in OKLAB space.}
@@ -15,7 +15,8 @@ plot_palette_analysis(colors, main_title = "Palette Analysis Dashboard")
 Invisibly returns the evaluation result from evaluate_palette.
 }
 \description{
-Creates a scicomap-inspired comprehensive diagnostic dashboard for color palettes.
+Creates a scicomap-inspired comprehensive diagnostic dashboard for color palettes
+using the modern grid graphics system for robust cross-platform compatibility.
 This function generates six visualization panels to help assess palette quality,
 including perceptual distance analysis, CVD simulation, OKLAB space distribution,
 and performance comparison against established scientific palettes.

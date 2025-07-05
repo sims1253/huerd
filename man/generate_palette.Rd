@@ -14,7 +14,9 @@ generate_palette(
   aesthetic_init_config = NULL,
   max_iterations = 1000,
   return_metrics = TRUE,
-  progress = interactive()
+  progress = interactive(),
+  weights = NULL,
+  optimizer = "nloptr_cobyla"
 )
 }
 \arguments{
@@ -46,6 +48,20 @@ Use \code{NULL} (default) for built-in defaults.}
 attributes. Default is TRUE.}
 
 \item{progress}{Logical. Show progress messages. Default is \code{interactive()}.}
+
+\item{weights}{Named numeric vector. Weights for multi-objective optimization.
+Currently only supports \code{c(distance = 1)} for distance-based optimization.
+Default is NULL (equivalent to pure distance optimization).}
+
+\item{optimizer}{Character. Optimization algorithm to use. Currently supported:
+"nloptr_cobyla" (default) for deterministic optimization with constraint handling,
+"sann" for stochastic simulated annealing (excellent quality but not perfectly
+reproducible without a seed), "nlopt_direct" for deterministic global optimization
+using the DIRECT algorithm (best choice for scientific reproducibility and high
+quality, though may be slower), "nlopt_neldermead" for derivative-free local
+optimization using the Nelder-Mead simplex algorithm (good alternative to COBYLA
+for robust local optimization). The framework is designed to easily support
+additional optimizers in future versions.}
 }
 \value{
 A character vector of hex colors with class \code{huerd_palette}, automatically
@@ -90,10 +106,39 @@ and visualized with \code{plot_palette_analysis()}.
 palette <- generate_palette(5, progress = FALSE)
 print(palette)
 
-# Brand-constrained palette  
+# Brand-constrained palette
 brand_palette <- generate_palette(
   n = 6,
   include_colors = c("#4A6B8A", "#E5A04C"),
+  progress = FALSE
+)
+
+# Using specific optimizer (deterministic)
+optimizer_palette <- generate_palette(
+  n = 4,
+  optimizer = "nloptr_cobyla",
+  progress = FALSE
+)
+
+# Using simulated annealing (stochastic, excellent quality)
+set.seed(42)  # For reproducibility
+sann_palette <- generate_palette(
+  n = 4,
+  optimizer = "sann",
+  progress = FALSE
+)
+
+# Using DIRECT algorithm (deterministic global, best for scientific reproducibility)
+direct_palette <- generate_palette(
+  n = 4,
+  optimizer = "nlopt_direct",
+  progress = FALSE
+)
+
+# Using Nelder-Mead algorithm (derivative-free local, good alternative to COBYLA)
+neldermead_palette <- generate_palette(
+  n = 4,
+  optimizer = "nlopt_neldermead",
   progress = FALSE
 )
 
