@@ -40,6 +40,23 @@ jobs:
           extra-packages: any::pkgdown, local::.
           needs: website
 
+      - name: Create _pkgdown.yml
+        if: github.event.action != 'closed'
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            cat << EOF > _pkgdown.yml
+          url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/branch/${{ github.head_ref }}
+          template:
+            bootstrap: 5
+          EOF
+          else
+            cat << EOF > _pkgdown.yml
+          url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          template:
+            bootstrap: 5
+          EOF
+          fi
+
       - name: Build site (main branch)
         if: github.event_name != 'pull_request'
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
@@ -47,7 +64,7 @@ jobs:
 
       - name: Build site (PR branch)
         if: github.event_name == 'pull_request' && github.event.action != 'closed'
-        run: pkgdown::build_site(path = "pkgdown_pr", new_process = FALSE, install = FALSE)
+        run: pkgdown::build_site(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
       - name: Deploy to GitHub pages
@@ -64,8 +81,8 @@ jobs:
         with:
           clean: false
           branch: gh-pages
-          folder: pkgdown_pr
-          target-folder: branch/${{ github.head_ref }}
+          folder: docs
+          target-folder: docs/branch/${{ github.head_ref }}
 
       - name: Comment PR
         if: github.event_name == 'pull_request' && github.event.action == 'opened'

@@ -8,8 +8,6 @@ plot_palette_analysis(colors)
 }
 \arguments{
 \item{colors}{A character vector of hex colors or a matrix of colors in OKLAB space.}
-
-\item{main_title}{Character. Main title for the dashboard. Default: "Palette Analysis Dashboard"}
 }
 \value{
 Invisibly returns the evaluation result from evaluate_palette.
