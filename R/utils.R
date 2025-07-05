@@ -307,3 +307,29 @@ print_color_vector <- function(colors_vec, indent = "  ") {
     .print_color_item(color_val, item_label)
   }
 }
+
+#' Convert hex colors to oklab colors
+#' @noRd
+.hex_to_oklab <- function(hex_colors) {
+  return(
+    farver::convert_colour(
+      farver::decode_colour(hex_colors),
+      from = "rgb",
+      to = "oklab"
+    )
+  )
+}
+
+#' Convert oklab to hex colors
+#' @noRd
+.oklab_to_hex <- function(oklab_colors) {
+  return(
+    farver::encode_colour(
+      farver::convert_colour(
+        oklab_colors,
+        from = "oklab",
+        to = "rgb"
+      )
+    )
+  )
+}
