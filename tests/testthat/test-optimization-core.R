@@ -380,3 +380,643 @@ test_that("optimize_colors_constrained with cvd_safe mode works with brand palet
   # Optimization should complete successfully
   expect_true(result$details$nloptr_status >= 0) # Positive status means success
 })
+
+# Tests for SANN optimizer
+test_that("optimize_colors_sann returns optimization result with palette and details", {
+  # Simple case: optimize 2 free colors for maximum perceptual distance
+  initial_colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # Initial color 1
+      0.6,
+      0.0,
+      0.1 # Initial color 2
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_sann(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = c(FALSE, FALSE), # Both colors are free
+    max_iterations = 10, # Low for fast testing
+  )
+
+  # Test return structure
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true("details" %in% names(result))
+
+  # Test palette matrix
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 2)
+  expect_equal(ncol(result$palette), 3)
+  expect_equal(colnames(result$palette), c("L", "a", "b"))
+
+  # Test details structure
+  expect_true(is.list(result$details))
+  expect_true("iterations" %in% names(result$details))
+  expect_true("status_message" %in% names(result$details))
+  expect_true("sann_convergence" %in% names(result$details))
+  expect_true("final_objective_value" %in% names(result$details))
+})
+
+test_that("optimize_colors_sann respects fixed colors", {
+  # Test that fixed colors remain unchanged
+  colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # This will be fixed
+      0.6,
+      0.0,
+      0.1 # This will be optimized
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_sann(
+    initial_colors_oklab = colors,
+    fixed_mask = c(TRUE, FALSE), # First color is fixed
+    max_iterations = 10,
+  )
+
+  # Fixed color should remain unchanged
+  expect_equal(result$palette[1, ], colors[1, ])
+})
+
+test_that("optimize_colors_sann handles constraint violations with penalty", {
+  # Test that constraint violations are handled via penalty function
+  colors <- matrix(
+    c(
+      1.5,
+      0.8,
+      0.8, # Out of bounds color that should be penalized
+      0.3,
+      -0.1,
+      0.0 # Valid color
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_sann(
+    initial_colors_oklab = colors,
+    fixed_mask = c(FALSE, FALSE), # Both colors are free
+    max_iterations = 5,
+  )
+
+  # Should return valid optimization result
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true("details" %in% names(result))
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 2)
+  
+  # Colors should be clamped to valid bounds
+  expect_true(all(result$palette[, 1] >= 0.001 & result$palette[, 1] <= 0.999))
+  expect_true(all(result$palette[, 2] >= -0.4 & result$palette[, 2] <= 0.4))
+  expect_true(all(result$palette[, 3] >= -0.4 & result$palette[, 3] <= 0.4))
+})
+
+test_that("optimize_colors_sann handles optimization failures gracefully", {
+  # Test error handling by providing problematic input
+  colors <- matrix(
+    c(
+      NaN,
+      NaN,
+      NaN, # Invalid starting point
+      Inf,
+      -Inf,
+      NaN # Another invalid starting point
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_sann(
+    initial_colors_oklab = colors,
+    fixed_mask = c(FALSE, FALSE),
+    max_iterations = 1,
+  )
+
+  # Should still return a valid result structure even on failure
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true("details" %in% names(result))
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 2)
+
+  # Error handling should set convergence to -999
+  expect_equal(result$details$sann_convergence, -999)
+  expect_true(grepl("Error in optim SANN", result$details$status_message))
+})
+
+test_that("optimize_colors_sann with cvd_safe mode works with brand palette", {
+  # Integration test for the brand palette example
+  brand_colors <- matrix(
+    c(
+      0.627,
+      0.224,
+      0.126, # Brand red
+      0.701,
+      -0.101,
+      0.108, # Brand green
+      0.323,
+      -0.003,
+      -0.153 # Brand blue
+    ),
+    nrow = 3,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  # This optimization should complete without error
+  expect_no_error({
+    result <- optimize_colors_sann(
+      initial_colors_oklab = brand_colors,
+      fixed_mask = c(TRUE, TRUE, FALSE), # Only optimize the third color
+      max_iterations = 10,
+    )
+  })
+
+  # Should return valid result structure
+  result <- optimize_colors_sann(
+    initial_colors_oklab = brand_colors,
+    fixed_mask = c(TRUE, TRUE, FALSE),
+    max_iterations = 10,
+  )
+
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 3)
+
+  # Optimization should complete (convergence status doesn't guarantee success in SANN)
+  expect_true(is.numeric(result$details$sann_convergence))
+})
+
+# Tests for NLopt DIRECT optimizer
+test_that("optimize_colors_nlopt_direct returns optimization result with palette and details", {
+  # Simple case: optimize 2 free colors for maximum perceptual distance
+  initial_colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # Initial color 1
+      0.6,
+      0.0,
+      0.1 # Initial color 2
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_direct(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = c(FALSE, FALSE), # Both colors are free
+    max_iterations = 20, # DIRECT needs more iterations for meaningful results
+  )
+
+  # Test return structure
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true("details" %in% names(result))
+
+  # Test palette matrix
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 2)
+  expect_equal(ncol(result$palette), 3)
+  expect_equal(colnames(result$palette), c("L", "a", "b"))
+
+  # Test details structure
+  expect_true(is.list(result$details))
+  expect_true("iterations" %in% names(result$details))
+  expect_true("status_message" %in% names(result$details))
+  expect_true("nloptr_status" %in% names(result$details))
+  expect_true("final_objective_value" %in% names(result$details))
+})
+
+test_that("optimize_colors_nlopt_direct handles single color", {
+  # Edge case: single color optimization
+  single_color <- matrix(
+    c(0.5, 0.1, 0.0),
+    nrow = 1,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_direct(
+    initial_colors_oklab = single_color,
+    fixed_mask = c(FALSE),
+    max_iterations = 10,
+  )
+
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 1)
+})
+
+test_that("optimize_colors_nlopt_direct respects fixed colors", {
+  # Test that fixed colors remain unchanged
+  colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # This will be fixed
+      0.6,
+      0.0,
+      0.1 # This will be optimized
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_direct(
+    initial_colors_oklab = colors,
+    fixed_mask = c(TRUE, FALSE), # First color is fixed
+    max_iterations = 20,
+  )
+
+  # Fixed color should remain unchanged
+  expect_equal(result$palette[1, ], colors[1, ])
+})
+
+test_that("optimize_colors_nlopt_direct respects box constraints", {
+  # Test that optimization respects OKLAB box constraints
+  initial_colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # Initial color 1
+      0.6,
+      0.0,
+      0.1 # Initial color 2
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_direct(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = c(FALSE, FALSE), # Both colors are free
+    max_iterations = 20,
+  )
+
+  # Test that all colors are within OKLAB bounds
+  expect_true(all(result$palette[, 1] >= 0.001 & result$palette[, 1] <= 0.999))
+  expect_true(all(result$palette[, 2] >= -0.4 & result$palette[, 2] <= 0.4))
+  expect_true(all(result$palette[, 3] >= -0.4 & result$palette[, 3] <= 0.4))
+})
+
+test_that("optimize_colors_nlopt_direct handles optimization failures gracefully", {
+  # Test error handling by providing problematic input
+  colors <- matrix(
+    c(
+      NaN,
+      NaN,
+      NaN, # Invalid starting point
+      Inf,
+      -Inf,
+      NaN # Another invalid starting point
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_direct(
+    initial_colors_oklab = colors,
+    fixed_mask = c(FALSE, FALSE),
+    max_iterations = 5,
+  )
+
+  # Should still return a valid result structure even on failure
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true("details" %in% names(result))
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 2)
+
+  # Error handling should set status to -999
+  expect_equal(result$details$nloptr_status, -999)
+  expect_true(grepl("Error in nloptr DIRECT", result$details$status_message))
+})
+
+test_that("optimize_colors_nlopt_direct with cvd_safe mode works with brand palette", {
+  # Integration test for the brand palette example
+  brand_colors <- matrix(
+    c(
+      0.627,
+      0.224,
+      0.126, # Brand red
+      0.701,
+      -0.101,
+      0.108, # Brand green
+      0.323,
+      -0.003,
+      -0.153 # Brand blue
+    ),
+    nrow = 3,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  # This optimization should complete without error
+  expect_no_error({
+    result <- optimize_colors_nlopt_direct(
+      initial_colors_oklab = brand_colors,
+      fixed_mask = c(TRUE, TRUE, FALSE), # Only optimize the third color
+      max_iterations = 30,
+    )
+  })
+
+  # Should return valid result structure
+  result <- optimize_colors_nlopt_direct(
+    initial_colors_oklab = brand_colors,
+    fixed_mask = c(TRUE, TRUE, FALSE),
+    max_iterations = 30,
+  )
+
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 3)
+
+  # Optimization should complete successfully (DIRECT is more robust)
+  expect_true(result$details$nloptr_status >= 0) # Positive status means success
+})
+
+test_that("optimize_colors_nlopt_direct is deterministic", {
+  # Test that DIRECT optimizer produces deterministic results
+  initial_colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # Initial color 1
+      0.6,
+      0.0,
+      0.1 # Initial color 2
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result1 <- optimize_colors_nlopt_direct(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = c(FALSE, FALSE),
+    max_iterations = 20,
+  )
+
+  result2 <- optimize_colors_nlopt_direct(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = c(FALSE, FALSE),
+    max_iterations = 20,
+  )
+
+  # Results should be identical for deterministic optimizer
+  expect_equal(result1$palette, result2$palette, tolerance = 1e-10)
+  expect_equal(result1$details$final_objective_value, result2$details$final_objective_value, tolerance = 1e-10)
+})
+
+# Tests for optimize_colors_nlopt_neldermead
+# ===========================================
+
+test_that("optimize_colors_nlopt_neldermead returns optimization result with palette and details", {
+  # Simple case: optimize 2 free colors for maximum perceptual distance
+  initial_colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # Initial color 1
+      0.6,
+      0.0,
+      0.1 # Initial color 2
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_neldermead(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = c(FALSE, FALSE), # Both colors are free
+    max_iterations = 50, # Nelder-Mead typically needs more iterations than COBYLA
+  )
+
+  # Test return structure
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true("details" %in% names(result))
+
+  # Test palette matrix
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 2)
+  expect_equal(ncol(result$palette), 3)
+  expect_equal(colnames(result$palette), c("L", "a", "b"))
+
+  # Test details structure
+  expect_true(is.list(result$details))
+  expect_true("iterations" %in% names(result$details))
+  expect_true("status_message" %in% names(result$details))
+  expect_true("nloptr_status" %in% names(result$details))
+  expect_true("final_objective_value" %in% names(result$details))
+})
+
+test_that("optimize_colors_nlopt_neldermead handles single color", {
+  # Edge case: single color optimization
+  single_color <- matrix(
+    c(0.5, 0.1, 0.0),
+    nrow = 1,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_neldermead(
+    initial_colors_oklab = single_color,
+    fixed_mask = c(FALSE),
+    max_iterations = 20,
+  )
+
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 1)
+})
+
+test_that("optimize_colors_nlopt_neldermead respects fixed colors", {
+  # Test that fixed colors remain unchanged
+  colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # This will be fixed
+      0.6,
+      0.0,
+      0.1 # This will be optimized
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_neldermead(
+    initial_colors_oklab = colors,
+    fixed_mask = c(TRUE, FALSE), # First color is fixed
+    max_iterations = 50,
+  )
+
+  # Fixed color should remain unchanged
+  expect_equal(result$palette[1, ], colors[1, ])
+})
+
+test_that("optimize_colors_nlopt_neldermead respects box constraints", {
+  # Test that optimization respects OKLAB box constraints
+  initial_colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # Initial color 1
+      0.6,
+      0.0,
+      0.1 # Initial color 2
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_neldermead(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = c(FALSE, FALSE), # Both colors are free
+    max_iterations = 50,
+  )
+
+  # Test that all colors are within OKLAB bounds
+  expect_true(all(result$palette[, 1] >= 0.001 & result$palette[, 1] <= 0.999))
+  expect_true(all(result$palette[, 2] >= -0.4 & result$palette[, 2] <= 0.4))
+  expect_true(all(result$palette[, 3] >= -0.4 & result$palette[, 3] <= 0.4))
+})
+
+test_that("optimize_colors_nlopt_neldermead handles optimization failures gracefully", {
+  # Test error handling by providing problematic input
+  colors <- matrix(
+    c(
+      NaN,
+      NaN,
+      NaN, # Invalid starting point
+      Inf,
+      -Inf,
+      NaN # Another invalid starting point
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result <- optimize_colors_nlopt_neldermead(
+    initial_colors_oklab = colors,
+    fixed_mask = c(FALSE, FALSE),
+    max_iterations = 5,
+  )
+
+  # Should still return a valid result structure even on failure
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true("details" %in% names(result))
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 2)
+
+  # Error handling should set status to -999
+  expect_equal(result$details$nloptr_status, -999)
+  expect_true(grepl("Error in nloptr Nelder-Mead", result$details$status_message))
+})
+
+test_that("optimize_colors_nlopt_neldermead with cvd_safe mode works with brand palette", {
+  # Integration test for the brand palette example
+  brand_colors <- matrix(
+    c(
+      0.627,
+      0.224,
+      0.126, # Brand red
+      0.701,
+      -0.101,
+      0.108, # Brand green
+      0.323,
+      -0.003,
+      -0.153 # Brand blue
+    ),
+    nrow = 3,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  # This optimization should complete without error
+  expect_no_error({
+    result <- optimize_colors_nlopt_neldermead(
+      initial_colors_oklab = brand_colors,
+      fixed_mask = c(TRUE, TRUE, FALSE), # Only optimize the third color
+      max_iterations = 100,
+    )
+  })
+
+  # Should return valid result structure
+  result <- optimize_colors_nlopt_neldermead(
+    initial_colors_oklab = brand_colors,
+    fixed_mask = c(TRUE, TRUE, FALSE),
+    max_iterations = 100,
+  )
+
+  expect_true(is.list(result))
+  expect_true("palette" %in% names(result))
+  expect_true(is.matrix(result$palette))
+  expect_equal(nrow(result$palette), 3)
+
+  # Optimization should typically complete successfully (Nelder-Mead is robust)
+  # Note: We can't guarantee success like we can with DIRECT, so we allow some failures
+  expect_true(result$details$nloptr_status >= -1) # Allow some tolerance for local optimizer
+})
+
+test_that("optimize_colors_nlopt_neldermead produces consistent results", {
+  # Test that Nelder-Mead optimizer produces reasonably consistent results
+  # Note: Nelder-Mead may not be perfectly deterministic but should be reasonably consistent
+  initial_colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.0, # Initial color 1
+      0.6,
+      0.0,
+      0.1 # Initial color 2
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("L", "a", "b"))
+  )
+
+  result1 <- optimize_colors_nlopt_neldermead(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = c(FALSE, FALSE),
+    max_iterations = 50,
+  )
+
+  result2 <- optimize_colors_nlopt_neldermead(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = c(FALSE, FALSE),
+    max_iterations = 50,
+  )
+
+  # Results should be reasonably consistent for local optimizer
+  # (allowing more tolerance than for global optimizers like DIRECT)
+  expect_equal(result1$palette, result2$palette, tolerance = 1e-3)
+  expect_equal(result1$details$final_objective_value, result2$details$final_objective_value, tolerance = 1e-3)
+})

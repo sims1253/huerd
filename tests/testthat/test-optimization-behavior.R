@@ -9,8 +9,7 @@ test_that("optimization produces reasonable colors with fixed colors", {
   )
 
   # Convert to OKLAB for analysis
-  rgb_matrix <- farver::decode_colour(result)
-  oklab_colors <- farver::convert_colour(rgb_matrix, from = "rgb", to = "oklab")
+  oklab_colors <- .hex_to_oklab(result)
 
   # Behavioral expectations
   expect_true(
