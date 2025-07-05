@@ -120,12 +120,7 @@ validate_hex_colors <- function(colors, validation_result, strict_mode) {
   if (length(valid_colors) > 0) {
     tryCatch(
       {
-        rgb_matrix <- farver::decode_colour(valid_colors)
-        oklab_matrix <- farver::convert_colour(
-          rgb_matrix,
-          from = 'rgb',
-          to = 'oklab'
-        )
+        oklab_matrix <- .hex_to_oklab(valid_colors)
 
         # Check for reasonable OKLAB ranges
         L_values <- oklab_matrix[, 1]

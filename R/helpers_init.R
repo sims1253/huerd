@@ -260,7 +260,7 @@ initialize_kmeans_plus_plus <- function(
 
   # Check gamut validity by attempting to encode to hex
   # Invalid/out-of-gamut colors will result in NA hex values
-  hex_candidates <- farver::encode_colour(candidates, from = "oklab")
+  hex_candidates <- .oklab_to_hex(candidates)
   valid_gamut <- !is.na(hex_candidates)
   candidates <- candidates[valid_gamut, , drop = FALSE]
 
@@ -380,14 +380,9 @@ initialize_harmony_based <- function(n_free, fixed_colors_oklab, hcl_bounds) {
       c = stats::runif(n_free, hcl_bounds$C[1], hcl_bounds$C[2]),
       l = stats::runif(n_free, hcl_bounds$L[1], hcl_bounds$L[2])
     )
-    lab_colors <- farver::convert_colour(
+    oklab_colors <- farver::convert_colour(
       hcl_colors_init,
       from = "hcl",
-      to = "lab"
-    )
-    oklab_colors <- farver::convert_colour(
-      lab_colors,
-      from = "lab",
       to = "oklab"
     )
     colnames(oklab_colors) <- c("L", "a", "b")
