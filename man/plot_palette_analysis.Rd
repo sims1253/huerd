@@ -4,10 +4,12 @@
 \alias{plot_palette_analysis}
 \title{Comprehensive Palette Analysis Dashboard}
 \usage{
-plot_palette_analysis(colors)
+plot_palette_analysis(colors, force_font_scale = NULL)
 }
 \arguments{
 \item{colors}{A character vector of hex colors or a matrix of colors in OKLAB space.}
+
+\item{force_font_scale}{Allows to force a specific font scale}
 }
 \value{
 Invisibly returns the evaluation result from evaluate_palette.

@@ -12,6 +12,7 @@
 #' and performance comparison against established scientific palettes.
 #'
 #' @param colors A character vector of hex colors or a matrix of colors in OKLAB space.
+#' @param force_font_scale Allows to force a specific font scale
 #' @return Invisibly returns the evaluation result from evaluate_palette.
 #' @importFrom grid gpar grid.rect grid.text grobTree textGrob rectGrob
 #' @importFrom gridExtra grid.arrange
@@ -21,7 +22,8 @@
 #' colors <- c("#ff0000", "#00ff00", "#0000ff")
 #' plot_palette_analysis(colors)
 plot_palette_analysis <- function(
-  colors
+  colors,
+  force_font_scale = NULL
 ) {
   if (length(colors) < 2) {
     warning("Need at least two colors for a palette.")
@@ -47,27 +49,32 @@ plot_palette_analysis <- function(
   # Calculate font scaling based on device dimensions
   current_vp <- grid::current.viewport()
 
-  # Get device dimensions in inches
-  dev_width <- as.numeric(grid::convertWidth(grid::unit(1, "npc"), "inches"))
-  dev_height <- as.numeric(grid::convertHeight(grid::unit(1, "npc"), "inches"))
+  if (!is.null(force_font_scale)) {
+    # If a scale is forced, use it directly.
+    font_scale <- force_font_scale
+  } else {
+    # Otherwise, use the automatic detection for interactive plots.
+    current_vp <- grid::current.viewport()
+    dev_width <- as.numeric(grid::convertWidth(grid::unit(1, "npc"), "inches"))
+    dev_height <- as.numeric(grid::convertHeight(
+      grid::unit(1, "npc"),
+      "inches"
+    ))
 
-  # Reference size: 8x6 inches (typical R graphics device)
-  ref_width <- 8
-  ref_height <- 6
+    ref_width <- 4
+    ref_height <- 3
 
-  # Calculate scaling factor (use minimum to avoid overly large text)
-  width_scale <- dev_width / ref_width
-  height_scale <- dev_height / ref_height
-  font_scale <- pmin(width_scale, height_scale, 1.5) # Cap at 1.5x to avoid huge text
-  font_scale <- pmax(font_scale, 0.5) # Minimum 0.5x to keep text readable
+    width_scale <- dev_width / ref_width
+    height_scale <- dev_height / ref_height
+    font_scale <- pmin(width_scale, height_scale, 1.5)
+    #font_scale <- pmax(font_scale, 0.5)
+  }
 
   # Create all subplot grobs with scaled fonts
-
-  grob1 <- create_color_swatches(hex_colors, evaluation)
-  grob2 <- create_color_space(hex_colors)
-  grob3 <- create_distance_heatmap(hex_colors, evaluation)
-  #grob3 <- create_nearest_neighbor(hex_colors, evaluation)
-  grob4 <- create_cvd_simulation(hex_colors)
+  grob1 <- create_color_swatches(hex_colors, evaluation, font_scale)
+  grob2 <- create_color_space(hex_colors, font_scale)
+  grob3 <- create_distance_heatmap(hex_colors, evaluation, font_scale)
+  grob4 <- create_cvd_simulation(hex_colors, font_scale)
 
   distance_data <- list(
     "huerd" = current_dist_matrix,
@@ -87,7 +94,8 @@ plot_palette_analysis <- function(
 
   grob5 <- create_comparative_palettes(
     distance_data,
-    "Pairwise distances under CVD"
+    "Pairwise distances under CVD",
+    font_scale
   )
 
   # Compare with reference palettes
@@ -109,7 +117,8 @@ plot_palette_analysis <- function(
 
   grob6 <- create_comparative_palettes(
     distance_data,
-    "Comparison to other palettes"
+    "Comparison to other palettes",
+    font_scale
   )
 
   gridExtra::grid.arrange(
@@ -128,7 +137,7 @@ plot_palette_analysis <- function(
 
 #' Create Color Swatches Grob
 #' @noRd
-create_color_swatches <- function(hex_colors, evaluation) {
+create_color_swatches <- function(hex_colors, evaluation, font_scale = 0.8) {
   n <- length(hex_colors)
 
   rgp_colors = farver::decode_colour(hex_colors)
@@ -144,7 +153,7 @@ create_color_swatches <- function(hex_colors, evaluation) {
   grobs[[1]] <- grid::textGrob(
     "Palette",
     y = 0.95,
-    gp = grid::gpar(fontsize = 16, fontface = "bold")
+    gp = grid::gpar(fontsize = .scale_font(16, font_scale), fontface = "bold")
   )
 
   # Color swatches
@@ -166,7 +175,7 @@ create_color_swatches <- function(hex_colors, evaluation) {
       as.character(i),
       x = x_pos,
       y = 0.38,
-      gp = grid::gpar(fontsize = 14, fontface = "bold")
+      gp = grid::gpar(fontsize = .scale_font(16, font_scale), fontface = "bold")
     )
 
     # Hex code
@@ -176,7 +185,7 @@ create_color_swatches <- function(hex_colors, evaluation) {
       x = x_pos,
       y = 0.6,
       gp = grid::gpar(
-        fontsize = 16,
+        fontsize = .scale_font(16, font_scale),
         fontface = "bold",
         col = ifelse(oklab_colors[i, 1] < 0.5, "white", "black")
       )
@@ -199,7 +208,7 @@ create_color_swatches <- function(hex_colors, evaluation) {
     grobs[[length(grobs) + 1]] <- grid::textGrob(
       metrics_text,
       y = 0.2,
-      gp = grid::gpar(fontsize = 16)
+      gp = grid::gpar(fontsize = .scale_font(16, font_scale))
     )
   }
 
@@ -209,7 +218,7 @@ create_color_swatches <- function(hex_colors, evaluation) {
 
 #' Create Distance Heatmap Grob
 #' @noRd
-create_distance_heatmap <- function(hex_colors, evaluation) {
+create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
   n <- length(hex_colors)
 
   # Calculate distance matrix
@@ -227,12 +236,12 @@ create_distance_heatmap <- function(hex_colors, evaluation) {
   grobs[[1]] <- grid::textGrob(
     "Pairwise Distance Matrix",
     y = 0.95,
-    gp = grid::gpar(fontsize = 16, fontface = "bold")
+    gp = grid::gpar(fontsize = .scale_font(16, font_scale), fontface = "bold")
   )
   grobs[[2]] <- grid::textGrob(
     "(OKLAB units)",
     y = 0.91,
-    gp = grid::gpar(fontsize = 12)
+    gp = grid::gpar(fontsize = .scale_font(12, font_scale))
   )
 
   # Create colored rectangles for the heatmap
@@ -281,7 +290,7 @@ create_distance_heatmap <- function(hex_colors, evaluation) {
           x = x_pos,
           y = y_pos,
           gp = grid::gpar(
-            fontsize = 9,
+            fontsize = .scale_font(9, font_scale),
             col = ifelse(
               farver::convert_colour(
                 farver::decode_colour(color_val),
@@ -305,7 +314,7 @@ create_distance_heatmap <- function(hex_colors, evaluation) {
       as.character(i),
       x = 0.1 + (i - 0.5) * cell_size,
       y = 0.88 - n * cell_size - 0.02,
-      gp = grid::gpar(fontsize = 14, fontface = "bold")
+      gp = grid::gpar(fontsize = .scale_font(14, font_scale), fontface = "bold")
     )
 
     # Y-axis labels
@@ -313,7 +322,7 @@ create_distance_heatmap <- function(hex_colors, evaluation) {
       as.character(i),
       x = 0.1 - 0.02,
       y = 0.88 - (i - 0.5) * cell_size,
-      gp = grid::gpar(fontsize = 14, fontface = "bold")
+      gp = grid::gpar(fontsize = .scale_font(14, font_scale), fontface = "bold")
     )
   }
 
@@ -322,7 +331,7 @@ create_distance_heatmap <- function(hex_colors, evaluation) {
 
 #' Create Color Space Distribution Grob
 #' @noRd
-create_color_space <- function(hex_colors) {
+create_color_space <- function(hex_colors, font_scale = 0.8) {
   n <- length(hex_colors)
 
   # Convert to OKLAB
@@ -334,13 +343,13 @@ create_color_space <- function(hex_colors) {
   grobs[[1]] <- grid::textGrob(
     "OKLAB Color Space\n",
     y = 0.92,
-    gp = grid::gpar(fontsize = 16, fontface = "bold")
+    gp = grid::gpar(fontsize = .scale_font(16, font_scale), fontface = "bold")
   )
 
   grobs[[2]] <- grid::textGrob(
     "(a vs b), size indicates L",
     y = 0.91,
-    gp = grid::gpar(fontsize = 12)
+    gp = grid::gpar(fontsize = .scale_font(12, font_scale))
   )
 
   # Plot area boundaries
@@ -388,7 +397,7 @@ create_color_space <- function(hex_colors) {
     grobs[[length(grobs) + 1]] <- grid::circleGrob(
       x = x_pos,
       y = y_pos,
-      r = (0.02 + oklab_colors[i, 1] * 0.02),
+      r = (0.015 + oklab_colors[i, 1] * 0.02),
       gp = grid::gpar(fill = hex_colors[i], col = "black")
     )
   }
@@ -398,7 +407,7 @@ create_color_space <- function(hex_colors) {
     "a (green-red)",
     x = (plot_left + plot_right) / 2,
     y = 0.07,
-    gp = grid::gpar(fontsize = 14)
+    gp = grid::gpar(fontsize = .scale_font(14, font_scale))
   )
 
   grobs[[length(grobs) + 1]] <- grid::textGrob(
@@ -406,7 +415,7 @@ create_color_space <- function(hex_colors) {
     x = 0.05,
     y = (plot_bottom + plot_top) / 2,
     rot = 90,
-    gp = grid::gpar(fontsize = 14)
+    gp = grid::gpar(fontsize = .scale_font(14, font_scale))
   )
 
   # Add origin lines if 0 is in range
@@ -429,7 +438,7 @@ create_color_space <- function(hex_colors) {
 
 #' Create CVD Simulation Grob
 #' @noRd
-create_cvd_simulation <- function(hex_colors) {
+create_cvd_simulation <- function(hex_colors, font_scale = 0.8) {
   n <- length(hex_colors)
 
   grobs <- list()
@@ -438,7 +447,7 @@ create_cvd_simulation <- function(hex_colors) {
   grobs[[1]] <- grid::textGrob(
     "CVD Simulation\n",
     y = 0.95,
-    gp = grid::gpar(fontsize = 16, fontface = "bold")
+    gp = grid::gpar(fontsize = .scale_font(16, font_scale), fontface = "bold")
   )
 
   row_labels <- c(
@@ -455,9 +464,9 @@ create_cvd_simulation <- function(hex_colors) {
     # Row label
     grobs[[length(grobs) + 1]] <- grid::textGrob(
       row_labels[row],
-      x = 0.1,
+      x = 0.13,
       y = y_pos,
-      gp = grid::gpar(fontsize = 14)
+      gp = grid::gpar(fontsize = .scale_font(12, font_scale))
     )
 
     # Get colors for this row
@@ -477,9 +486,9 @@ create_cvd_simulation <- function(hex_colors) {
     }
 
     # Color swatches
-    swatch_width <- 0.75 / n
+    swatch_width <- 0.7 / n
     for (i in 1:n) {
-      x_pos <- 0.2 + (i - 0.5) * swatch_width
+      x_pos <- 0.25 + (i - 0.5) * swatch_width
 
       # Color rectangle
       grobs[[length(grobs) + 1]] <- grid::rectGrob(
@@ -499,7 +508,7 @@ create_cvd_simulation <- function(hex_colors) {
       as.character(i),
       x = x_pos,
       y = 0.1,
-      gp = grid::gpar(fontsize = 14, fontface = "bold")
+      gp = grid::gpar(fontsize = .scale_font(14, font_scale), fontface = "bold")
     )
   }
 
@@ -508,7 +517,11 @@ create_cvd_simulation <- function(hex_colors) {
 
 #' Create Comparative Palettes Grob
 #' @noRd
-create_comparative_palettes <- function(distance_data, title) {
+create_comparative_palettes <- function(
+  distance_data,
+  title,
+  font_scale = 0.8
+) {
   # TODO this should be boxplots with the distances
 
   grobs <- list()
@@ -533,14 +546,14 @@ create_comparative_palettes <- function(distance_data, title) {
   grobs[[length(grobs) + 1]] <- grid::textGrob(
     title,
     y = 0.95,
-    gp = grid::gpar(fontsize = 16, fontface = "bold")
+    gp = grid::gpar(fontsize = .scale_font(16, font_scale), fontface = "bold")
   )
   # Y-axis Label
   grobs[[length(grobs) + 1]] <- grid::textGrob(
     "Pairwise Perceptual Distance (Delta E)",
-    x = 0.05,
+    x = 0.03,
     rot = 90,
-    gp = grid::gpar(fontsize = 14)
+    gp = grid::gpar(fontsize = .scale_font(14, font_scale))
   )
 
   y_ticks <- pretty(y_range)
@@ -558,7 +571,7 @@ create_comparative_palettes <- function(distance_data, title) {
       x = plot_area_x[1] - 0.02,
       y = scale_y(y_ticks),
       just = "right",
-      gp = grid::gpar(fontsize = 9)
+      gp = grid::gpar(fontsize = .scale_font(9, font_scale))
     )
   }
 
@@ -644,7 +657,7 @@ create_comparative_palettes <- function(distance_data, title) {
       x = x_center,
       y = plot_area_y[1] - 0.04,
       gp = grid::gpar(
-        fontsize = 14,
+        fontsize = .scale_font(12, font_scale),
         fontface = "bold"
       )
     )
