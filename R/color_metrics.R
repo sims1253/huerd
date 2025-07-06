@@ -91,17 +91,20 @@ evaluate_palette_quality <- function(oklab_colors) {
     protan = list(
       min_distance = NA_real_,
       mean_distance = NA_real_,
-      preserved_ratio = NA_real_
+      preserved_ratio = NA_real_,
+      hue_order_preserved = TRUE
     ),
     deutan = list(
       min_distance = NA_real_,
       mean_distance = NA_real_,
-      preserved_ratio = NA_real_
+      preserved_ratio = NA_real_,
+      hue_order_preserved = TRUE
     ),
     tritan = list(
       min_distance = NA_real_,
       mean_distance = NA_real_,
-      preserved_ratio = NA_real_
+      preserved_ratio = NA_real_,
+      hue_order_preserved = TRUE
     ),
     worst_case_min_distance = NA_real_
   )
@@ -182,17 +185,20 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
     protan = list(
       min_distance = NA_real_,
       mean_distance = NA_real_,
-      preserved_ratio = NA_real_
+      preserved_ratio = NA_real_,
+      hue_order_preserved = TRUE
     ),
     deutan = list(
       min_distance = NA_real_,
       mean_distance = NA_real_,
-      preserved_ratio = NA_real_
+      preserved_ratio = NA_real_,
+      hue_order_preserved = TRUE
     ),
     tritan = list(
       min_distance = NA_real_,
       mean_distance = NA_real_,
-      preserved_ratio = NA_real_
+      preserved_ratio = NA_real_,
+      hue_order_preserved = TRUE
     ),
     worst_case_min_distance = NA_real_
   )
@@ -215,6 +221,9 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
   cvd_types <- c("protan", "deutan", "tritan")
   results <- list()
   all_cvd_min_distances <- rep(NA_real_, length(cvd_types))
+  
+  # Store original lightness order for comparison
+  original_lightness_order <- order(oklab_colors[, 1])
 
   for (i in seq_along(cvd_types)) {
     cvd_type <- cvd_types[i]
@@ -234,6 +243,7 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
     if (!is.matrix(cvd_oklab_sim) || nrow(cvd_oklab_sim) < 2) {
       current_min_dist_cvd <- NA_real_
       current_mean_dist_cvd <- NA_real_
+      hue_order_preserved <- TRUE  # Default to TRUE for insufficient data
     } else {
       dist_matrix_cvd <- calculate_perceptual_distances(cvd_oklab_sim)
       distances_cvd_finite <- dist_matrix_cvd[upper.tri(dist_matrix_cvd)]
@@ -250,6 +260,10 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
       } else {
         NA_real_
       }
+      
+      # Check hue order reversal using lightness-based ordering
+      cvd_lightness_order <- order(cvd_oklab_sim[, 1])
+      hue_order_preserved <- identical(original_lightness_order, cvd_lightness_order)
     }
     all_cvd_min_distances[i] <- current_min_dist_cvd
 
@@ -266,7 +280,8 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
     results[[cvd_type]] <- list(
       min_distance = current_min_dist_cvd,
       mean_distance = current_mean_dist_cvd,
-      preserved_ratio = preserved_ratio
+      preserved_ratio = preserved_ratio,
+      hue_order_preserved = hue_order_preserved
     )
   }
 
