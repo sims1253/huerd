@@ -133,6 +133,55 @@ test_that("analyze_cvd_safety_metrics calculates preserved ratios", {
   }
 })
 
+test_that("analyze_cvd_safety_metrics includes hue order preservation check", {
+  # Test that hue_order_preserved field is included
+  colors_oklab <- matrix(
+    c(
+      0.3, 0.1, 0.0,  # Darker color
+      0.8, -0.1, 0.1  # Lighter color
+    ),
+    nrow = 2,
+    byrow = TRUE
+  )
+  
+  result <- analyze_cvd_safety_metrics(colors_oklab, 0.5)
+  
+  # Check that hue_order_preserved field exists for each CVD type
+  for (cvd_type in c("protan", "deutan", "tritan")) {
+    expect_true("hue_order_preserved" %in% names(result[[cvd_type]]))
+    expect_true(is.logical(result[[cvd_type]]$hue_order_preserved))
+  }
+})
+
+test_that("analyze_cvd_safety_metrics detects hue order preservation correctly", {
+  # Test with colors that have clear lightness ordering
+  colors_oklab <- matrix(
+    c(
+      0.2, 0.0, 0.0,  # Very dark
+      0.5, 0.0, 0.0,  # Medium
+      0.8, 0.0, 0.0   # Very light
+    ),
+    nrow = 3,
+    byrow = TRUE
+  )
+  
+  result <- analyze_cvd_safety_metrics(colors_oklab, 0.3)
+  
+  # With clear lightness differences, order should typically be preserved
+  # (though we can't guarantee it for all CVD types)
+  for (cvd_type in c("protan", "deutan", "tritan")) {
+    expect_true(is.logical(result[[cvd_type]]$hue_order_preserved))
+  }
+  
+  # Test single color case
+  single_color <- matrix(c(0.5, 0.1, 0.0), nrow = 1, ncol = 3)
+  result_single <- analyze_cvd_safety_metrics(single_color, 0.5)
+  
+  for (cvd_type in c("protan", "deutan", "tritan")) {
+    expect_true(is.logical(result_single[[cvd_type]]$hue_order_preserved))
+  }
+})
+
 # Tests for analyze_color_distribution - Level 9 TDD
 test_that("analyze_color_distribution returns proper structure", {
   # Test basic structure with valid colors

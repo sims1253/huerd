@@ -286,9 +286,6 @@ validate_inputs <- function(
 
 #' Handle cases with no free colors to generate
 #'
-#' A helper to provide a consistent return object when no optimization is run,
-#' either because all colors were fixed or because initialization failed.
-#'
 #' @param n Total number of colors originally requested.
 #' @param include_colors The vector of fixed colors.
 #' @param optimize_for The optimization target string.
@@ -302,7 +299,8 @@ validate_inputs <- function(
   include_colors,
   return_metrics,
   progress,
-  status_msg = "All colors fixed"
+  status_msg = "All colors fixed",
+  generation_metadata = NULL
 ) {
   if (progress) {
     cat("No free colors to generate; skipping optimization.\n")
@@ -328,6 +326,12 @@ validate_inputs <- function(
     nloptr_status = NA_integer_,
     final_objective_value = NA_real_
   )
+  
+  # Store generation metadata for reproducibility
+  if (!is.null(generation_metadata)) {
+    attr(final_hex_colors, "generation_metadata") <- generation_metadata
+  }
+  
   if (progress) {
     cat("Done.\n")
   }

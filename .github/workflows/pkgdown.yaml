@@ -13,7 +13,6 @@ permissions: read-all
 jobs:
   pkgdown:
     runs-on: ubuntu-latest
-    # IMPROVEMENT: Cancels outdated runs on the same PR.
     concurrency:
       group: pkgdown-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: true
@@ -82,7 +81,7 @@ jobs:
           clean: false
           branch: gh-pages
           folder: docs
-          target-folder: docs/branch/${{ github.head_ref }}
+          target-folder: branch/${{ github.head_ref }}
 
       - name: Comment PR
         if: github.event_name == 'pull_request' && github.event.action == 'opened'
@@ -99,7 +98,6 @@ jobs:
               body: `Documentation preview for this PR is available at: ${url}`
             });
 
-      # This cleanup script is robust and the recommended approach.
       - name: Clean up PR preview 🗑️
         if: github.event_name == 'pull_request' && github.event.action == 'closed'
         run: |
