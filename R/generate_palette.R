@@ -62,13 +62,8 @@
   fixed_oklab <- NULL
   sorted_include_colors <- include_colors
   if (n_fixed > 0) {
-    rgb_matrix <- farver::decode_colour(include_colors)
-    oklab_matrix <- farver::convert_colour(
-      rgb_matrix,
-      from = 'rgb',
-      to = 'oklab'
-    )
-    
+    oklab_matrix <- .hex_to_oklab(include_colors)
+
     # Sort fixed colors by brightness (lightness) to ensure final palette is brightness-sorted
     lightness_order <- order(oklab_matrix[, 1])
     fixed_oklab <- oklab_matrix[lightness_order, , drop = FALSE]
@@ -183,23 +178,58 @@
   )
 }
 
-#' Optimize color palette using pure minimax constrained optimization
+#' Optimize color palette using configurable optimization algorithms
 #' @noRd
 .optimize_palette <- function(
   current_all_colors_oklab,
   fixed_mask,
   max_iterations,
   n_free,
-  progress
+  progress,
+  optimizer = "nloptr_cobyla"
 ) {
   if (progress && n_free > 0) {
-    cat("Optimizing ", n_free, " free colors...\n", sep = "")
+    cat(
+      "Optimizing ",
+      n_free,
+      " free colors using ",
+      optimizer,
+      "...\n",
+      sep = ""
+    )
   }
 
-  opt_result <- optimize_colors_constrained(
-    current_all_colors_oklab,
-    fixed_mask,
-    max_iterations
+  # Switch statement for different optimizers
+  opt_result <- switch(
+    optimizer,
+    "nloptr_cobyla" = optimize_colors_constrained(
+      current_all_colors_oklab,
+      fixed_mask,
+      max_iterations
+    ),
+    "sann" = optimize_colors_sann(
+      current_all_colors_oklab,
+      fixed_mask,
+      max_iterations
+    ),
+    "nlopt_direct" = optimize_colors_nlopt_direct(
+      current_all_colors_oklab,
+      fixed_mask,
+      max_iterations
+    ),
+    "nlopt_neldermead" = optimize_colors_nlopt_neldermead(
+      current_all_colors_oklab,
+      fixed_mask,
+      max_iterations
+    ),
+    # Future optimizers can be added here
+    # "genetic_algorithm" = optimize_colors_genetic(...),
+    # "particle_swarm" = optimize_colors_pso(...),
+    stop(
+      "Unsupported optimizer: ",
+      optimizer,
+      ". This should not happen after validation."
+    )
   )
 
   opt_result
@@ -220,12 +250,11 @@
   # Convert to hex first, then sort by brightness (due to gamut clamping effects)
   if (is.matrix(optimized_colors_oklab) && nrow(optimized_colors_oklab) > 0) {
     # Convert to hex colors first
-    hex_colors <- farver::encode_colour(optimized_colors_oklab, from = "oklab")
-    
+    hex_colors <- .oklab_to_hex(optimized_colors_oklab)
+
     # Convert back to OKLAB to get the actual lightness values after gamut clamping
-    rgb_matrix <- farver::decode_colour(hex_colors)
-    final_oklab_matrix <- farver::convert_colour(rgb_matrix, from = "rgb", to = "oklab")
-    
+    final_oklab_matrix <- .hex_to_oklab(hex_colors)
+
     # Sort hex colors by their actual final lightness values
     lightness_order <- order(final_oklab_matrix[, 1])
     hex_colors <- hex_colors[lightness_order]
@@ -244,7 +273,9 @@
 
   if (return_metrics) {
     # Use sorted colors for metrics if they exist, otherwise use original matrix
-    colors_for_metrics <- if (is.matrix(optimized_colors_oklab) && nrow(optimized_colors_oklab) > 0) {
+    colors_for_metrics <- if (
+      is.matrix(optimized_colors_oklab) && nrow(optimized_colors_oklab) > 0
+    ) {
       sorted_colors_oklab
     } else {
       optimized_colors_oklab
@@ -262,9 +293,9 @@
 
 #' Generate Optimal Color Palette using Pure Minimax Optimization
 #'
-#' Creates a scientifically-grounded color palette that maximizes the minimum 
-#' perceptual distance between any two colors using pure minimax optimization in 
-#' the OKLAB color space. Colors are automatically sorted by brightness and can 
+#' Creates a scientifically-grounded color palette that maximizes the minimum
+#' perceptual distance between any two colors using pure minimax optimization in
+#' the OKLAB color space. Colors are automatically sorted by brightness and can
 #' include fixed brand colors.
 #'
 #' @param n Integer. Total number of colors in the palette.
@@ -286,11 +317,23 @@
 #' @param return_metrics Logical. Whether to return evaluation metrics as
 #'   attributes. Default is TRUE.
 #' @param progress Logical. Show progress messages. Default is `interactive()`.
+#' @param weights Named numeric vector. Weights for multi-objective optimization.
+#'   Currently only supports `c(distance = 1)` for distance-based optimization.
+#'   Default is NULL (equivalent to pure distance optimization).
+#' @param optimizer Character. Optimization algorithm to use. Currently supported:
+#'   "nloptr_cobyla" (default) for deterministic optimization with constraint handling,
+#'   "sann" for stochastic simulated annealing (excellent quality but not perfectly
+#'   reproducible without a seed), "nlopt_direct" for deterministic global optimization
+#'   using the DIRECT algorithm (best choice for scientific reproducibility and high
+#'   quality, though may be slower), "nlopt_neldermead" for derivative-free local
+#'   optimization using the Nelder-Mead simplex algorithm (good alternative to COBYLA
+#'   for robust local optimization). The framework is designed to easily support
+#'   additional optimizers in future versions.
 #'
 #' @return A character vector of hex colors with class `huerd_palette`, automatically
 #'   sorted by brightness (lightness). If `return_metrics = TRUE`, includes evaluation
 #'   metrics as attributes.
-#'   
+#'
 #' @details
 #' This function implements pure minimax optimization to create color palettes with
 #' maximum worst-case perceptual distinguishability. The approach is scientifically
@@ -319,13 +362,42 @@
 #' palette <- generate_palette(5, progress = FALSE)
 #' print(palette)
 #'
-#' # Brand-constrained palette  
+#' # Brand-constrained palette
 #' brand_palette <- generate_palette(
 #'   n = 6,
 #'   include_colors = c("#4A6B8A", "#E5A04C"),
 #'   progress = FALSE
 #' )
-#' 
+#'
+#' # Using specific optimizer (deterministic)
+#' optimizer_palette <- generate_palette(
+#'   n = 4,
+#'   optimizer = "nloptr_cobyla",
+#'   progress = FALSE
+#' )
+#'
+#' # Using simulated annealing (stochastic, excellent quality)
+#' set.seed(42)  # For reproducibility
+#' sann_palette <- generate_palette(
+#'   n = 4,
+#'   optimizer = "sann",
+#'   progress = FALSE
+#' )
+#'
+#' # Using DIRECT algorithm (deterministic global, best for scientific reproducibility)
+#' direct_palette <- generate_palette(
+#'   n = 4,
+#'   optimizer = "nlopt_direct",
+#'   progress = FALSE
+#' )
+#'
+#' # Using Nelder-Mead algorithm (derivative-free local, good alternative to COBYLA)
+#' neldermead_palette <- generate_palette(
+#'   n = 4,
+#'   optimizer = "nlopt_neldermead",
+#'   progress = FALSE
+#' )
+#'
 #' # Evaluate quality
 #' evaluation <- evaluate_palette(brand_palette)
 #' cat("Min distance:", evaluation$distances$min, "\n")
@@ -345,7 +417,9 @@ generate_palette <- function(
   aesthetic_init_config = NULL,
   max_iterations = 1000,
   return_metrics = TRUE,
-  progress = interactive()
+  progress = interactive(),
+  weights = NULL,
+  optimizer = "nloptr_cobyla"
 ) {
   # Input validation
   validate_inputs(
@@ -354,7 +428,9 @@ generate_palette <- function(
     init_lightness_bounds,
     init_hcl_bounds,
     fixed_aesthetic_influence,
-    aesthetic_init_config
+    aesthetic_init_config,
+    weights,
+    optimizer
   )
 
   # Setup and parameter normalization
@@ -411,7 +487,8 @@ generate_palette <- function(
     init_result$fixed_mask,
     max_iterations,
     init_result$n_free,
-    progress
+    progress,
+    optimizer
   )
 
   # Finalize and return

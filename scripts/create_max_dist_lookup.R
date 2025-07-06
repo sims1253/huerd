@@ -15,7 +15,7 @@
 # The quality of the estimate depends on the density of this pool.
 # 500,000 is a good number for decent accuracy.
 # 1,000,000+ would be better but slower.
-n_pool <- 500000
+n_pool <- 1000000
 cat("Generating a candidate pool of", n_pool, "points...\n")
 
 # Generate points in a box that fully contains the sRGB gamut in OKLAB space.
@@ -104,7 +104,7 @@ cat(
 # Use a progress bar for this long process
 pb <- utils::txtProgressBar(min = 0, max = length(n_values), style = 3)
 estimated_max_dists <- sapply(n_values, function(n) {
-  res <- estimate_max_min_dist(n, pool = in_gamut_oklab_pool, n_restarts = 20)
+  res <- estimate_max_min_dist(n, pool = in_gamut_oklab_pool, n_restarts = 15)
   utils::setTxtProgressBar(pb, which(n_values == n))
   return(res)
 })

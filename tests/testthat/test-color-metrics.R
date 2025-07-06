@@ -13,11 +13,7 @@ test_that("evaluate_palette works with single color", {
 test_that("evaluate_palette_quality works with single color", {
   # Convert hex to OKLAB
   hex_colors <- c("#FF0000")
-  oklab_colors <- farver::convert_colour(
-    farver::decode_colour(hex_colors, to = "rgb"),
-    from = "rgb",
-    to = "oklab"
-  )
+  oklab_colors <- .hex_to_oklab(hex_colors)
 
   heuristic_targets <- list(
     min_distance = 0.1,

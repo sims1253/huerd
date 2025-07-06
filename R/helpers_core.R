@@ -145,6 +145,49 @@
   }
 }
 
+#' Validate weights parameter for multi-objective optimization
+#' @noRd
+.validate_weights <- function(weights) {
+  if (is.null(weights)) {
+    return()
+  }
+
+  if (!is.numeric(weights) || length(weights) == 0) {
+    stop("'weights' must be a named numeric vector or NULL.", call. = FALSE)
+  }
+
+  if (is.null(names(weights)) || any(names(weights) == "")) {
+    stop(
+      "'weights' must be a named numeric vector with all elements named.",
+      call. = FALSE
+    )
+  }
+
+  if (any(weights < 0)) {
+    stop("All 'weights' values must be non-negative.", call. = FALSE)
+  }
+
+  # Check for valid objective names (only 'distance' supported currently)
+  valid_objectives <- c("distance")
+  invalid_names <- names(weights)[!names(weights) %in% valid_objectives]
+  if (length(invalid_names) > 0) {
+    stop(
+      paste0(
+        "Invalid objective names in 'weights': ",
+        paste(invalid_names, collapse = ", "),
+        ". Valid objectives are: ",
+        paste(valid_objectives, collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+
+  # Check that at least one weight is positive
+  if (sum(weights) <= 0) {
+    stop("At least one 'weights' value must be positive.", call. = FALSE)
+  }
+}
+
 #' Validate aesthetic initialization config
 #' @noRd
 .validate_aesthetic_init_config <- function(aesthetic_init_config) {
@@ -186,6 +229,35 @@
   }
 }
 
+#' Validate optimizer parameter
+#' @noRd
+.validate_optimizer <- function(optimizer) {
+  if (!is.character(optimizer) || length(optimizer) != 1) {
+    stop("'optimizer' must be a single character string.", call. = FALSE)
+  }
+
+  # Currently supported optimizers
+  valid_optimizers <- c(
+    "nloptr_cobyla",
+    "sann",
+    "nlopt_direct",
+    "nlopt_neldermead"
+  )
+
+  if (!optimizer %in% valid_optimizers) {
+    stop(
+      paste0(
+        "Invalid optimizer '",
+        optimizer,
+        "'. ",
+        "Valid optimizers are: ",
+        paste(valid_optimizers, collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+}
+
 #' Validate Input Parameters for generate_palette
 #'
 #' This helper function checks all user-provided parameters for correctness
@@ -197,7 +269,9 @@ validate_inputs <- function(
   init_lightness_bounds,
   init_hcl_bounds,
   fixed_aesthetic_influence,
-  aesthetic_init_config
+  aesthetic_init_config,
+  weights = NULL,
+  optimizer = "nloptr_cobyla"
 ) {
   .validate_n(n)
   .validate_include_colors(include_colors, n)
@@ -206,6 +280,8 @@ validate_inputs <- function(
   .validate_init_hcl_bounds(init_hcl_bounds)
   .validate_aesthetic_params(fixed_aesthetic_influence)
   .validate_aesthetic_init_config(aesthetic_init_config)
+  .validate_weights(weights)
+  .validate_optimizer(optimizer)
 }
 
 #' Handle cases with no free colors to generate

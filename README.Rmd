@@ -9,7 +9,11 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  dpi = 150,
+  fig.width = 8,
+  fig.height = 5,
+  dev = "png"
 )
 ```
 
@@ -24,11 +28,11 @@ knitr::opts_chunk$set(
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-A discrete color palette generator with support for fixed colors optimized for both normal and color vision deficient viewers.
+A discrete color palette generator with support for fixed colors, optimized for color vision deficient viewers. Features different optimization algorithms and a multi-objective optimization framework for advanced color palette generation.
 
 ## Installation
 
-You can install the development version of huerd from [GitHub](https://github.com/) with:
+You can install the development version of huerd from GitHub with:
 
 ``` r
 # install.packages("pak")
@@ -41,7 +45,7 @@ Generate a palette with 5 colors:
 ```{r example}
 library(huerd)
 
-palette <- generate_palette(8)
+palette <- generate_palette(8, progress = FALSE)
 print(palette)
 ```
 
@@ -54,31 +58,80 @@ library(huerd)
 
 palette <- generate_palette(
   n = 8,
-  include_colors = c("#4A6B8A", "#E5A04C")
+  include_colors = c("#4A6B8A", "#E5A04C"),
+  progress = FALSE
 )
 print(palette)
 
 ```
 
+## Multi-Optimizer Support
+
+Choose from 4 different optimization algorithms based on your needs:
+
+```{r optimizers}
+library(huerd)
+
+# COBYLA: Default deterministic optimizer for general use
+cobyla_palette <- generate_palette(6, optimizer = "nloptr_cobyla", progress = FALSE)
+
+# SANN: Stochastic simulated annealing for higher quality
+sann_palette <- generate_palette(6, optimizer = "sann", progress = FALSE)
+
+# DIRECT: Global optimization for reproducibility (may need tuning)
+direct_palette <- generate_palette(6, optimizer = "nlopt_direct", progress = FALSE)
+
+# Nelder-Mead: Derivative-free local optimization
+# As an alternative deterministic approach
+neldermead_palette <- generate_palette(6, optimizer = "nlopt_neldermead", progress = FALSE)
+
+cat("COBYLA:", paste(cobyla_palette, collapse = ", "), "\n")
+cat("SANN:", paste(sann_palette, collapse = ", "), "\n")
+cat("DIRECT:", paste(direct_palette, collapse = ", "), "\n")
+cat("Nelder-Mead:", paste(neldermead_palette, collapse = ", "), "\n")
+```
+
+## Multi-Objective Framework
+
+The package includes a multi-objective optimization framework:
+
+```{r multiobjective}
+library(huerd)
+
+# Current: Pure distance optimization (default)
+distance_palette <- generate_palette(
+  n = 6,
+  weights = c(distance = 1),  # Explicit distance weighting
+  optimizer = "nloptr_cobyla",
+  progress = FALSE
+)
+
+# Future versions will support additional objectives like:
+# weights = c(distance = 0.7, aesthetics = 0.3)
+# weights = c(distance = 0.8, uniformity = 0.2)
+
+print(distance_palette)
+```
+
 ## Diagnostic Dashboard
 
-Analyze palette quality with a dashboard:
+Get a quick overview of your palette properties:
 
 ```{r dashboard}
 library(huerd)
 
-palette <- generate_palette(8)
-plot_palette_analysis(palette)
+palette <- generate_palette(8, progress = FALSE)
+plot_palette_analysis(palette, force_font_scale = 0.6)
 ```
 
 ## Palette Quality Evaluation
 
-Pure data provider for detailed post-hoc analysis:
+Or look at the numerical evaluation results:
 
 ```{r evaluation}
 library(huerd)
 
-palette <- generate_palette(8)
+palette <- generate_palette(8, progress = FALSE)
 evaluation <- evaluate_palette(palette)
 
 # Access raw metrics (no subjective scoring)
@@ -89,7 +142,7 @@ cat("CVD worst case:", evaluation$cvd_safety$worst_case_min_distance, "\n")
 
 ## Custom Parameters
 
-Fine-tune the generation process:
+Fine-tune the generation process with advanced options:
 
 ```{r custom}
 library(huerd)
@@ -98,7 +151,9 @@ palette <- generate_palette(
   n = 8,
   initialization = "harmony",              # Color harmony-based initialization
   init_lightness_bounds = c(0.3, 0.8),    # Constrain lightness range
-  max_iterations = 2000                    # Show progress
+  max_iterations = 2000,                   # Increased iterations
+  optimizer = "nloptr_cobyla",             # Use COBYLA for optimization
+  progress = FALSE
 )
 print(palette)
 ```
@@ -108,16 +163,21 @@ print(palette)
 ```{r workflow}
 library(huerd)
 
-# 1. Generate brand palette
+# 1. Generate brand palette with advanced optimization
 brand_palette <- generate_palette(
   n = 8,
   include_colors = c("#1f77b4", "#ff7f0e"),  # Fixed brand colors
+  fixed_aesthetic_influence = 0.9,
+  initialization = "harmony",
+  optimizer = "sann",
+  max_iterations = 5000,
+  weights = c(distance = 1),
   return_metrics = TRUE,
   progress = TRUE
 )
 
 # 2. Diagnostic analysis
-plot_palette_analysis(brand_palette)
+plot_palette_analysis(brand_palette, force_font_scale = 0.6)
 
 # 3. Quality evaluation
 evaluation <- evaluate_palette(brand_palette)

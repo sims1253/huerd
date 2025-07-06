@@ -43,12 +43,7 @@ evaluate_palette <- function(colors) {
       if (length(valid_colors) == 0) {
         oklab_colors <- matrix(numeric(0), ncol = 3)
       } else {
-        rgb_matrix <- farver::decode_colour(valid_colors)
-        oklab_colors <- farver::convert_colour(
-          rgb_matrix,
-          from = 'rgb',
-          to = 'oklab'
-        )
+        oklab_colors <- .hex_to_oklab(valid_colors)
       }
     }
   } else if (is.matrix(colors) && ncol(colors) == 3) {
@@ -207,7 +202,7 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
   }
 
   # Convert OKLAB to hex colors for CVD simulation
-  hex_colors <- farver::encode_colour(oklab_colors, from = "oklab")
+  hex_colors <- .oklab_to_hex(oklab_colors)
 
   if (any(is.na(hex_colors))) {
     warning(
@@ -234,11 +229,7 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
     cvd_hex_sim <- cvd_fun(hex_colors, severity = 1.0)
 
     # Convert back to OKLAB for distance calculations
-    cvd_oklab_sim <- farver::convert_colour(
-      farver::decode_colour(cvd_hex_sim, to = "rgb"),
-      from = "rgb",
-      to = "oklab"
-    )
+    cvd_oklab_sim <- .hex_to_oklab(cvd_hex_sim)
 
     if (!is.matrix(cvd_oklab_sim) || nrow(cvd_oklab_sim) < 2) {
       current_min_dist_cvd <- NA_real_

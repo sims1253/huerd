@@ -14,3 +14,14 @@ repulsion.gif
 vignettes/*.html
 vignettes/*.R
 inst/doc
+
+# Image optimization rules
+Rplots.pdf
+*.tmp.png
+*_cache/
+docs/
+thesis_study_results/*.png
+thesis_study_results/*.pdf
+
+# Generated files that should be rebuilt
+# (Keep man/figures/ images as they're part of README)
