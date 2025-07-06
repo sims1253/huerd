@@ -1,16 +1,16 @@
 Package: huerd
 Title: Color Palette Optimization with fixed colors
-Version: 0.3.1
+Version: 0.4.0
 Authors@R: 
     person("Maximilian", "Scholz", , "dev.scholz@mailbox.org", role = c("aut", "cre"))
 Description: Generates color palettes using minimax optimization to
     maximize the minimum perceptual distance between colors. Features the
     ability to define fixed colors that are kept throughout the
     optimization process, multiple optimization algorithms (COBYLA, SANN,
-    DIRECT, Nelder-Mead), multi-objective optimization framework, and a
-    diagnostic dashboard. All optimization performed in the perceptually
-    uniform OKLAB color space with integrated color vision deficiency
-    analysis.
+    DIRECT, Nelder-Mead), multi-objective optimization framework, full
+    reproducibility support with metadata storage, and a diagnostic
+    dashboard. All optimization performed in the perceptually uniform
+    OKLAB color space with integrated color vision deficiency analysis.
 License: MIT + file LICENSE
 URL: https://github.com/sims1253/huerd
 BugReports: https://github.com/sims1253/huerd/issues

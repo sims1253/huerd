@@ -325,3 +325,25 @@ test_that(".handle_no_free_colors works with metrics", {
   expect_true("metrics" %in% names(attributes(result)))
   expect_true("optimization_details" %in% names(attributes(result)))
 })
+
+test_that("reproduce_palette works with valid metadata", {
+  set.seed(42)
+  original <- generate_palette(n = 3, optimizer = "nlopt_direct", progress = FALSE)
+  
+  reproduced <- reproduce_palette(original)
+  
+  expect_identical(original, reproduced)
+})
+
+test_that("reproduce_palette handles missing metadata", {
+  # Create palette without metadata
+  palette <- c("#FF0000", "#00FF00", "#0000FF")
+  class(palette) <- "huerd_palette"
+  
+  expect_error(reproduce_palette(palette), "No generation metadata found")
+})
+
+test_that("reproduce_palette validates input", {
+  expect_error(reproduce_palette("not_a_palette"), "must be a huerd_palette object")
+  expect_error(reproduce_palette(NULL), "must be a huerd_palette object")
+})

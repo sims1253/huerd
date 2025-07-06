@@ -241,7 +241,8 @@
   optimized_colors_oklab,
   opt_result,
   return_metrics,
-  progress
+  progress,
+  generation_metadata = NULL
 ) {
   if (progress) {
     cat("Finalizing palette...\n")
@@ -282,6 +283,11 @@
     }
     metrics <- evaluate_palette(colors_for_metrics)
     attr(hex_colors, "metrics") <- metrics
+  }
+
+  # Store generation metadata for reproducibility
+  if (!is.null(generation_metadata)) {
+    attr(hex_colors, "generation_metadata") <- generation_metadata
   }
 
   if (progress) {
@@ -421,6 +427,24 @@ generate_palette <- function(
   weights = NULL,
   optimizer = "nloptr_cobyla"
 ) {
+  generation_metadata <- list(
+    n_colors = n,
+    include_colors = include_colors,
+    initialization = initialization,
+    init_lightness_bounds = init_lightness_bounds,
+    init_hcl_bounds = init_hcl_bounds,
+    fixed_aesthetic_influence = fixed_aesthetic_influence,
+    aesthetic_init_config = aesthetic_init_config,
+    max_iterations = max_iterations,
+    return_metrics = return_metrics,
+    weights = weights,
+    optimizer = optimizer,
+    seed = if (exists(".Random.seed")) .Random.seed else NULL,
+    package_version = utils::packageVersion("huerd"),
+    target_space = "oklab",
+    timestamp = Sys.time()
+  )
+
   # Input validation
   validate_inputs(
     n,
@@ -446,7 +470,8 @@ generate_palette <- function(
       n,
       include_colors,
       return_metrics,
-      progress
+      progress,
+      generation_metadata = generation_metadata
     ))
   }
 
@@ -496,8 +521,156 @@ generate_palette <- function(
     opt_result$palette,
     opt_result,
     return_metrics,
-    progress
+    progress,
+    generation_metadata
   )
 
   return(final_palette)
+}
+
+#' Reproduce Palette from Existing huerd_palette Object
+#'
+#' Recreates an identical color palette from a previously generated huerd_palette
+#' object using the stored generation metadata.
+#'
+#' @param palette A huerd_palette object (result from `generate_palette()`)
+#'   containing generation metadata.
+#' @param progress Logical. Show progress messages. Default is `interactive()`.
+#'   If NULL, uses the progress setting from the original generation.
+#'
+#' @return A character vector of hex colors with class `huerd_palette`,
+#'   identical to the input palette when reproduction is successful.
+#'
+#' @details
+#' This function reads the generation metadata stored in the `generation_metadata`
+#' attribute of a huerd_palette object and re-runs `generate_palette()` with
+#' the exact same parameters. When a random seed was captured during original
+#' generation, the reproduction will be identical if the optimizer supports
+#' the usage of a seed. For deterministic optimizers like "nlopt_direct",
+#' reproduction should always be identical regardless of random seed.
+#'
+#' The function validates that the input object contains the necessary metadata
+#' and provides informative error messages if reproduction fails due to missing
+#' metadata or package version incompatibilities.
+#'
+#' @examples
+#' \dontrun{
+#' # Create a reproducible palette
+#' set.seed(42)
+#' original_palette <- generate_palette(
+#'   n = 5,
+#'   include_colors = c("#FF0000"),
+#'   optimizer = "nlopt_direct",
+#'   progress = FALSE
+#' )
+#'
+#' # Reproduce the exact same palette
+#' reproduced_palette <- reproduce_palette(original_palette)
+#'
+#' # Verify they are identical
+#' identical(original_palette, reproduced_palette)
+#'
+#' # Examine generation metadata
+#' metadata <- attr(original_palette, "generation_metadata")
+#' str(metadata)
+#' }
+#'
+#' @export
+reproduce_palette <- function(palette, progress = NULL) {
+  # Validate input
+  if (!inherits(palette, "huerd_palette")) {
+    stop(
+      "Input must be a huerd_palette object (result from generate_palette())"
+    )
+  }
+
+  # Extract generation metadata
+  metadata <- attr(palette, "generation_metadata")
+  if (is.null(metadata)) {
+    stop(
+      "No generation metadata found in palette object. ",
+      "This palette may have been created with an older version of huerd ",
+      "or the metadata was removed. Reproduction requires metadata."
+    )
+  }
+
+  # Validate that metadata contains required fields
+  required_fields <- c(
+    "n_colors",
+    "include_colors",
+    "initialization",
+    "init_lightness_bounds",
+    "init_hcl_bounds",
+    "fixed_aesthetic_influence",
+    "aesthetic_init_config",
+    "max_iterations",
+    "return_metrics",
+    "weights",
+    "optimizer"
+  )
+
+  missing_fields <- setdiff(required_fields, names(metadata))
+  if (length(missing_fields) > 0) {
+    stop(
+      "Missing required metadata fields: ",
+      paste(missing_fields, collapse = ", "),
+      ". Cannot reproduce palette."
+    )
+  }
+
+  # Set progress - use metadata value if progress is NULL
+  if (is.null(progress)) {
+    progress <- if ("progress" %in% names(metadata)) {
+      metadata$progress
+    } else {
+      FALSE
+    }
+  }
+
+  # Restore random seed if available
+  if (!is.null(metadata$seed)) {
+    if (progress) {
+      cat("Restoring random seed for reproducibility...\n")
+    }
+    .Random.seed <<- metadata$seed
+  }
+
+  # Package version compatibility check
+  if (!is.null(metadata$package_version)) {
+    current_version <- utils::packageVersion("huerd")
+    if (metadata$package_version != current_version) {
+      warning(
+        "Package version mismatch: original palette was created with version ",
+        metadata$package_version,
+        ", current version is ",
+        current_version,
+        ". Reproduction may not be identical."
+      )
+    }
+  }
+
+  if (progress) {
+    cat("Reproducing palette using stored metadata...\n")
+  }
+
+  # Reproduce the palette using stored parameters
+  reproduced_palette <- generate_palette(
+    n = metadata$n_colors,
+    include_colors = metadata$include_colors,
+    initialization = metadata$initialization,
+    init_lightness_bounds = metadata$init_lightness_bounds,
+    init_hcl_bounds = metadata$init_hcl_bounds,
+    fixed_aesthetic_influence = metadata$fixed_aesthetic_influence,
+    aesthetic_init_config = metadata$aesthetic_init_config,
+    max_iterations = metadata$max_iterations,
+    return_metrics = metadata$return_metrics,
+    progress = progress,
+    weights = metadata$weights,
+    optimizer = metadata$optimizer
+  )
+
+  # Preserve the original generation metadata to maintain perfect reproducibility
+  attr(reproduced_palette, "generation_metadata") <- metadata
+
+  return(reproduced_palette)
 }
