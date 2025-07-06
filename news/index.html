@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">huerd</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,37 +36,52 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.0" id="huerd-040-2025-07-06">huerd 0.4.0 (2025-07-06)<a class="anchor" aria-label="anchor" href="#huerd-040-2025-07-06"></a></h2>
+<div class="section level3">
+<h3 id="major-changes-0-4-0">Major Changes<a class="anchor" aria-label="anchor" href="#major-changes-0-4-0"></a></h3>
+<ul><li><p>Replaced base R graphics with grid graphics system. <code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> now uses <code><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html" class="external-link">gridExtra::arrangeGrob()</a></code> for layout.</p></li>
+<li><p>Converted all plotting functions to return grob objects instead of drawing directly.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-0-4-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-4-0"></a></h3>
+<ul><li><p>Added reproducibility system for palette generation with metadata storage.</p></li>
+<li><p>Added hue order reversal detection for CVD analysis.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="breaking-changes-0-4-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-4-0"></a></h3>
+<ul><li><p>Removed <code>new_device</code>, <code>device_width</code>, and <code>device_height</code> parameters from <code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code>.</p></li>
+<li><p>Moved <code>gridExtra</code> from Suggests to Imports, added <code>grid</code> to Imports.</p></li>
+<li><p>Removed helper functions: <code>.create_graphics_device</code>, <code>.is_ragg_available</code>, <code>.is_interactive_ide</code>, <code>calculate_safe_margins</code>.</p></li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.1" id="huerd-031-2025-07-04">huerd 0.3.1 (2025-07-04)<a class="anchor" aria-label="anchor" href="#huerd-031-2025-07-04"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-3-1">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-3-1"></a></h3>
+<ul><li>Added automated font size scaling to <code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> that automatically adjusts text sizes based on device dimensions.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="huerd-030-2025-07-04">huerd 0.3.0 (2025-07-04)<a class="anchor" aria-label="anchor" href="#huerd-030-2025-07-04"></a></h2>
 <div class="section level3">
 <h3 id="major-changes-0-3-0">Major Changes<a class="anchor" aria-label="anchor" href="#major-changes-0-3-0"></a></h3>
-<ul><li>
-<strong>Multi-Optimizer Framework</strong>: The <code><a href="../reference/generate_palette.html">generate_palette()</a></code> function now supports four different optimization algorithms through the new <code>optimizer</code> parameter:
+<ul><li>Multi-optimizer framework: The <code><a href="../reference/generate_palette.html">generate_palette()</a></code> function now supports four different optimization algorithms through the new <code>optimizer</code> parameter:
 <ul><li>
 <code>"nloptr_cobyla"</code> (default): Deterministic optimization with constraint handling</li>
 <li>
-<code>"sann"</code>: Stochastic simulated annealing for excellent quality</li>
+<code>"sann"</code>: Stochastic simulated annealing</li>
 <li>
 <code>"nlopt_direct"</code>: Deterministic global optimization using DIRECT algorithm</li>
 <li>
 <code>"nlopt_neldermead"</code>: Derivative-free local optimization using Nelder-Mead simplex</li>
 </ul></li>
-<li>
-<strong>Multi-Objective Optimization Foundation</strong>: Added infrastructure for multi-objective optimization with the new <code>weights</code> parameter. Currently supports distance-based optimization with framework for future expansion to other objectives.</li>
-</ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.0" id="huerd-020-2025-07-03">huerd 0.2.0 (2025-07-03)<a class="anchor" aria-label="anchor" href="#huerd-020-2025-07-03"></a></h2>
-<div class="section level3">
-<h3 id="major-changes-0-2-0">Major Changes<a class="anchor" aria-label="anchor" href="#major-changes-0-2-0"></a></h3>
-<ul><li><p><strong>Grid Graphics Visualization System</strong>: Replaced base R graphics with grid graphics for robust, cross-platform visualization in <code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code>.</p></li>
-<li><p><strong>Automatic Font Scaling</strong>: Added responsive font scaling to <code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> that automatically adjusts text sizes based on device dimensions, preventing text overlap and out-of-frame issues.</p></li>
-<li><p><strong>Enhanced Dashboard Panels</strong>: Improved all six diagnostic panels with better layout, styling, and readability.</p></li>
+<li>Added automatic font scaling to <code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> that prevents text overlap and out-of-frame issues.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="minor-changes-0-2-0">Minor Changes<a class="anchor" aria-label="anchor" href="#minor-changes-0-2-0"></a></h3>
-<ul><li><p><strong>DRY Code Improvements</strong>: Added internal utility functions <code>.hex_to_oklab()</code> and <code>.oklab_to_hex()</code> to eliminate repetitive color conversion patterns throughout the codebase.</p></li>
-<li><p><strong>Test Suite Improvements</strong>: Fixed all failing visualization tests and added comprehensive test coverage for new utility functions.</p></li>
-<li><p><strong>Package Dependencies</strong>: Moved <code>gridExtra</code> from Suggests to Imports for reliable grid graphics support.</p></li>
+<h3 id="minor-changes-0-3-0">Minor Changes<a class="anchor" aria-label="anchor" href="#minor-changes-0-3-0"></a></h3>
+<ul><li><p>Added internal utility functions <code>.hex_to_oklab()</code> and <code>.oklab_to_hex()</code> to eliminate repetitive color conversion patterns.</p></li>
+<li><p>Fixed failing visualization tests and added test coverage for new utility functions.</p></li>
+<li><p>Updated test files to use utility functions.</p></li>
 </ul></div>
 </div>
     <div class="section level2">
@@ -81,14 +96,10 @@
 <p>This is a major refactoring and simplification of <code>huerd</code>, focusing the package on a single, scientifically-grounded objective: pure minimax color palette generation.</p>
 <div class="section level3">
 <h3 id="major-changes-0-1-0">Major Changes<a class="anchor" aria-label="anchor" href="#major-changes-0-1-0"></a></h3>
-<ul><li>
-<strong>Pure Minimax Optimization</strong>: The core <code><a href="../reference/generate_palette.html">generate_palette()</a></code> function has been streamlined to use a pure minimax objective, maximizing the minimum perceptual distance between colors in the OKLAB space. All complex multi-objective parameters (<code>optimize_for</code>, <code>balance_weights</code>, <code>aesthetic_penalty_weights_LC</code>) have been removed, simplifying the API and aligning the package with a clear, defensible scientific goal.</li>
-<li>
-<strong>Comprehensive Diagnostic Dashboard</strong>: A new <code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> function has been added. It provides a comprehensive, six-panel diagnostic dashboard inspired by <code>scicomap</code> for in-depth palette analysis. This feature uses only <strong>base R graphics</strong> and introduces zero new dependencies.</li>
-<li>
-<strong>Automatic Brightness Sorting</strong>: All palettes generated by <code><a href="../reference/generate_palette.html">generate_palette()</a></code> are now automatically sorted by their OKLAB lightness value, ensuring intuitive and consistent ordering from darkest to lightest.</li>
-<li>
-<strong>Simplified Evaluation</strong>: The <code><a href="../reference/evaluate_palette.html">evaluate_palette()</a></code> function is now a pure data provider, returning raw, objective metrics (distances, CVD safety, color distribution) without any subjective heuristic scoring.</li>
+<ul><li><p>Pure minimax optimization: The core <code><a href="../reference/generate_palette.html">generate_palette()</a></code> function has been streamlined to use a pure minimax objective, maximizing the minimum perceptual distance between colors in the OKLAB space. All complex multi-objective parameters (<code>optimize_for</code>, <code>balance_weights</code>, <code>aesthetic_penalty_weights_LC</code>) have been removed, simplifying the API and aligning the package with a clear, defensible scientific goal.</p></li>
+<li><p>Comprehensive diagnostic dashboard: A new <code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> function has been added. It provides a comprehensive, six-panel diagnostic dashboard inspired by <code>scicomap</code> for in-depth palette analysis. This feature uses only base R graphics and introduces zero new dependencies.</p></li>
+<li><p>Automatic brightness sorting: All palettes generated by <code><a href="../reference/generate_palette.html">generate_palette()</a></code> are now automatically sorted by their OKLAB lightness value, ensuring intuitive and consistent ordering from darkest to lightest.</p></li>
+<li><p>Simplified evaluation: The <code><a href="../reference/evaluate_palette.html">evaluate_palette()</a></code> function is now a pure data provider, returning raw, objective metrics (distances, CVD safety, color distribution) without any subjective heuristic scoring.</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="minor-changes-0-1-0">Minor Changes<a class="anchor" aria-label="anchor" href="#minor-changes-0-1-0"></a></h3>
