@@ -16,9 +16,15 @@
 - Added `optimizer = "nlopt_lbfgs"` option for L-BFGS optimization
 - Added `weights = c(smooth_repulsion = 1)` and `weights = c(smooth_logsumexp = 1)` for smooth objectives
 
+## Bug Fixes
+- Fixed critical bug where L-BFGS optimizer always used `smooth_repulsion` objective regardless of `weights` parameter
+- Fixed crash in `evaluate_palette_quality()` when called directly with hex colors ("argument is of length zero" error)
+- Both smooth objectives (`smooth_repulsion` and `smooth_logsumexp`) now work correctly and produce different optimization results
+
 ## Internal Changes
 - Added analytical gradient functions for smooth objectives
 - Extended multi-objective framework to handle smooth and discrete objectives
+- Improved input validation in `evaluate_palette_quality()` function
 
 ---
 
