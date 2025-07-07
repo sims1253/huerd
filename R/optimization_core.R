@@ -708,3 +708,142 @@ optimize_colors_nlopt_neldermead <- function(
 
   return(return_value)
 }
+
+#' L-BFGS Optimization Implementation
+#'
+#' High-performance gradient-based optimization using L-BFGS algorithm
+#' paired with smooth differentiable objective functions.
+#'
+#' @param initial_colors_oklab Initial color matrix in OKLAB space
+#' @param fixed_mask Logical vector indicating which colors are fixed
+#' @param max_iterations Maximum optimization iterations
+#' @param track_states Whether to track optimization states
+#' @param save_every Save state every N iterations
+#' @param return_states Whether to return optimization states
+#' @return List with optimized palette and details
+#' @noRd
+optimize_colors_lbfgs <- function(
+  initial_colors_oklab,
+  fixed_mask,
+  max_iterations,
+  track_states = FALSE,
+  save_every = 50,
+  return_states = FALSE
+) {
+  n_free_colors <- sum(!fixed_mask)
+  initial_free_params <- as.vector(t(initial_colors_oklab[
+    !fixed_mask,
+    ,
+    drop = FALSE
+  ]))
+
+  # Track iteration count
+  eval_f_env <- new.env()
+  eval_f_env$iter <- 0
+  optimization_states <- list()
+
+  # Define bounds for free colors (OKLAB space)
+  lower_bounds <- rep(c(0, -0.4, -0.4), n_free_colors)
+  upper_bounds <- rep(c(1, 0.4, 0.4), n_free_colors)
+
+  # Objective function using smooth repulsion
+  eval_f <- function(free_params_vec) {
+    eval_f_env$iter <- eval_f_env$iter + 1
+    current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
+
+    # Reconstruct full color matrix
+    temp_all_colors_oklab <- initial_colors_oklab
+    temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
+
+    # Use smooth repulsion objective
+    objective_value <- objective_smooth_repulsion(temp_all_colors_oklab)
+
+    # Track states if requested
+    if (track_states && eval_f_env$iter %% save_every == 0) {
+      current_state <- list(
+        iteration = eval_f_env$iter,
+        palette = farver::encode_colour(temp_all_colors_oklab, from = "oklab"),
+        objective_value = objective_value
+      )
+      optimization_states[[length(optimization_states) + 1]] <<- current_state
+    }
+
+    return(objective_value)
+  }
+
+  # Gradient function
+  eval_grad_f <- function(free_params_vec) {
+    current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
+
+    # Reconstruct full color matrix
+    temp_all_colors_oklab <- initial_colors_oklab
+    temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
+
+    # Calculate gradient for all colors
+    full_gradient <- gradient_smooth_repulsion(temp_all_colors_oklab)
+
+    # Extract gradient for free colors only
+    free_gradient <- full_gradient[!fixed_mask, , drop = FALSE]
+
+    return(as.vector(t(free_gradient)))
+  }
+
+  # L-BFGS optimization using nloptr
+  tryCatch(
+    {
+      nloptr_result <- nloptr::nloptr(
+        x0 = initial_free_params,
+        eval_f = eval_f,
+        eval_grad_f = eval_grad_f,
+        lb = lower_bounds,
+        ub = upper_bounds,
+        opts = list(
+          "algorithm" = "NLOPT_LD_LBFGS",
+          "xtol_rel" = 1.0e-8,
+          "maxeval" = max_iterations,
+          "print_level" = 0
+        )
+      )
+
+      # Reconstruct final color matrix
+      optimized_free_colors <- matrix(
+        nloptr_result$solution,
+        ncol = 3,
+        byrow = TRUE
+      )
+      optimized_all_colors_oklab <- initial_colors_oklab
+      optimized_all_colors_oklab[!fixed_mask, ] <- optimized_free_colors
+
+      return_value <- list(
+        palette = optimized_all_colors_oklab,
+        details = list(
+          algorithm = "L-BFGS",
+          iterations = eval_f_env$iter,
+          nloptr_status = nloptr_result$status,
+          final_objective_value = nloptr_result$objective,
+          status_message = nloptr_result$message
+        )
+      )
+    },
+    error = function(e) {
+      # Fallback to initial colors on error
+      return_value <- list(
+        palette = initial_colors_oklab,
+        details = list(
+          algorithm = "L-BFGS (failed)",
+          iterations = eval_f_env$iter,
+          nloptr_status = -1,
+          final_objective_value = NA_real_,
+          status_message = paste("L-BFGS optimization failed:", e$message)
+        )
+      )
+    }
+  )
+
+  # Add optimization states if requested
+  if (return_states && track_states) {
+    return_value$optimization_states <- optimization_states
+  }
+
+  return(return_value)
+}

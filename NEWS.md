@@ -1,3 +1,40 @@
+# huerd 0.5.0 (2025-07-07)
+
+## New Features
+
+### Smooth Optimization Support
+- Added L-BFGS optimizer for gradient-based optimization
+- Implemented two smooth objective functions: `smooth_repulsion` and `smooth_logsumexp`
+- Added analytical gradient computation for faster convergence
+- Speed improvements of 5-20x for larger palettes (8+ colors)
+
+### Multi-Objective Framework Updates
+- Extended framework to support smooth and discrete objectives
+- Support for weighted combinations of smooth objectives
+
+## API Changes
+- Added `optimizer = "nlopt_lbfgs"` option for L-BFGS optimization
+- Added `weights = c(smooth_repulsion = 1)` and `weights = c(smooth_logsumexp = 1)` for smooth objectives
+
+## Internal Changes
+- Added analytical gradient functions for smooth objectives
+- Extended multi-objective framework to handle smooth and discrete objectives
+
+---
+
+# huerd 0.4.2 (2025-07-07)
+
+## New Features
+
+- Added L-BFGS optimizer (`optimizer = "nlopt_lbfgs"`) for gradient-based optimization
+- Added support for smooth optimization using analytical gradients
+
+## Internal Changes
+
+- Added `optimize_colors_lbfgs()` function using `NLOPT_LD_LBFGS` algorithm
+
+---
+
 # huerd 0.4.1 (2025-07-07)
 
 ## Internal Changes

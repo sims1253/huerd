@@ -222,6 +222,11 @@
       fixed_mask,
       max_iterations
     ),
+    "nlopt_lbfgs" = optimize_colors_lbfgs(
+      current_all_colors_oklab,
+      fixed_mask,
+      max_iterations
+    ),
     # Future optimizers can be added here
     # "genetic_algorithm" = optimize_colors_genetic(...),
     # "particle_swarm" = optimize_colors_pso(...),
