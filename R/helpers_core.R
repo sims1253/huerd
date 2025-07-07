@@ -326,12 +326,12 @@ validate_inputs <- function(
     nloptr_status = NA_integer_,
     final_objective_value = NA_real_
   )
-  
+
   # Store generation metadata for reproducibility
   if (!is.null(generation_metadata)) {
     attr(final_hex_colors, "generation_metadata") <- generation_metadata
   }
-  
+
   if (progress) {
     cat("Done.\n")
   }

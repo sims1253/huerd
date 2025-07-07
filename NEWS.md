@@ -1,3 +1,11 @@
+# huerd 0.4.1 (2025-07-07)
+
+## Internal Changes
+
+- Added smooth differentiable objective functions for future gradient-based optimization
+
+---
+
 # huerd 0.4.0 (2025-07-06)
 
 ## Major Changes

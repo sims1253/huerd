@@ -1,6 +1,6 @@
 Package: huerd
 Title: Color Palette Optimization with fixed colors
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: 
     person("Maximilian", "Scholz", , "dev.scholz@mailbox.org", role = c("aut", "cre"))
 Description: Generates color palettes using minimax optimization to
