@@ -726,6 +726,7 @@ optimize_colors_lbfgs <- function(
   initial_colors_oklab,
   fixed_mask,
   max_iterations,
+  weights = NULL,
   track_states = FALSE,
   save_every = 50,
   return_states = FALSE
@@ -746,7 +747,24 @@ optimize_colors_lbfgs <- function(
   lower_bounds <- rep(c(0, -0.4, -0.4), n_free_colors)
   upper_bounds <- rep(c(1, 0.4, 0.4), n_free_colors)
 
-  # Objective function using smooth repulsion
+  # Determine which smooth objective to use based on weights
+  use_logsumexp <- !is.null(weights) &&
+    "smooth_logsumexp" %in% names(weights) &&
+    weights["smooth_logsumexp"] > 0
+
+  # Select objective and gradient functions
+  objective_func <- if (use_logsumexp) {
+    objective_smooth_logsumexp
+  } else {
+    objective_smooth_repulsion
+  }
+  gradient_func <- if (use_logsumexp) {
+    gradient_smooth_logsumexp
+  } else {
+    gradient_smooth_repulsion
+  }
+
+  # Objective function using selected smooth objective
   eval_f <- function(free_params_vec) {
     eval_f_env$iter <- eval_f_env$iter + 1
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
@@ -755,8 +773,8 @@ optimize_colors_lbfgs <- function(
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
 
-    # Use smooth repulsion objective
-    objective_value <- objective_smooth_repulsion(temp_all_colors_oklab)
+    # Use selected smooth objective
+    objective_value <- objective_func(temp_all_colors_oklab)
 
     # Track states if requested
     if (track_states && eval_f_env$iter %% save_every == 0) {
@@ -771,7 +789,7 @@ optimize_colors_lbfgs <- function(
     return(objective_value)
   }
 
-  # Gradient function
+  # Gradient function using selected gradient function
   eval_grad_f <- function(free_params_vec) {
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
 
@@ -779,8 +797,8 @@ optimize_colors_lbfgs <- function(
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
 
-    # Calculate gradient for all colors
-    full_gradient <- gradient_smooth_repulsion(temp_all_colors_oklab)
+    # Calculate gradient for all colors using selected gradient function
+    full_gradient <- gradient_func(temp_all_colors_oklab)
 
     # Extract gradient for free colors only
     free_gradient <- full_gradient[!fixed_mask, , drop = FALSE]

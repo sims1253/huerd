@@ -186,7 +186,8 @@
   max_iterations,
   n_free,
   progress,
-  optimizer = "nloptr_cobyla"
+  optimizer = "nloptr_cobyla",
+  weights = NULL
 ) {
   if (progress && n_free > 0) {
     cat(
@@ -225,7 +226,8 @@
     "nlopt_lbfgs" = optimize_colors_lbfgs(
       current_all_colors_oklab,
       fixed_mask,
-      max_iterations
+      max_iterations,
+      weights
     ),
     # Future optimizers can be added here
     # "genetic_algorithm" = optimize_colors_genetic(...),
@@ -329,7 +331,9 @@
 #'   attributes. Default is TRUE.
 #' @param progress Logical. Show progress messages. Default is `interactive()`.
 #' @param weights Named numeric vector. Weights for multi-objective optimization.
-#'   Currently only supports `c(distance = 1)` for distance-based optimization.
+#'   Supports: `c(distance = 1)` for discrete distance optimization (default),
+#'   `c(smooth_repulsion = 1)` for smooth repulsion objective using inverse squared
+#'   distances, or `c(smooth_logsumexp = 1)` for smooth log-sum-exp objective.
 #'   Default is NULL (equivalent to pure distance optimization).
 #' @param optimizer Character. Optimization algorithm to use. Currently supported:
 #'   "nloptr_cobyla" (default) for deterministic optimization with constraint handling,
@@ -338,8 +342,9 @@
 #'   using the DIRECT algorithm (best choice for scientific reproducibility and high
 #'   quality, though may be slower), "nlopt_neldermead" for derivative-free local
 #'   optimization using the Nelder-Mead simplex algorithm (good alternative to COBYLA
-#'   for robust local optimization). The framework is designed to easily support
-#'   additional optimizers in future versions.
+#'   for robust local optimization), "nlopt_lbfgs" for gradient-based L-BFGS optimization
+#'   (fastest convergence for smooth objectives, requires smooth weights). The framework
+#'   is designed to easily support additional optimizers in future versions.
 #'
 #' @return A character vector of hex colors with class `huerd_palette`, automatically
 #'   sorted by brightness (lightness). If `return_metrics = TRUE`, includes evaluation
@@ -406,6 +411,22 @@
 #' neldermead_palette <- generate_palette(
 #'   n = 4,
 #'   optimizer = "nlopt_neldermead",
+#'   progress = FALSE
+#' )
+#'
+#' # Using smooth optimization with L-BFGS (fastest for large palettes)
+#' smooth_palette <- generate_palette(
+#'   n = 8,
+#'   weights = c(smooth_repulsion = 1),
+#'   optimizer = "nlopt_lbfgs",
+#'   progress = FALSE
+#' )
+#'
+#' # Using alternative smooth objective
+#' logsumexp_palette <- generate_palette(
+#'   n = 6,
+#'   weights = c(smooth_logsumexp = 1),
+#'   optimizer = "nlopt_lbfgs",
 #'   progress = FALSE
 #' )
 #'
@@ -518,7 +539,8 @@ generate_palette <- function(
     max_iterations,
     init_result$n_free,
     progress,
-    optimizer
+    optimizer,
+    weights
   )
 
   # Finalize and return
