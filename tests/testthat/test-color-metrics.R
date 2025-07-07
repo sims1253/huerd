@@ -403,4 +403,58 @@ test_that("evaluate_palette handles empty matrix edge cases", {
   expect_equal(result2$n_colors, 0)
 })
 
+# Tests for evaluate_palette_quality bug fixes
+# =============================================
+
+test_that("evaluate_palette_quality handles hex colors input directly (bug fix)", {
+  # This test ensures the bug where evaluate_palette_quality crashed
+  # with "argument is of length zero" when called with hex colors is fixed
+
+  hex_colors <- c("#FF0000", "#00FF00", "#0000FF")
+
+  # Should not crash and should work correctly
+  expect_no_error({
+    result <- evaluate_palette_quality(hex_colors)
+  })
+
+  # Should return proper structure
+  result <- evaluate_palette_quality(hex_colors)
+  expect_true(is.list(result))
+  expect_equal(result$n_colors, 3)
+  expect_true("distances" %in% names(result))
+  expect_true("cvd_safety" %in% names(result))
+  expect_true("distribution" %in% names(result))
+})
+
+test_that("evaluate_palette_quality handles edge cases without crashes", {
+  # Test single color (should not crash)
+  expect_no_error({
+    result <- evaluate_palette_quality("#FF0000")
+  })
+
+  # Test empty vector (should not crash)
+  expect_no_error({
+    result <- evaluate_palette_quality(character(0))
+  })
+
+  # Test NA values (should not crash)
+  expect_no_error({
+    result <- evaluate_palette_quality(c("#FF0000", NA, "#0000FF"))
+  })
+})
+
+test_that("evaluate_palette_quality input validation works correctly", {
+  # Test invalid input types
+  expect_error(
+    evaluate_palette_quality(list("#FF0000", "#00FF00")),
+    "oklab_colors must be a matrix in OKLAB space or character vector of hex colors"
+  )
+
+  # Test matrix with wrong dimensions - now gets farther and fails in farver
+  expect_error(
+    evaluate_palette_quality(matrix(1:6, ncol = 2)),
+    "colourspace requires 3 values|oklab_colors must be a matrix in OKLAB space"
+  )
+})
+
 # Heuristic parameter tests removed - pure data provider mode

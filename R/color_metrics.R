@@ -73,7 +73,22 @@ evaluate_palette <- function(colors) {
 #' Internal Palette Quality Evaluation
 #' @noRd
 evaluate_palette_quality <- function(oklab_colors) {
+  # Handle case where oklab_colors might not be a matrix
+  if (!is.matrix(oklab_colors)) {
+    if (is.character(oklab_colors)) {
+      # If hex colors were passed directly, convert to OKLAB
+      oklab_colors <- .hex_to_oklab(oklab_colors)
+    } else {
+      stop(
+        "oklab_colors must be a matrix in OKLAB space or character vector of hex colors"
+      )
+    }
+  }
+
   n <- nrow(oklab_colors)
+  if (is.null(n) || length(n) == 0) {
+    n <- 0
+  }
 
   # Use NA_real_ for metrics that cannot be computed
   default_dist_stats <- list(
