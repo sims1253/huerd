@@ -19,36 +19,20 @@ identical to the input palette when reproduction is successful.
 }
 \description{
 Recreates an identical color palette from a previously generated huerd_palette
-object using the stored generation metadata. This function enables perfect
-scientific reproducibility by reusing the exact same parameters and random
-seed that were used in the original generation.
+object using the stored generation metadata.
 }
 \details{
 This function reads the generation metadata stored in the \code{generation_metadata}
 attribute of a huerd_palette object and re-runs \code{generate_palette()} with
 the exact same parameters. When a random seed was captured during original
-generation, the reproduction will be identical. For deterministic optimizers
-like "nlopt_direct", reproduction should always be identical regardless of
-random seed.
+generation, the reproduction will be identical if the optimizer supports
+the usage of a seed. For deterministic optimizers like "nlopt_direct",
+reproduction should always be identical regardless of random seed.
 
 The function validates that the input object contains the necessary metadata
 and provides informative error messages if reproduction fails due to missing
 metadata or package version incompatibilities.
-
-For scientific reproducibility, it's recommended to use deterministic
-optimizers like "nlopt_direct" when reproducibility is critical.
 }
-\section{Compatibility}{
-
-\itemize{
-\item Reproduction is most reliable within the same package version
-\item Package version changes may affect reproducibility
-\item Missing or incomplete metadata will prevent reproduction
-\item The function handles backward compatibility with older huerd_palette
-objects that may lack metadata
-}
-}
-
 \examples{
 \dontrun{
 # Create a reproducible palette

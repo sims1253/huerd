@@ -73,7 +73,22 @@ evaluate_palette <- function(colors) {
 #' Internal Palette Quality Evaluation
 #' @noRd
 evaluate_palette_quality <- function(oklab_colors) {
+  # Handle case where oklab_colors might not be a matrix
+  if (!is.matrix(oklab_colors)) {
+    if (is.character(oklab_colors)) {
+      # If hex colors were passed directly, convert to OKLAB
+      oklab_colors <- .hex_to_oklab(oklab_colors)
+    } else {
+      stop(
+        "oklab_colors must be a matrix in OKLAB space or character vector of hex colors"
+      )
+    }
+  }
+
   n <- nrow(oklab_colors)
+  if (is.null(n) || length(n) == 0) {
+    n <- 0
+  }
 
   # Use NA_real_ for metrics that cannot be computed
   default_dist_stats <- list(
@@ -221,7 +236,7 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
   cvd_types <- c("protan", "deutan", "tritan")
   results <- list()
   all_cvd_min_distances <- rep(NA_real_, length(cvd_types))
-  
+
   # Store original lightness order for comparison
   original_lightness_order <- order(oklab_colors[, 1])
 
@@ -243,7 +258,7 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
     if (!is.matrix(cvd_oklab_sim) || nrow(cvd_oklab_sim) < 2) {
       current_min_dist_cvd <- NA_real_
       current_mean_dist_cvd <- NA_real_
-      hue_order_preserved <- TRUE  # Default to TRUE for insufficient data
+      hue_order_preserved <- TRUE # Default to TRUE for insufficient data
     } else {
       dist_matrix_cvd <- calculate_perceptual_distances(cvd_oklab_sim)
       distances_cvd_finite <- dist_matrix_cvd[upper.tri(dist_matrix_cvd)]
@@ -260,10 +275,13 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
       } else {
         NA_real_
       }
-      
+
       # Check hue order reversal using lightness-based ordering
       cvd_lightness_order <- order(cvd_oklab_sim[, 1])
-      hue_order_preserved <- identical(original_lightness_order, cvd_lightness_order)
+      hue_order_preserved <- identical(
+        original_lightness_order,
+        cvd_lightness_order
+      )
     }
     all_cvd_min_distances[i] <- current_min_dist_cvd
 

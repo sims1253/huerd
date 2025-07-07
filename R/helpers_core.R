@@ -167,8 +167,8 @@
     stop("All 'weights' values must be non-negative.", call. = FALSE)
   }
 
-  # Check for valid objective names (only 'distance' supported currently)
-  valid_objectives <- c("distance")
+  # Check for valid objective names
+  valid_objectives <- c("distance", "smooth_repulsion", "smooth_logsumexp")
   invalid_names <- names(weights)[!names(weights) %in% valid_objectives]
   if (length(invalid_names) > 0) {
     stop(
@@ -241,7 +241,8 @@
     "nloptr_cobyla",
     "sann",
     "nlopt_direct",
-    "nlopt_neldermead"
+    "nlopt_neldermead",
+    "nlopt_lbfgs"
   )
 
   if (!optimizer %in% valid_optimizers) {
@@ -326,12 +327,12 @@ validate_inputs <- function(
     nloptr_status = NA_integer_,
     final_objective_value = NA_real_
   )
-  
+
   # Store generation metadata for reproducibility
   if (!is.null(generation_metadata)) {
     attr(final_hex_colors, "generation_metadata") <- generation_metadata
   }
-  
+
   if (progress) {
     cat("Done.\n")
   }

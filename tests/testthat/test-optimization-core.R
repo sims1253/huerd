@@ -1031,3 +1031,190 @@ test_that("optimize_colors_nlopt_neldermead produces consistent results", {
     tolerance = 1e-3
   )
 })
+
+# Tests for v0.5.0 Smooth Optimization Functions
+# ===============================================
+
+test_that("objective_smooth_repulsion works correctly", {
+  # Test with 3 colors in OKLAB space
+  colors_oklab <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.2, # Color 1
+      0.7,
+      -0.1,
+      0.1, # Color 2
+      0.3,
+      0.2,
+      -0.1 # Color 3
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result <- objective_smooth_repulsion(colors_oklab)
+
+  expect_true(is.numeric(result))
+  expect_length(result, 1)
+  expect_true(is.finite(result))
+  expect_true(result > 0) # Should be positive for inverse distance sum
+})
+
+test_that("objective_smooth_logsumexp works correctly", {
+  # Test with 3 colors in OKLAB space
+  colors_oklab <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.2, # Color 1
+      0.7,
+      -0.1,
+      0.1, # Color 2
+      0.3,
+      0.2,
+      -0.1 # Color 3
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  result <- objective_smooth_logsumexp(colors_oklab)
+
+  expect_true(is.numeric(result))
+  expect_length(result, 1)
+  expect_true(is.finite(result))
+})
+
+test_that("smooth objectives return different values", {
+  # Test that the two smooth objectives produce different values
+  colors_oklab <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.2, # Color 1
+      0.7,
+      -0.1,
+      0.1, # Color 2
+      0.3,
+      0.2,
+      -0.1 # Color 3
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  repulsion_value <- objective_smooth_repulsion(colors_oklab)
+  logsumexp_value <- objective_smooth_logsumexp(colors_oklab)
+
+  expect_false(identical(repulsion_value, logsumexp_value))
+})
+
+test_that("gradient_smooth_repulsion works correctly", {
+  # Test gradient function
+  colors_oklab <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.2, # Color 1
+      0.7,
+      -0.1,
+      0.1, # Color 2
+      0.3,
+      0.2,
+      -0.1 # Color 3
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  grad <- gradient_smooth_repulsion(colors_oklab)
+
+  expect_true(is.matrix(grad))
+  expect_equal(dim(grad), c(3, 3))
+  expect_true(all(is.finite(grad)))
+})
+
+test_that("gradient_smooth_logsumexp works correctly", {
+  # Test gradient function
+  colors_oklab <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.2, # Color 1
+      0.7,
+      -0.1,
+      0.1, # Color 2
+      0.3,
+      0.2,
+      -0.1 # Color 3
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  grad <- gradient_smooth_logsumexp(colors_oklab)
+
+  expect_true(is.matrix(grad))
+  expect_equal(dim(grad), c(3, 3))
+  expect_true(all(is.finite(grad)))
+})
+
+test_that("smooth objective functions handle edge cases", {
+  # Test with single color (should return 0)
+  single_color <- matrix(c(0.5, 0.1, 0.2), ncol = 3)
+
+  expect_equal(objective_smooth_repulsion(single_color), 0)
+  expect_equal(objective_smooth_logsumexp(single_color), 0)
+
+  # Test with invalid input
+  expect_error(objective_smooth_repulsion(matrix(1:6, ncol = 2)))
+  expect_error(objective_smooth_logsumexp(matrix(1:6, ncol = 2)))
+})
+
+test_that("optimize_colors_lbfgs uses correct objective based on weights", {
+  # Test L-BFGS optimizer with different weight configurations
+  initial_colors <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.2, # Color 1
+      0.7,
+      -0.1,
+      0.1, # Color 2
+      0.3,
+      0.2,
+      -0.1 # Color 3
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  fixed_mask <- c(TRUE, FALSE, FALSE) # Fix first color
+
+  # Test with smooth_repulsion weights
+  result_repulsion <- optimize_colors_lbfgs(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = fixed_mask,
+    max_iterations = 50,
+    weights = c(smooth_repulsion = 1)
+  )
+
+  # Test with smooth_logsumexp weights
+  result_logsumexp <- optimize_colors_lbfgs(
+    initial_colors_oklab = initial_colors,
+    fixed_mask = fixed_mask,
+    max_iterations = 50,
+    weights = c(smooth_logsumexp = 1)
+  )
+
+  expect_true(is.list(result_repulsion))
+  expect_true(is.list(result_logsumexp))
+  expect_true("palette" %in% names(result_repulsion))
+  expect_true("palette" %in% names(result_logsumexp))
+  expect_equal(result_repulsion$details$algorithm, "L-BFGS")
+  expect_equal(result_logsumexp$details$algorithm, "L-BFGS")
+
+  # Results should be different (critical test for the bug we fixed)
+  expect_false(identical(result_repulsion$palette, result_logsumexp$palette))
+})

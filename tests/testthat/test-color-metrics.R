@@ -137,15 +137,19 @@ test_that("analyze_cvd_safety_metrics includes hue order preservation check", {
   # Test that hue_order_preserved field is included
   colors_oklab <- matrix(
     c(
-      0.3, 0.1, 0.0,  # Darker color
-      0.8, -0.1, 0.1  # Lighter color
+      0.3,
+      0.1,
+      0.0, # Darker color
+      0.8,
+      -0.1,
+      0.1 # Lighter color
     ),
     nrow = 2,
     byrow = TRUE
   )
-  
+
   result <- analyze_cvd_safety_metrics(colors_oklab, 0.5)
-  
+
   # Check that hue_order_preserved field exists for each CVD type
   for (cvd_type in c("protan", "deutan", "tritan")) {
     expect_true("hue_order_preserved" %in% names(result[[cvd_type]]))
@@ -157,26 +161,32 @@ test_that("analyze_cvd_safety_metrics detects hue order preservation correctly",
   # Test with colors that have clear lightness ordering
   colors_oklab <- matrix(
     c(
-      0.2, 0.0, 0.0,  # Very dark
-      0.5, 0.0, 0.0,  # Medium
-      0.8, 0.0, 0.0   # Very light
+      0.2,
+      0.0,
+      0.0, # Very dark
+      0.5,
+      0.0,
+      0.0, # Medium
+      0.8,
+      0.0,
+      0.0 # Very light
     ),
     nrow = 3,
     byrow = TRUE
   )
-  
+
   result <- analyze_cvd_safety_metrics(colors_oklab, 0.3)
-  
+
   # With clear lightness differences, order should typically be preserved
   # (though we can't guarantee it for all CVD types)
   for (cvd_type in c("protan", "deutan", "tritan")) {
     expect_true(is.logical(result[[cvd_type]]$hue_order_preserved))
   }
-  
+
   # Test single color case
   single_color <- matrix(c(0.5, 0.1, 0.0), nrow = 1, ncol = 3)
   result_single <- analyze_cvd_safety_metrics(single_color, 0.5)
-  
+
   for (cvd_type in c("protan", "deutan", "tritan")) {
     expect_true(is.logical(result_single[[cvd_type]]$hue_order_preserved))
   }
@@ -391,6 +401,60 @@ test_that("evaluate_palette handles empty matrix edge cases", {
   expect_true(is.list(result2))
   expect_true(inherits(result2, "huerd_evaluation"))
   expect_equal(result2$n_colors, 0)
+})
+
+# Tests for evaluate_palette_quality bug fixes
+# =============================================
+
+test_that("evaluate_palette_quality handles hex colors input directly (bug fix)", {
+  # This test ensures the bug where evaluate_palette_quality crashed
+  # with "argument is of length zero" when called with hex colors is fixed
+
+  hex_colors <- c("#FF0000", "#00FF00", "#0000FF")
+
+  # Should not crash and should work correctly
+  expect_no_error({
+    result <- evaluate_palette_quality(hex_colors)
+  })
+
+  # Should return proper structure
+  result <- evaluate_palette_quality(hex_colors)
+  expect_true(is.list(result))
+  expect_equal(result$n_colors, 3)
+  expect_true("distances" %in% names(result))
+  expect_true("cvd_safety" %in% names(result))
+  expect_true("distribution" %in% names(result))
+})
+
+test_that("evaluate_palette_quality handles edge cases without crashes", {
+  # Test single color (should not crash)
+  expect_no_error({
+    result <- evaluate_palette_quality("#FF0000")
+  })
+
+  # Test empty vector (should not crash)
+  expect_no_error({
+    result <- evaluate_palette_quality(character(0))
+  })
+
+  # Test NA values (should not crash)
+  expect_no_error({
+    result <- evaluate_palette_quality(c("#FF0000", NA, "#0000FF"))
+  })
+})
+
+test_that("evaluate_palette_quality input validation works correctly", {
+  # Test invalid input types
+  expect_error(
+    evaluate_palette_quality(list("#FF0000", "#00FF00")),
+    "oklab_colors must be a matrix in OKLAB space or character vector of hex colors"
+  )
+
+  # Test matrix with wrong dimensions - now gets farther and fails in farver
+  expect_error(
+    evaluate_palette_quality(matrix(1:6, ncol = 2)),
+    "colourspace requires 3 values|oklab_colors must be a matrix in OKLAB space"
+  )
 })
 
 # Heuristic parameter tests removed - pure data provider mode
