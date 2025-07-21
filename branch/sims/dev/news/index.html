@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">huerd</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,16 @@
       <small>Source: <a href="https://github.com/sims1253/huerd/blob/sims/dev/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.2" id="huerd-052-2025-07-21">huerd 0.5.2 (2025-07-21)<a class="anchor" aria-label="anchor" href="#huerd-052-2025-07-21"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-0-5-2">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-2"></a></h3>
+<ul><li>Corrected distance matrix calculation in smooth optimization objectives where diagonal masking affected only element [1,1] rather than the full diagonal</li>
+<li>Eliminated redundant distance calculations by using <code><a href="https://rdrr.io/r/stats/dist.html" class="external-link">dist()</a></code> output directly instead of symmetric matrix conversion</li>
+<li>Applied log-sum-exp numerical stability technique for robust computation under extreme parameter values</li>
+<li>Added regression tests for distance calculation correctness</li>
+</ul><hr></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.0" id="huerd-050-2025-07-07">huerd 0.5.0 (2025-07-07)<a class="anchor" aria-label="anchor" href="#huerd-050-2025-07-07"></a></h2>
 <div class="section level3">
