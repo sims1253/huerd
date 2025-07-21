@@ -1172,6 +1172,91 @@ test_that("smooth objective functions handle edge cases", {
   expect_error(objective_smooth_logsumexp(matrix(1:6, ncol = 2)))
 })
 
+test_that("smooth objective functions count distances correctly (regression test)", {
+  # Regression test for the bug where diag(n_colors) only set [1,1] = NA
+  # and as.matrix(dist()) double-counted distances
+
+  # Simple 2-color case where we can manually verify the count
+  colors_oklab <- matrix(
+    c(
+      0.0,
+      0.0,
+      0.0, # Color 1: origin
+      1.0,
+      0.0,
+      0.0 # Color 2: distance = 1.0
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  # There should be exactly 1 pairwise distance = 1.0
+  expected_repulsion <- 1 / (1.0^2 + 1e-8) # 1/(1 + epsilon) ≈ 1
+  actual_repulsion <- objective_smooth_repulsion(colors_oklab)
+  expect_equal(actual_repulsion, expected_repulsion, tolerance = 1e-10)
+
+  # For 3 colors arranged in an equilateral triangle
+  colors_3 <- matrix(
+    c(
+      0.0,
+      0.0,
+      0.0, # Color 1
+      1.0,
+      0.0,
+      0.0, # Color 2 (distance 1 from color 1)
+      0.5,
+      sqrt(3) / 2,
+      0.0 # Color 3 (distance 1 from both)
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  # Should have exactly 3 distances, each = 1.0
+  expected_repulsion_3 <- 3 / (1.0^2 + 1e-8)
+  actual_repulsion_3 <- objective_smooth_repulsion(colors_3)
+  expect_equal(actual_repulsion_3, expected_repulsion_3, tolerance = 1e-6)
+})
+
+test_that("log-sum-exp uses numerical stability trick", {
+  # Test that large k values don't cause overflow/underflow
+  colors_oklab <- matrix(
+    c(
+      0.5,
+      0.0,
+      0.0,
+      0.5,
+      1.0,
+      0.0 # Distance = 1.0
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  # Test with extreme k value that would cause underflow in naive implementation
+  extreme_k <- 1000
+  result_stable <- objective_smooth_logsumexp(colors_oklab, k = extreme_k)
+
+  expect_true(is.finite(result_stable))
+
+  # For extreme k and distance=1, exp(-k*d) is very small, so log(sum) is negative
+  # Result should be approximately -1.0 for k=1000, distance=1.0
+  expect_true(abs(result_stable - (-1.0)) < 0.1)
+
+  # Test numerical stability by comparing with manual naive calculation
+  # (This would fail with naive implementation for large k)
+  distances <- dist(colors_oklab)
+  neg_k_distances <- -extreme_k * distances
+
+  # Naive approach (would underflow): log(sum(exp(neg_k_distances))) / k
+  # Our stable approach should handle this without underflow
+  max_val <- max(neg_k_distances)
+  stable_exp_values <- exp(neg_k_distances - max_val)
+  expected_stable <- (max_val + log(sum(stable_exp_values))) / extreme_k
+
+  expect_equal(result_stable, expected_stable, tolerance = 1e-14)
+})
+
 test_that("optimize_colors_lbfgs uses correct objective based on weights", {
   # Test L-BFGS optimizer with different weight configurations
   initial_colors <- matrix(

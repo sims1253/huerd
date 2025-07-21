@@ -22,14 +22,11 @@ objective_smooth_repulsion <- function(colors_oklab, epsilon = 1e-8) {
     return(0) # No repulsion needed for single color
   }
 
-  # Calculate pairwise distances efficiently
-  distances <- as.matrix(dist(colors_oklab))
+  # Calculate pairwise distances efficiently (lower triangle only)
+  distances <- dist(colors_oklab)
 
-  # Remove diagonal (distance to self = 0)
-  distances[diag(n_colors)] <- NA
-
-  # Calculate inverse square sum (excluding diagonal)
-  objective_value <- sum(1 / (distances^2 + epsilon), na.rm = TRUE)
+  # Calculate inverse square sum
+  objective_value <- sum(1 / (distances^2 + epsilon))
 
   return(objective_value)
 }
@@ -58,15 +55,16 @@ objective_smooth_logsumexp <- function(colors_oklab, k = 10) {
     return(0) # No optimization needed for single color
   }
 
-  # Calculate pairwise distances efficiently
-  distances <- as.matrix(dist(colors_oklab))
+  # Calculate pairwise distances efficiently (lower triangle only)
+  distances <- dist(colors_oklab)
 
-  # Remove diagonal (distance to self = 0)
-  distances[diag(n_colors)] <- NA
+  # Calculate log-sum-exp with numerical stability trick
+  neg_k_distances <- -k * distances
+  max_val <- max(neg_k_distances)
 
-  # Calculate log-sum-exp (excluding diagonal)
-  exp_values <- exp(-k * distances)
-  objective_value <- log(sum(exp_values, na.rm = TRUE)) / k
+  # LSE trick: log(sum(exp(x))) = max(x) + log(sum(exp(x - max(x))))
+  exp_values <- exp(neg_k_distances - max_val)
+  objective_value <- (max_val + log(sum(exp_values))) / k
 
   return(objective_value)
 }
@@ -127,10 +125,15 @@ gradient_smooth_logsumexp <- function(colors_oklab, k = 10) {
   # Initialize gradient matrix
   gradient <- matrix(0, nrow = n_colors, ncol = n_dims)
 
-  # Calculate distances and weights
+  # Calculate distances and weights with numerical stability
   distances <- as.matrix(dist(colors_oklab))
-  exp_values <- exp(-k * distances)
-  sum_exp <- sum(exp_values, na.rm = TRUE)
+  neg_k_distances <- -k * distances
+  diag(neg_k_distances) <- -Inf # Exclude self-distances (exp(-Inf) = 0)
+
+  # Apply log-sum-exp trick for numerical stability
+  max_val <- max(neg_k_distances[neg_k_distances != -Inf])
+  exp_values <- exp(neg_k_distances - max_val)
+  sum_exp <- sum(exp_values)
 
   # Calculate gradients for each color
   for (m in 1:n_colors) {

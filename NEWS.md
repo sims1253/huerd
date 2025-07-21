@@ -1,3 +1,13 @@
+# huerd 0.5.2 (2025-07-21)
+
+## Bug Fixes
+- Corrected distance matrix calculation in smooth optimization objectives where diagonal masking affected only element [1,1] rather than the full diagonal
+- Eliminated redundant distance calculations by using `dist()` output directly instead of symmetric matrix conversion
+- Applied log-sum-exp numerical stability technique for robust computation under extreme parameter values
+- Added regression tests for distance calculation correctness
+
+---
+
 # huerd 0.5.0 (2025-07-07)
 
 ## New Features
