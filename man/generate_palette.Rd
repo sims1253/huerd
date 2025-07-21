@@ -50,7 +50,9 @@ attributes. Default is TRUE.}
 \item{progress}{Logical. Show progress messages. Default is \code{interactive()}.}
 
 \item{weights}{Named numeric vector. Weights for multi-objective optimization.
-Currently only supports \code{c(distance = 1)} for distance-based optimization.
+Supports: \code{c(distance = 1)} for discrete distance optimization (default),
+\code{c(smooth_repulsion = 1)} for smooth repulsion objective using inverse squared
+distances, or \code{c(smooth_logsumexp = 1)} for smooth log-sum-exp objective.
 Default is NULL (equivalent to pure distance optimization).}
 
 \item{optimizer}{Character. Optimization algorithm to use. Currently supported:
@@ -60,8 +62,9 @@ reproducible without a seed), "nlopt_direct" for deterministic global optimizati
 using the DIRECT algorithm (best choice for scientific reproducibility and high
 quality, though may be slower), "nlopt_neldermead" for derivative-free local
 optimization using the Nelder-Mead simplex algorithm (good alternative to COBYLA
-for robust local optimization). The framework is designed to easily support
-additional optimizers in future versions.}
+for robust local optimization), "nlopt_lbfgs" for gradient-based L-BFGS optimization
+(fastest convergence for smooth objectives, requires smooth weights). The framework
+is designed to easily support additional optimizers in future versions.}
 }
 \value{
 A character vector of hex colors with class \code{huerd_palette}, automatically
@@ -139,6 +142,22 @@ direct_palette <- generate_palette(
 neldermead_palette <- generate_palette(
   n = 4,
   optimizer = "nlopt_neldermead",
+  progress = FALSE
+)
+
+# Using smooth optimization with L-BFGS (fastest for large palettes)
+smooth_palette <- generate_palette(
+  n = 8,
+  weights = c(smooth_repulsion = 1),
+  optimizer = "nlopt_lbfgs",
+  progress = FALSE
+)
+
+# Using alternative smooth objective
+logsumexp_palette <- generate_palette(
+  n = 6,
+  weights = c(smooth_logsumexp = 1),
+  optimizer = "nlopt_lbfgs",
   progress = FALSE
 )
 

@@ -25,3 +25,16 @@ thesis_study_results/*.pdf
 
 # Generated files that should be rebuilt
 # (Keep man/figures/ images as they're part of README)
+
+# Development and research files (keep local, don't commit)
+large_thesis_study/
+thesis_study_results/
+research/
+scripts/
+roadmap.md
+todo.md
+scratchpad.md
+v0.5.0_implementation_plan.md
+create_hex_logo.R
+.RData
+.Rhistory

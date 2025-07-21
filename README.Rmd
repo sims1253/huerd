@@ -67,7 +67,7 @@ print(palette)
 
 ## Multi-Optimizer Support
 
-Choose from 4 different optimization algorithms based on your needs:
+Choose from 5 different optimization algorithms based on your needs:
 
 ```{r optimizers}
 library(huerd)
@@ -85,20 +85,25 @@ direct_palette <- generate_palette(6, optimizer = "nlopt_direct", progress = FAL
 # As an alternative deterministic approach
 neldermead_palette <- generate_palette(6, optimizer = "nlopt_neldermead", progress = FALSE)
 
+# L-BFGS: Gradient-based optimization for smooth objectives (v0.5.0+)
+lbfgs_palette <- generate_palette(6, optimizer = "nlopt_lbfgs", 
+                                  weights = c(smooth_repulsion = 1), progress = FALSE)
+
 cat("COBYLA:", paste(cobyla_palette, collapse = ", "), "\n")
 cat("SANN:", paste(sann_palette, collapse = ", "), "\n")
 cat("DIRECT:", paste(direct_palette, collapse = ", "), "\n")
 cat("Nelder-Mead:", paste(neldermead_palette, collapse = ", "), "\n")
+cat("L-BFGS:", paste(lbfgs_palette, collapse = ", "), "\n")
 ```
 
 ## Multi-Objective Framework
 
-The package includes a multi-objective optimization framework:
+The package includes a multi-objective optimization framework with both discrete and smooth optimization support:
 
 ```{r multiobjective}
 library(huerd)
 
-# Current: Pure distance optimization (default)
+# Discrete distance optimization (default)
 distance_palette <- generate_palette(
   n = 6,
   weights = c(distance = 1),  # Explicit distance weighting
@@ -106,9 +111,21 @@ distance_palette <- generate_palette(
   progress = FALSE
 )
 
-# Future versions will support additional objectives like:
-# weights = c(distance = 0.7, aesthetics = 0.3)
-# weights = c(distance = 0.8, uniformity = 0.2)
+# Smooth optimization for faster convergence (v0.5.0+)
+smooth_palette <- generate_palette(
+  n = 8,
+  weights = c(smooth_repulsion = 1),  # Smooth repulsion objective
+  optimizer = "nlopt_lbfgs",          # L-BFGS for gradient-based optimization
+  progress = FALSE
+)
+
+# Alternative smooth objective using log-sum-exp
+logsumexp_palette <- generate_palette(
+  n = 6,
+  weights = c(smooth_logsumexp = 1),
+  optimizer = "nlopt_lbfgs",
+  progress = FALSE
+)
 
 print(distance_palette)
 ```

@@ -1,14 +1,15 @@
 Package: huerd
 Title: Color Palette Optimization with fixed colors
-Version: 0.4.0
+Version: 0.5.2
 Authors@R: 
     person("Maximilian", "Scholz", , "dev.scholz@mailbox.org", role = c("aut", "cre"))
 Description: Generates color palettes using minimax optimization to
     maximize the minimum perceptual distance between colors. Features the
     ability to define fixed colors that are kept throughout the
     optimization process, multiple optimization algorithms (COBYLA, SANN,
-    DIRECT, Nelder-Mead), multi-objective optimization framework, full
-    reproducibility support with metadata storage, and a diagnostic
+    DIRECT, Nelder-Mead, L-BFGS), smooth differentiable objectives for
+    gradient-based optimization, multi-objective optimization framework, 
+    full reproducibility support with metadata storage, and a diagnostic
     dashboard. All optimization performed in the perceptually uniform
     OKLAB color space with integrated color vision deficiency analysis.
 License: MIT + file LICENSE
@@ -33,5 +34,6 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 LazyData: true
+Config/testthat/parallel: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

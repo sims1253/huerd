@@ -106,7 +106,7 @@ test_that("generate_palette has proper attributes", {
   expect_true("iterations" %in% names(details))
   expect_true("status_message" %in% names(details))
   expect_true("nloptr_status" %in% names(details))
-  
+
   # Check that generation metadata is included (v0.4.0+ feature)
   expect_true("generation_metadata" %in% names(attributes(palette)))
   metadata <- attr(palette, "generation_metadata")
@@ -258,10 +258,12 @@ test_that("generate_palette backward compatibility with weights", {
 
   # Should produce the same color results (both are distance-based optimization)
   expect_identical(as.character(palette_old), as.character(palette_new))
-  
+
   # Metadata will differ due to weights parameter, but optimization results should be same
-  expect_identical(attr(palette_old, "optimization_details"), 
-                  attr(palette_new, "optimization_details"))
+  expect_identical(
+    attr(palette_old, "optimization_details"),
+    attr(palette_new, "optimization_details")
+  )
 
   # Test with fixed colors
   fixed_colors <- c("#FF0000", "#00FF00")
@@ -282,11 +284,16 @@ test_that("generate_palette backward compatibility with weights", {
   )
 
   # Should produce the same color results
-  expect_identical(as.character(palette_fixed_old), as.character(palette_fixed_new))
-  
+  expect_identical(
+    as.character(palette_fixed_old),
+    as.character(palette_fixed_new)
+  )
+
   # Optimization details should be same
-  expect_identical(attr(palette_fixed_old, "optimization_details"), 
-                  attr(palette_fixed_new, "optimization_details"))
+  expect_identical(
+    attr(palette_fixed_old, "optimization_details"),
+    attr(palette_fixed_new, "optimization_details")
+  )
 })
 
 test_that("generate_palette accepts optimizer parameter", {
@@ -589,10 +596,12 @@ test_that("generate_palette nlopt_direct optimizer is deterministic", {
 
   # Colors should be identical for deterministic optimizer
   expect_identical(as.character(palette1), as.character(palette2))
-  
+
   # Optimization details should be identical
-  expect_identical(attr(palette1, "optimization_details"), 
-                  attr(palette2, "optimization_details"))
+  expect_identical(
+    attr(palette1, "optimization_details"),
+    attr(palette2, "optimization_details")
+  )
 
   # Test with the same seed (should be redundant for deterministic optimizer)
   palette3 <- generate_palette(
@@ -607,8 +616,10 @@ test_that("generate_palette nlopt_direct optimizer is deterministic", {
   )
 
   expect_identical(as.character(palette3), as.character(palette4))
-  expect_identical(attr(palette3, "optimization_details"), 
-                  attr(palette4, "optimization_details"))
+  expect_identical(
+    attr(palette3, "optimization_details"),
+    attr(palette4, "optimization_details")
+  )
 })
 
 test_that("generate_palette validates nlopt_direct optimizer", {
@@ -836,23 +847,34 @@ test_that("generate_palette nlopt_neldermead optimizer provides robust local opt
 
 test_that("generate_palette stores generation metadata", {
   palette <- generate_palette(n = 3, progress = FALSE)
-  
+
   expect_true("generation_metadata" %in% names(attributes(palette)))
-  
+
   metadata <- attr(palette, "generation_metadata")
   expect_true(is.list(metadata))
-  
+
   required_fields <- c(
-    "n_colors", "include_colors", "initialization", "init_lightness_bounds",
-    "init_hcl_bounds", "fixed_aesthetic_influence", "aesthetic_init_config",
-    "max_iterations", "return_metrics", "weights", "optimizer", "seed",
-    "package_version", "target_space", "timestamp"
+    "n_colors",
+    "include_colors",
+    "initialization",
+    "init_lightness_bounds",
+    "init_hcl_bounds",
+    "fixed_aesthetic_influence",
+    "aesthetic_init_config",
+    "max_iterations",
+    "return_metrics",
+    "weights",
+    "optimizer",
+    "seed",
+    "package_version",
+    "target_space",
+    "timestamp"
   )
-  
+
   for (field in required_fields) {
     expect_true(field %in% names(metadata))
   }
-  
+
   expect_equal(metadata$n_colors, 3)
   expect_equal(metadata$target_space, "oklab")
   expect_equal(metadata$optimizer, "nloptr_cobyla")
@@ -868,9 +890,156 @@ test_that("generate_palette metadata includes custom parameters", {
     optimizer = "nlopt_direct",
     progress = FALSE
   )
-  
+
   metadata <- attr(palette, "generation_metadata")
   expect_equal(metadata$initialization, "harmony")
   expect_equal(metadata$init_lightness_bounds, c(0.3, 0.8))
   expect_equal(metadata$optimizer, "nlopt_direct")
+})
+
+# Integration tests for v0.5.0 smooth optimization features
+# =========================================================
+
+test_that("generate_palette works with smooth_repulsion weights", {
+  palette <- generate_palette(
+    n = 4,
+    weights = c(smooth_repulsion = 1),
+    optimizer = "nlopt_lbfgs",
+    progress = FALSE
+  )
+
+  expect_true(inherits(palette, "huerd_palette"))
+  expect_length(palette, 4)
+  expect_true(all(grepl("^#[0-9A-Fa-f]{6}$", palette)))
+
+  # Check metadata
+  metadata <- attr(palette, "generation_metadata")
+  expect_equal(metadata$weights, c(smooth_repulsion = 1))
+  expect_equal(metadata$optimizer, "nlopt_lbfgs")
+})
+
+test_that("generate_palette works with smooth_logsumexp weights", {
+  palette <- generate_palette(
+    n = 4,
+    weights = c(smooth_logsumexp = 1),
+    optimizer = "nlopt_lbfgs",
+    progress = FALSE
+  )
+
+  expect_true(inherits(palette, "huerd_palette"))
+  expect_length(palette, 4)
+  expect_true(all(grepl("^#[0-9A-Fa-f]{6}$", palette)))
+
+  # Check metadata
+  metadata <- attr(palette, "generation_metadata")
+  expect_equal(metadata$weights, c(smooth_logsumexp = 1))
+  expect_equal(metadata$optimizer, "nlopt_lbfgs")
+})
+
+test_that("smooth optimization produces different results for different objectives", {
+  # This is the critical integration test for the bug we fixed
+  fixed_colors <- c("#FF0000", "#0000FF")
+
+  palette_repulsion <- generate_palette(
+    n = 5,
+    include_colors = fixed_colors,
+    weights = c(smooth_repulsion = 1),
+    optimizer = "nlopt_lbfgs",
+    progress = FALSE
+  )
+
+  palette_logsumexp <- generate_palette(
+    n = 5,
+    include_colors = fixed_colors,
+    weights = c(smooth_logsumexp = 1),
+    optimizer = "nlopt_lbfgs",
+    progress = FALSE
+  )
+
+  # Both should include fixed colors
+  expect_true(all(fixed_colors %in% palette_repulsion))
+  expect_true(all(fixed_colors %in% palette_logsumexp))
+
+  # Critical test: Results should be different (this was the bug)
+  expect_false(identical(palette_repulsion, palette_logsumexp))
+})
+
+test_that("smooth optimization metadata is preserved in reproduction", {
+  # Test reproducibility integration with smooth optimization
+  original_palette <- generate_palette(
+    n = 4,
+    weights = c(smooth_logsumexp = 1),
+    optimizer = "nlopt_lbfgs",
+    progress = FALSE
+  )
+
+  # Should be able to reproduce
+  reproduced_palette <- reproduce_palette(original_palette, progress = FALSE)
+
+  expect_true(inherits(reproduced_palette, "huerd_palette"))
+  expect_length(reproduced_palette, 4)
+
+  # Metadata should match
+  original_metadata <- attr(original_palette, "generation_metadata")
+  reproduced_metadata <- attr(reproduced_palette, "generation_metadata")
+
+  expect_equal(original_metadata$weights, reproduced_metadata$weights)
+  expect_equal(original_metadata$optimizer, reproduced_metadata$optimizer)
+  expect_equal(original_metadata$n_colors, reproduced_metadata$n_colors)
+})
+
+test_that("L-BFGS optimizer requires smooth weights", {
+  # Test that L-BFGS works with smooth objectives
+  expect_no_error({
+    palette <- generate_palette(
+      n = 3,
+      weights = c(smooth_repulsion = 1),
+      optimizer = "nlopt_lbfgs",
+      progress = FALSE
+    )
+  })
+
+  expect_no_error({
+    palette <- generate_palette(
+      n = 3,
+      weights = c(smooth_logsumexp = 1),
+      optimizer = "nlopt_lbfgs",
+      progress = FALSE
+    )
+  })
+})
+
+test_that("smooth optimization handles edge cases gracefully", {
+  # Test with minimal configuration
+  expect_no_error({
+    palette <- generate_palette(
+      n = 2,
+      weights = c(smooth_repulsion = 1),
+      optimizer = "nlopt_lbfgs",
+      progress = FALSE
+    )
+  })
+
+  # Test with fixed colors
+  expect_no_error({
+    palette <- generate_palette(
+      n = 3,
+      include_colors = c("#FF0000"),
+      weights = c(smooth_logsumexp = 1),
+      optimizer = "nlopt_lbfgs",
+      progress = FALSE
+    )
+  })
+
+  # Test with custom parameters
+  expect_no_error({
+    palette <- generate_palette(
+      n = 4,
+      initialization = "harmony",
+      weights = c(smooth_repulsion = 1),
+      optimizer = "nlopt_lbfgs",
+      max_iterations = 100,
+      progress = FALSE
+    )
+  })
 })

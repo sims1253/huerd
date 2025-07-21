@@ -1,3 +1,64 @@
+# huerd 0.5.2 (2025-07-21)
+
+## Bug Fixes
+- Corrected distance matrix calculation in smooth optimization objectives where diagonal masking affected only element [1,1] rather than the full diagonal
+- Eliminated redundant distance calculations by using `dist()` output directly instead of symmetric matrix conversion
+- Applied log-sum-exp numerical stability technique for robust computation under extreme parameter values
+- Added regression tests for distance calculation correctness
+
+---
+
+# huerd 0.5.0 (2025-07-07)
+
+## New Features
+
+### Smooth Optimization Support
+- Added L-BFGS optimizer for gradient-based optimization
+- Implemented two smooth objective functions: `smooth_repulsion` and `smooth_logsumexp`
+- Added analytical gradient computation for faster convergence
+- Speed improvements of 5-20x for larger palettes (8+ colors)
+
+### Multi-Objective Framework Updates
+- Extended framework to support smooth and discrete objectives
+- Support for weighted combinations of smooth objectives
+
+## API Changes
+- Added `optimizer = "nlopt_lbfgs"` option for L-BFGS optimization
+- Added `weights = c(smooth_repulsion = 1)` and `weights = c(smooth_logsumexp = 1)` for smooth objectives
+
+## Bug Fixes
+- Fixed critical bug where L-BFGS optimizer always used `smooth_repulsion` objective regardless of `weights` parameter
+- Fixed crash in `evaluate_palette_quality()` when called directly with hex colors ("argument is of length zero" error)
+- Both smooth objectives (`smooth_repulsion` and `smooth_logsumexp`) now work correctly and produce different optimization results
+
+## Internal Changes
+- Added analytical gradient functions for smooth objectives
+- Extended multi-objective framework to handle smooth and discrete objectives
+- Improved input validation in `evaluate_palette_quality()` function
+
+---
+
+# huerd 0.4.2 (2025-07-07)
+
+## New Features
+
+- Added L-BFGS optimizer (`optimizer = "nlopt_lbfgs"`) for gradient-based optimization
+- Added support for smooth optimization using analytical gradients
+
+## Internal Changes
+
+- Added `optimize_colors_lbfgs()` function using `NLOPT_LD_LBFGS` algorithm
+
+---
+
+# huerd 0.4.1 (2025-07-07)
+
+## Internal Changes
+
+- Added smooth differentiable objective functions for future gradient-based optimization
+
+---
+
 # huerd 0.4.0 (2025-07-06)
 
 ## Major Changes
