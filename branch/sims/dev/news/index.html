@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">huerd</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,7 +18,10 @@
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/introduction-to-huerd.html">Introduction to huerd</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/data-scientist-workflow.html">Workflow: Data Scientist Creating Accessible Dashboards</a></li>
+    <li><a class="dropdown-item" href="../articles/designer-workflow.html">Workflow: Designer Creating Brand-Compliant Palettes</a></li>
+    <li><a class="dropdown-item" href="../articles/introduction-to-huerd.html">Introduction to huerd</a></li>
+    <li><a class="dropdown-item" href="../articles/package-developer-workflow.html">Workflow: Package Developer Integrating huerd</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -35,6 +38,52 @@
       <small>Source: <a href="https://github.com/sims1253/huerd/blob/sims/dev/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.6.0" id="huerd-060">huerd 0.6.0<a class="anchor" aria-label="anchor" href="#huerd-060"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-6-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-6-0"></a></h3>
+<div class="section level4">
+<h4 id="ggplot2-integration-0-6-0">ggplot2 Integration<a class="anchor" aria-label="anchor" href="#ggplot2-integration-0-6-0"></a></h4>
+<ul><li>
+<code><a href="../reference/scale_color_huerd.html">scale_color_huerd()</a></code>, <code><a href="../reference/scale_color_huerd.html">scale_fill_huerd()</a></code>, <code><a href="../reference/scale_color_huerd.html">scale_colour_huerd()</a></code> functions for seamless ggplot2 integration</li>
+</ul></div>
+<div class="section level4">
+<h4 id="convenience-functions-0-6-0">Convenience Functions<a class="anchor" aria-label="anchor" href="#convenience-functions-0-6-0"></a></h4>
+<ul><li>
+<code><a href="../reference/quick_palette.html">quick_palette()</a></code> for one-line palette generation</li>
+<li>
+<code><a href="../reference/brand_palette.html">brand_palette()</a></code> for brand color integration</li>
+<li>
+<code><a href="../reference/export_palette.html">export_palette()</a></code> for palette export functionality</li>
+<li>
+<code><a href="../reference/interpret_palette_quality.html">interpret_palette_quality()</a></code> for palette quality interpretation</li>
+</ul></div>
+<div class="section level4">
+<h4 id="s3-plot-method-0-6-0">S3 Plot Method<a class="anchor" aria-label="anchor" href="#s3-plot-method-0-6-0"></a></h4>
+<ul><li>
+<code><a href="../reference/plot.huerd_palette.html">plot.huerd_palette()</a></code> method with “swatches” and “analysis” plot types</li>
+<li>Enhanced visualization options for palette inspection</li>
+</ul></div>
+<div class="section level4">
+<h4 id="documentation-0-6-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-6-0"></a></h4>
+<ul><li>Three new workflow vignettes: data-scientist-workflow, designer-workflow, package-developer-workflow</li>
+<li>Comprehensive user story-based documentation</li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="user-story-enhancements-0-6-0">User Story Enhancements<a class="anchor" aria-label="anchor" href="#user-story-enhancements-0-6-0"></a></h3>
+<ul><li>Simplified API for common use cases based on real user personas</li>
+<li>One-line palette generation for data scientists</li>
+<li>Brand color integration for designers<br></li>
+<li>Programmatic API improvements for package developers</li>
+</ul></div>
+<div class="section level3">
+<h3 id="testing-improvements-0-6-0">Testing Improvements<a class="anchor" aria-label="anchor" href="#testing-improvements-0-6-0"></a></h3>
+<ul><li>All 1,006 tests now use testthat 3rd edition describe-it pattern</li>
+<li>Added integration tests based on user story workflows</li>
+<li>All tests passing</li>
+</ul><hr></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.3" id="huerd-053">huerd 0.5.3<a class="anchor" aria-label="anchor" href="#huerd-053"></a></h2>
 <div class="section level3">

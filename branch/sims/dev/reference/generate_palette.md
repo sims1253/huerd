@@ -160,19 +160,19 @@ print(palette)
 #> 
 #> -- huerd Color Palette (5 colors) --
 #> Colors:
-#> [ 1] #002E00
-#> [ 2] #0038CF
-#> [ 3] #FF0076
-#> [ 4] #F8A300
-#> [ 5] #ACFFBF
+#> [ 1] #150078
+#> [ 2] #670000
+#> [ 3] #000CF7
+#> [ 4] #EA0000
+#> [ 5] #5DE500
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.238
-#> * Optimizer Performance Ratio      : 57.9%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.177
+#> * Min. Perceptual Distance (OKLAB): 0.221
+#> * Optimizer Performance Ratio      : 53.9%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.209
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 456
+#> * Optimizer Iterations: 419
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Brand-constrained palette
@@ -230,9 +230,9 @@ logsumexp_palette <- generate_palette(
 # Evaluate quality
 evaluation <- evaluate_palette(brand_palette)
 cat("Min distance:", evaluation$distances$min, "\n")
-#> Min distance: 0.182684 
+#> Min distance: 0.1606496 
 cat("Performance:", evaluation$distances$performance_ratio * 100, "%\n")
-#> Performance: 49.9774 %
+#> Performance: 43.94939 %
 
 # Comprehensive analysis
 plot_palette_analysis(brand_palette)
