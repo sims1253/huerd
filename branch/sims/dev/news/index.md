@@ -1,0 +1,287 @@
+# Changelog
+
+## huerd 0.5.3
+
+### Code Quality Improvements
+
+This release focuses on code quality, maintainability, and consistency
+improvements identified through comprehensive code review.
+
+#### User Messaging
+
+- Replaced [`cat()`](https://rdrr.io/r/base/cat.html) calls with
+  semantic `cli` messaging functions (`cli_alert_info()`,
+  `cli_alert_warning()`, `cli_alert_success()`, `cli_inform()`) for
+  better user experience
+- Added `cli` to package Imports
+
+#### Type Safety & Performance
+
+- Replaced [`sapply()`](https://rdrr.io/r/base/lapply.html) with
+  [`vapply()`](https://rdrr.io/r/base/lapply.html) for type-stable
+  return values
+- Replaced [`is.na()`](https://rdrr.io/r/base/NA.html) with
+  [`anyNA()`](https://rdrr.io/r/base/NA.html) for more efficient NA
+  detection
+- Fixed style issues: `=` → `<-` for assignment, `1:n` → `seq_len(n)`
+  for safer indexing, `T`/`F` → `TRUE`/`FALSE`
+
+#### Code Organization
+
+- Added named constants for magic numbers: `.CANDIDATE_POOL_BASE`,
+  `.MIN_DISTANCE_THRESHOLD`, `.OKLAB_TOLERANCE`
+- Extracted repeated clamping code to `.clamp_to_bounds()` helper
+  function
+- Added `@param` documentation to internal helper functions
+- Removed dead/commented-out code
+
+#### API Consistency
+
+- Added `...` parameter to exported functions for future extensibility
+- Fixed
+  [`simulate_palette_cvd()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/simulate_palette_cvd.md)
+  to always return a named list for consistent API behavior
+
+### Bug Fixes
+
+- Corrected gradient formulas in smooth optimization objectives
+  (`gradient_smooth_repulsion()` and `gradient_smooth_logsumexp()`)
+- Added input validation to gradient functions
+- Added numerical gradient verification tests to ensure correctness
+
+------------------------------------------------------------------------
+
+## huerd 0.5.2 (2025-07-21)
+
+### Bug Fixes
+
+- Corrected distance matrix calculation in smooth optimization
+  objectives where diagonal masking affected only element \[1,1\] rather
+  than the full diagonal
+- Eliminated redundant distance calculations by using
+  [`dist()`](https://rdrr.io/r/stats/dist.html) output directly instead
+  of symmetric matrix conversion
+- Applied log-sum-exp numerical stability technique for robust
+  computation under extreme parameter values
+- Added regression tests for distance calculation correctness
+
+------------------------------------------------------------------------
+
+## huerd 0.5.0 (2025-07-07)
+
+### New Features
+
+#### Smooth Optimization Support
+
+- Added L-BFGS optimizer for gradient-based optimization
+- Implemented two smooth objective functions: `smooth_repulsion` and
+  `smooth_logsumexp`
+- Added analytical gradient computation for faster convergence
+- Speed improvements of 5-20x for larger palettes (8+ colors)
+
+#### Multi-Objective Framework Updates
+
+- Extended framework to support smooth and discrete objectives
+- Support for weighted combinations of smooth objectives
+
+### API Changes
+
+- Added `optimizer = "nlopt_lbfgs"` option for L-BFGS optimization
+- Added `weights = c(smooth_repulsion = 1)` and
+  `weights = c(smooth_logsumexp = 1)` for smooth objectives
+
+### Bug Fixes
+
+- Fixed critical bug where L-BFGS optimizer always used
+  `smooth_repulsion` objective regardless of `weights` parameter
+- Fixed crash in `evaluate_palette_quality()` when called directly with
+  hex colors (“argument is of length zero” error)
+- Both smooth objectives (`smooth_repulsion` and `smooth_logsumexp`) now
+  work correctly and produce different optimization results
+
+### Internal Changes
+
+- Added analytical gradient functions for smooth objectives
+- Extended multi-objective framework to handle smooth and discrete
+  objectives
+- Improved input validation in `evaluate_palette_quality()` function
+
+------------------------------------------------------------------------
+
+## huerd 0.4.2 (2025-07-07)
+
+### New Features
+
+- Added L-BFGS optimizer (`optimizer = "nlopt_lbfgs"`) for
+  gradient-based optimization
+- Added support for smooth optimization using analytical gradients
+
+### Internal Changes
+
+- Added `optimize_colors_lbfgs()` function using `NLOPT_LD_LBFGS`
+  algorithm
+
+------------------------------------------------------------------------
+
+## huerd 0.4.1 (2025-07-07)
+
+### Internal Changes
+
+- Added smooth differentiable objective functions for future
+  gradient-based optimization
+
+------------------------------------------------------------------------
+
+## huerd 0.4.0 (2025-07-06)
+
+### Major Changes
+
+- Replaced base R graphics with grid graphics system.
+  [`plot_palette_analysis()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/plot_palette_analysis.md)
+  now uses
+  [`gridExtra::arrangeGrob()`](https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html)
+  for layout.
+
+- Converted all plotting functions to return grob objects instead of
+  drawing directly.
+
+### New Features
+
+- Added reproducibility system for palette generation with metadata
+  storage.
+
+- Added hue order reversal detection for CVD analysis.
+
+### Breaking Changes
+
+- Removed `new_device`, `device_width`, and `device_height` parameters
+  from
+  [`plot_palette_analysis()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/plot_palette_analysis.md).
+
+- Moved `gridExtra` from Suggests to Imports, added `grid` to Imports.
+
+- Removed helper functions: `.create_graphics_device`,
+  `.is_ragg_available`, `.is_interactive_ide`, `calculate_safe_margins`.
+
+## huerd 0.3.1 (2025-07-04)
+
+### New Features
+
+- Added automated font size scaling to
+  [`plot_palette_analysis()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/plot_palette_analysis.md)
+  that automatically adjusts text sizes based on device dimensions.
+
+## huerd 0.3.0 (2025-07-04)
+
+### Major Changes
+
+- Multi-optimizer framework: The
+  [`generate_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/generate_palette.md)
+  function now supports four different optimization algorithms through
+  the new `optimizer` parameter:
+  - `"nloptr_cobyla"` (default): Deterministic optimization with
+    constraint handling
+  - `"sann"`: Stochastic simulated annealing
+  - `"nlopt_direct"`: Deterministic global optimization using DIRECT
+    algorithm
+  - `"nlopt_neldermead"`: Derivative-free local optimization using
+    Nelder-Mead simplex
+- Added automatic font scaling to
+  [`plot_palette_analysis()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/plot_palette_analysis.md)
+  that prevents text overlap and out-of-frame issues.
+
+### Minor Changes
+
+- Added internal utility functions `.hex_to_oklab()` and
+  `.oklab_to_hex()` to eliminate repetitive color conversion patterns.
+
+- Fixed failing visualization tests and added test coverage for new
+  utility functions.
+
+- Updated test files to use utility functions.
+
+## huerd 0.1.1 (2025-07-01)
+
+### Minor Changes
+
+- Removed unused cli and crayon dependencies.
+
+## huerd 0.1.0 (2025-07-01)
+
+This is a major refactoring and simplification of `huerd`, focusing the
+package on a single, scientifically-grounded objective: pure minimax
+color palette generation.
+
+### Major Changes
+
+- Pure minimax optimization: The core
+  [`generate_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/generate_palette.md)
+  function has been streamlined to use a pure minimax objective,
+  maximizing the minimum perceptual distance between colors in the OKLAB
+  space. All complex multi-objective parameters (`optimize_for`,
+  `balance_weights`, `aesthetic_penalty_weights_LC`) have been removed,
+  simplifying the API and aligning the package with a clear, defensible
+  scientific goal.
+
+- Comprehensive diagnostic dashboard: A new
+  [`plot_palette_analysis()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/plot_palette_analysis.md)
+  function has been added. It provides a comprehensive, six-panel
+  diagnostic dashboard inspired by `scicomap` for in-depth palette
+  analysis. This feature uses only base R graphics and introduces zero
+  new dependencies.
+
+- Automatic brightness sorting: All palettes generated by
+  [`generate_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/generate_palette.md)
+  are now automatically sorted by their OKLAB lightness value, ensuring
+  intuitive and consistent ordering from darkest to lightest.
+
+- Simplified evaluation: The
+  [`evaluate_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/evaluate_palette.md)
+  function is now a pure data provider, returning raw, objective metrics
+  (distances, CVD safety, color distribution) without any subjective
+  heuristic scoring.
+
+### Minor Changes
+
+- The
+  [`is_cvd_safe()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/is_cvd_safe.md)
+  function now uses the more robust
+  [`evaluate_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/evaluate_palette.md)
+  function for its calculations.
+- The print methods for `huerd_palette` and `huerd_evaluation` have been
+  updated to reflect the new, simplified data structures.
+
+### Removals
+
+The following experimental and non-essential features have been removed
+to streamline the package:
+
+- Force-field and repulsion-based optimization algorithms.
+- Palette animation framework.
+- Algorithm comparison tools.
+- Post-hoc CVD refinement steps.
+- 3D color space visualizations.
+- All functionality related to the CAM16 and CIECAM16 color models.
+
+------------------------------------------------------------------------
+
+## huerd 0.0.3 (2025-06-22)
+
+- Added a post-hoc `cvd_adjustment` step to improve palettes for color
+  vision deficiency.
+- Added a `README.md` with basic usage instructions.
+
+## huerd 0.0.2 (2025-01-12)
+
+- Switched the core optimization algorithm to an inverse-square law
+  repulsion model.
+- Removed all functionality related to the CIECAM16 color model.
+- Added a `swatchplot` to the animation feature.
+
+## huerd 0.0.1 (2025-01-04)
+
+- Initial release.
+- Core functionality for palette generation using the CAM16 and CIECAM16
+  color models.
+- Features for color space conversion and animation of the optimization
+  process.

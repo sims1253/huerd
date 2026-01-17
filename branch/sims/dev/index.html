@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">huerd</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,27 +82,28 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sims1253/huerd" class="external-link">huerd</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">palette</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_palette.html">generate_palette</a></span><span class="op">(</span><span class="fl">8</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">palette</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- huerd Color Palette (8 colors) --</span></span>
 <span><span class="co">#&gt; Colors:</span></span>
-<span><span class="co">#&gt; [ 1] #420031</span></span>
-<span><span class="co">#&gt; [ 2] #0000F0</span></span>
-<span><span class="co">#&gt; [ 3] #008B00</span></span>
-<span><span class="co">#&gt; [ 4] #FF0000</span></span>
-<span><span class="co">#&gt; [ 5] #F800FF</span></span>
-<span><span class="co">#&gt; [ 6] #FF9A00</span></span>
-<span><span class="co">#&gt; [ 7] #00CCFF</span></span>
-<span><span class="co">#&gt; [ 8] #00FFFF</span></span>
+<span><span class="co">#&gt; [ 1] #371D00</span></span>
+<span><span class="co">#&gt; [ 2] #483E00</span></span>
+<span><span class="co">#&gt; [ 3] #7C00D2</span></span>
+<span><span class="co">#&gt; [ 4] #757800</span></span>
+<span><span class="co">#&gt; [ 5] #AF4D88</span></span>
+<span><span class="co">#&gt; [ 6] #0096C7</span></span>
+<span><span class="co">#&gt; [ 7] #FF004B</span></span>
+<span><span class="co">#&gt; [ 8] #00DFC3</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Quality Metrics Summary --</span></span>
-<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.143</span></span>
-<span><span class="co">#&gt; * Optimizer Performance Ratio      : 46.0%</span></span>
-<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.098</span></span>
+<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.111</span></span>
+<span><span class="co">#&gt; * Optimizer Performance Ratio      : 35.9%</span></span>
+<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.096</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Generation Details --</span></span>
-<span><span class="co">#&gt; * Optimizer Iterations: 593</span></span>
+<span><span class="co">#&gt; * Optimizer Iterations: 693</span></span>
 <span><span class="co">#&gt; * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -112,6 +113,7 @@
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sims1253/huerd" class="external-link">huerd</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">palette</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_palette.html">generate_palette</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  include_colors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#4A6B8A"</span>, <span class="st">"#E5A04C"</span><span class="op">)</span>,</span>
@@ -121,22 +123,22 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- huerd Color Palette (8 colors) --</span></span>
 <span><span class="co">#&gt; Colors:</span></span>
-<span><span class="co">#&gt; [ 1] #562C08</span></span>
-<span><span class="co">#&gt; [ 2] #7A5300</span></span>
+<span><span class="co">#&gt; [ 1] #1B1000</span></span>
+<span><span class="co">#&gt; [ 2] #5F4151</span></span>
 <span><span class="co">#&gt; [ 3] #4A6B8A</span></span>
-<span><span class="co">#&gt; [ 4] #6188E5</span></span>
-<span><span class="co">#&gt; [ 5] #9EAAB1</span></span>
-<span><span class="co">#&gt; [ 6] #E5A04C</span></span>
-<span><span class="co">#&gt; [ 7] #D0CAFF</span></span>
-<span><span class="co">#&gt; [ 8] #6DFF00</span></span>
+<span><span class="co">#&gt; [ 4] #EA0000</span></span>
+<span><span class="co">#&gt; [ 5] #008ED7</span></span>
+<span><span class="co">#&gt; [ 6] #FF00CB</span></span>
+<span><span class="co">#&gt; [ 7] #E5A04C</span></span>
+<span><span class="co">#&gt; [ 8] #FCADFF</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Quality Metrics Summary --</span></span>
-<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.136</span></span>
-<span><span class="co">#&gt; * Optimizer Performance Ratio      : 44.0%</span></span>
-<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.129</span></span>
+<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.131</span></span>
+<span><span class="co">#&gt; * Optimizer Performance Ratio      : 42.4%</span></span>
+<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.101</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Generation Details --</span></span>
-<span><span class="co">#&gt; * Optimizer Iterations: 546</span></span>
+<span><span class="co">#&gt; * Optimizer Iterations: 370</span></span>
 <span><span class="co">#&gt; * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -146,6 +148,7 @@
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sims1253/huerd" class="external-link">huerd</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">456</span><span class="op">)</span></span>
 <span><span class="co"># COBYLA: Default deterministic optimizer for general use</span></span>
 <span><span class="va">cobyla_palette</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_palette.html">generate_palette</a></span><span class="op">(</span><span class="fl">6</span>, optimizer <span class="op">=</span> <span class="st">"nloptr_cobyla"</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -164,15 +167,15 @@
 <span>                                  weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>smooth_repulsion <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"COBYLA:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">cobyla_palette</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; COBYLA: #000064, #830000, #0000FF, #FF0000, #FFB900, #A3D0FF</span></span>
+<span><span class="co">#&gt; COBYLA: #100405, #960081, #008700, #FF2BBD, #00C700, #00FFFF</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"SANN:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">sann_palette</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; SANN: #0F0C00, #4C006B, #004500, #DD6A00, #AD88AE, #74DDFF</span></span>
+<span><span class="co">#&gt; SANN: #000C02, #770000, #B20070, #FF0000, #FFB5FF, #A8FF00</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"DIRECT:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">direct_palette</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; DIRECT: #636363, #636363, #636363, #636363, #636363, #636363</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Nelder-Mead:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">neldermead_palette</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Nelder-Mead: #AB0000, #FF3000, #FF00FF, #FF89FF, #00FFFF, #FFE100</span></span>
+<span><span class="co">#&gt; Nelder-Mead: #2F00E4, #0089A1, #FF0000, #FF48FF, #00C99E, #00FCFF</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"L-BFGS:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">lbfgs_palette</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; L-BFGS: #2E0079, #000092, #293700, #FF0000, #00FF00, #00FFFF</span></span></code></pre></div>
+<span><span class="co">#&gt; L-BFGS: #003700, #2E0079, #000092, #FF0000, #FF00FF, #00FFFF</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="multi-objective-framework">Multi-Objective Framework<a class="anchor" aria-label="anchor" href="#multi-objective-framework"></a>
@@ -181,6 +184,7 @@
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sims1253/huerd" class="external-link">huerd</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">789</span><span class="op">)</span></span>
 <span><span class="co"># Discrete distance optimization (default)</span></span>
 <span><span class="va">distance_palette</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_palette.html">generate_palette</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">6</span>,</span>
@@ -205,25 +209,74 @@
 <span>  progress <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Compare optimization results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Distance-based palette:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Distance-based palette:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">distance_palette</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- huerd Color Palette (6 colors) --</span></span>
 <span><span class="co">#&gt; Colors:</span></span>
-<span><span class="co">#&gt; [ 1] #460113</span></span>
-<span><span class="co">#&gt; [ 2] #912F00</span></span>
-<span><span class="co">#&gt; [ 3] #008AFF</span></span>
-<span><span class="co">#&gt; [ 4] #FF0087</span></span>
-<span><span class="co">#&gt; [ 5] #F1E200</span></span>
+<span><span class="co">#&gt; [ 1] #002B00</span></span>
+<span><span class="co">#&gt; [ 2] #9B0000</span></span>
+<span><span class="co">#&gt; [ 3] #C80000</span></span>
+<span><span class="co">#&gt; [ 4] #FF0000</span></span>
+<span><span class="co">#&gt; [ 5] #0095FF</span></span>
+<span><span class="co">#&gt; [ 6] #00DDC2</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; -- Quality Metrics Summary --</span></span>
+<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.097</span></span>
+<span><span class="co">#&gt; * Optimizer Performance Ratio      : 26.6%</span></span>
+<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.067</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; -- Generation Details --</span></span>
+<span><span class="co">#&gt; * Optimizer Iterations: 407</span></span>
+<span><span class="co">#&gt; * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nSmooth repulsion palette:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Smooth repulsion palette:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">smooth_palette</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; -- huerd Color Palette (8 colors) --</span></span>
+<span><span class="co">#&gt; Colors:</span></span>
+<span><span class="co">#&gt; [ 1] #003700</span></span>
+<span><span class="co">#&gt; [ 2] #2E0079</span></span>
+<span><span class="co">#&gt; [ 3] #000092</span></span>
+<span><span class="co">#&gt; [ 4] #2A3700</span></span>
+<span><span class="co">#&gt; [ 5] #FF0000</span></span>
+<span><span class="co">#&gt; [ 6] #FF00FF</span></span>
+<span><span class="co">#&gt; [ 7] #00FF00</span></span>
+<span><span class="co">#&gt; [ 8] #00FFFF</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; -- Quality Metrics Summary --</span></span>
+<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.043</span></span>
+<span><span class="co">#&gt; * Optimizer Performance Ratio      : 13.9%</span></span>
+<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.012</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; -- Generation Details --</span></span>
+<span><span class="co">#&gt; * Optimizer Iterations: 28</span></span>
+<span><span class="co">#&gt; * Optimizer Status: NLOPT_SUCCESS: Generic success return value.</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nLog-sum-exp palette:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Log-sum-exp palette:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">logsumexp_palette</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; -- huerd Color Palette (6 colors) --</span></span>
+<span><span class="co">#&gt; Colors:</span></span>
+<span><span class="co">#&gt; [ 1] #003700</span></span>
+<span><span class="co">#&gt; [ 2] #000092</span></span>
+<span><span class="co">#&gt; [ 3] #AD00FF</span></span>
+<span><span class="co">#&gt; [ 4] #FF0000</span></span>
+<span><span class="co">#&gt; [ 5] #00FF00</span></span>
 <span><span class="co">#&gt; [ 6] #00FFFF</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Quality Metrics Summary --</span></span>
-<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.206</span></span>
-<span><span class="co">#&gt; * Optimizer Performance Ratio      : 56.4%</span></span>
-<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.192</span></span>
+<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.238</span></span>
+<span><span class="co">#&gt; * Optimizer Performance Ratio      : 65.1%</span></span>
+<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.050</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Generation Details --</span></span>
-<span><span class="co">#&gt; * Optimizer Iterations: 470</span></span>
-<span><span class="co">#&gt; * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.</span></span></code></pre></div>
+<span><span class="co">#&gt; * Optimizer Iterations: 28</span></span>
+<span><span class="co">#&gt; * Optimizer Status: NLOPT_SUCCESS: Generic success return value.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="diagnostic-dashboard">Diagnostic Dashboard<a class="anchor" aria-label="anchor" href="#diagnostic-dashboard"></a>
@@ -232,9 +285,10 @@
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sims1253/huerd" class="external-link">huerd</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
 <span><span class="va">palette</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_palette.html">generate_palette</a></span><span class="op">(</span><span class="fl">8</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/plot_palette_analysis.html">plot_palette_analysis</a></span><span class="op">(</span><span class="va">palette</span>, force_font_scale <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-dashboard-1.png" width="100%"></p>
+<p><img src="reference/figures/README-dashboard-1.png" alt="" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="palette-quality-evaluation">Palette Quality Evaluation<a class="anchor" aria-label="anchor" href="#palette-quality-evaluation"></a>
@@ -243,16 +297,17 @@
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sims1253/huerd" class="external-link">huerd</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">314</span><span class="op">)</span></span>
 <span><span class="va">palette</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_palette.html">generate_palette</a></span><span class="op">(</span><span class="fl">8</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">evaluation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/evaluate_palette.html">evaluate_palette</a></span><span class="op">(</span><span class="va">palette</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Access raw metrics (no subjective scoring)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Minimum distance:"</span>, <span class="va">evaluation</span><span class="op">$</span><span class="va">distances</span><span class="op">$</span><span class="va">min</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Minimum distance: 0.1671957</span></span>
+<span><span class="co">#&gt; Minimum distance: 0.139767</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Performance ratio:"</span>, <span class="va">evaluation</span><span class="op">$</span><span class="va">distances</span><span class="op">$</span><span class="va">performance_ratio</span> <span class="op">*</span> <span class="fl">100</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Performance ratio: 53.95788 %</span></span>
+<span><span class="co">#&gt; Performance ratio: 45.10603 %</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"CVD worst case:"</span>, <span class="va">evaluation</span><span class="op">$</span><span class="va">cvd_safety</span><span class="op">$</span><span class="va">worst_case_min_distance</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; CVD worst case: 0.1004561</span></span></code></pre></div>
+<span><span class="co">#&gt; CVD worst case: 0.1112826</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="custom-parameters">Custom Parameters<a class="anchor" aria-label="anchor" href="#custom-parameters"></a>
@@ -261,6 +316,7 @@
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sims1253/huerd" class="external-link">huerd</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">271</span><span class="op">)</span></span>
 <span><span class="va">palette</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_palette.html">generate_palette</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  initialization <span class="op">=</span> <span class="st">"harmony"</span>,              <span class="co"># Color harmony-based initialization</span></span>
@@ -273,22 +329,22 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- huerd Color Palette (8 colors) --</span></span>
 <span><span class="co">#&gt; Colors:</span></span>
-<span><span class="co">#&gt; [ 1] #009B72</span></span>
-<span><span class="co">#&gt; [ 2] #BA61C1</span></span>
-<span><span class="co">#&gt; [ 3] #DF6056</span></span>
-<span><span class="co">#&gt; [ 4] #8881FF</span></span>
-<span><span class="co">#&gt; [ 5] #FF83A9</span></span>
-<span><span class="co">#&gt; [ 6] #EDB580</span></span>
-<span><span class="co">#&gt; [ 7] #85F8FF</span></span>
-<span><span class="co">#&gt; [ 8] #FDFDC9</span></span>
+<span><span class="co">#&gt; [ 1] #AB5445</span></span>
+<span><span class="co">#&gt; [ 2] #AC7D3B</span></span>
+<span><span class="co">#&gt; [ 3] #8FA800</span></span>
+<span><span class="co">#&gt; [ 4] #C0BC00</span></span>
+<span><span class="co">#&gt; [ 5] #FF93D2</span></span>
+<span><span class="co">#&gt; [ 6] #B2B8FF</span></span>
+<span><span class="co">#&gt; [ 7] #4CDF9C</span></span>
+<span><span class="co">#&gt; [ 8] #59FDE7</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Quality Metrics Summary --</span></span>
-<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.130</span></span>
-<span><span class="co">#&gt; * Optimizer Performance Ratio      : 42.0%</span></span>
-<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.080</span></span>
+<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.092</span></span>
+<span><span class="co">#&gt; * Optimizer Performance Ratio      : 29.6%</span></span>
+<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.072</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Generation Details --</span></span>
-<span><span class="co">#&gt; * Optimizer Iterations: 1011</span></span>
+<span><span class="co">#&gt; * Optimizer Iterations: 753</span></span>
 <span><span class="co">#&gt; * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -297,6 +353,7 @@
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sims1253/huerd" class="external-link">huerd</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">161</span><span class="op">)</span></span>
 <span><span class="co"># 1. Generate brand palette with advanced optimization</span></span>
 <span><span class="va">brand_palette</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_palette.html">generate_palette</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">8</span>,</span>
@@ -309,24 +366,25 @@
 <span>  return_metrics <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Preparing for palette generation...</span></span>
-<span><span class="co">#&gt; Adapting initialization from fixed colors' aesthetics...</span></span>
+<span><span class="co">#&gt; ℹ Preparing for palette generation...</span></span>
+<span><span class="co">#&gt; ℹ Adapting initialization from fixed colors' aesthetics...</span></span>
 <span><span class="co">#&gt; Initializing 6 free colors (method: harmony)...</span></span>
 <span><span class="co">#&gt; Optimizing 6 free colors using sann...</span></span>
-<span><span class="co">#&gt; Finalizing palette...</span></span>
-<span><span class="co">#&gt; Done.</span></span>
+<span><span class="co">#&gt; ℹ Finalizing palette...</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ✔ Done</span></span>
 <span></span>
 <span><span class="co"># 2. Diagnostic analysis</span></span>
 <span><span class="fu"><a href="reference/plot_palette_analysis.html">plot_palette_analysis</a></span><span class="op">(</span><span class="va">brand_palette</span>, force_font_scale <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-workflow-1.png" width="100%"></p>
+<p><img src="reference/figures/README-workflow-1.png" alt="" width="100%"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># 3. Quality evaluation</span></span>
 <span><span class="va">evaluation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/evaluate_palette.html">evaluate_palette</a></span><span class="op">(</span><span class="va">brand_palette</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Min distance:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">evaluation</span><span class="op">$</span><span class="va">distances</span><span class="op">$</span><span class="va">min</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Min distance: 0.191</span></span>
+<span><span class="co">#&gt; Min distance: 0.207</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Performance:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">evaluation</span><span class="op">$</span><span class="va">distances</span><span class="op">$</span><span class="va">performance_ratio</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Performance: 61.8 %</span></span>
+<span><span class="co">#&gt; Performance: 66.9 %</span></span>
 <span></span>
 <span><span class="co"># 4. CVD accessibility check</span></span>
 <span><span class="va">cvd_safe</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/is_cvd_safe.html">is_cvd_safe</a></span><span class="op">(</span><span class="va">brand_palette</span><span class="op">)</span></span>
@@ -343,60 +401,60 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- huerd CVD Simulation Result (Multiple Types, Severity: 1.00) --</span></span>
 <span><span class="co">#&gt; Palette for: original</span></span>
-<span><span class="co">#&gt;   [ 1] #00322D</span></span>
-<span><span class="co">#&gt;   [ 2] #3700B4</span></span>
-<span><span class="co">#&gt;   [ 3] #1F77B4</span></span>
-<span><span class="co">#&gt;   [ 4] #DD0000</span></span>
-<span><span class="co">#&gt;   [ 5] #A000FF</span></span>
-<span><span class="co">#&gt;   [ 6] #FF7F0E</span></span>
-<span><span class="co">#&gt;   [ 7] #D9A1FF</span></span>
-<span><span class="co">#&gt;   [ 8] #A8FF00</span></span>
+<span><span class="co">#&gt;   [ 1] #520000</span></span>
+<span><span class="co">#&gt;   [ 2] #2E008F</span></span>
+<span><span class="co">#&gt;   [ 3] #005C2A</span></span>
+<span><span class="co">#&gt;   [ 4] #8900FF</span></span>
+<span><span class="co">#&gt;   [ 5] #1F77B4</span></span>
+<span><span class="co">#&gt;   [ 6] #7EA984</span></span>
+<span><span class="co">#&gt;   [ 7] #FF7F0E</span></span>
+<span><span class="co">#&gt;   [ 8] #00FFFF</span></span>
 <span><span class="co">#&gt; Palette for: protan</span></span>
-<span><span class="co">#&gt;   [ 1] #2F2E2D</span></span>
-<span><span class="co">#&gt;   [ 2] #003FB8</span></span>
-<span><span class="co">#&gt;   [ 3] #5A79B7</span></span>
-<span><span class="co">#&gt;   [ 4] #5D5100</span></span>
-<span><span class="co">#&gt;   [ 5] #0068FF</span></span>
-<span><span class="co">#&gt;   [ 6] #A59100</span></span>
-<span><span class="co">#&gt;   [ 7] #8FB4FF</span></span>
-<span><span class="co">#&gt;   [ 8] #FFEB00</span></span>
+<span><span class="co">#&gt;   [ 1] #1E1900</span></span>
+<span><span class="co">#&gt;   [ 2] #003192</span></span>
+<span><span class="co">#&gt;   [ 3] #5C5326</span></span>
+<span><span class="co">#&gt;   [ 4] #0064FF</span></span>
+<span><span class="co">#&gt;   [ 5] #5A79B7</span></span>
+<span><span class="co">#&gt;   [ 6] #AAA182</span></span>
+<span><span class="co">#&gt;   [ 7] #A59100</span></span>
+<span><span class="co">#&gt;   [ 8] #EDF2FF</span></span>
 <span><span class="co">#&gt; Palette for: deutan</span></span>
-<span><span class="co">#&gt;   [ 1] #282A2E</span></span>
-<span><span class="co">#&gt;   [ 2] #0032B1</span></span>
-<span><span class="co">#&gt;   [ 3] #456CB3</span></span>
-<span><span class="co">#&gt;   [ 4] #8D7C00</span></span>
-<span><span class="co">#&gt;   [ 5] #006BFB</span></span>
-<span><span class="co">#&gt;   [ 6] #C4AE05</span></span>
-<span><span class="co">#&gt;   [ 7] #9CB8FC</span></span>
-<span><span class="co">#&gt;   [ 8] #FFE537</span></span>
+<span><span class="co">#&gt;   [ 1] #312A00</span></span>
+<span><span class="co">#&gt;   [ 2] #00278D</span></span>
+<span><span class="co">#&gt;   [ 3] #534C2E</span></span>
+<span><span class="co">#&gt;   [ 4] #0060FB</span></span>
+<span><span class="co">#&gt;   [ 5] #456CB3</span></span>
+<span><span class="co">#&gt;   [ 6] #A39D86</span></span>
+<span><span class="co">#&gt;   [ 7] #C4AE05</span></span>
+<span><span class="co">#&gt;   [ 8] #D0DDFF</span></span>
 <span><span class="co">#&gt; Palette for: tritan</span></span>
-<span><span class="co">#&gt;   [ 1] #003330</span></span>
-<span><span class="co">#&gt;   [ 2] #004868</span></span>
-<span><span class="co">#&gt;   [ 3] #00868D</span></span>
-<span><span class="co">#&gt;   [ 4] #F4000B</span></span>
-<span><span class="co">#&gt;   [ 5] #8C6196</span></span>
-<span><span class="co">#&gt;   [ 6] #FF616D</span></span>
-<span><span class="co">#&gt;   [ 7] #D5AEC4</span></span>
-<span><span class="co">#&gt;   [ 8] #ACF3D9</span></span>
+<span><span class="co">#&gt;   [ 1] #5C0001</span></span>
+<span><span class="co">#&gt;   [ 2] #003752</span></span>
+<span><span class="co">#&gt;   [ 3] #005A50</span></span>
+<span><span class="co">#&gt;   [ 4] #676496</span></span>
+<span><span class="co">#&gt;   [ 5] #00868D</span></span>
+<span><span class="co">#&gt;   [ 6] #79A79F</span></span>
+<span><span class="co">#&gt;   [ 7] #FF616D</span></span>
+<span><span class="co">#&gt;   [ 8] #00FFFE</span></span>
 <span></span>
 <span><span class="co"># 6. Display final palette (colors are brightness-sorted)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">brand_palette</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- huerd Color Palette (8 colors) --</span></span>
 <span><span class="co">#&gt; Colors:</span></span>
-<span><span class="co">#&gt; [ 1] #00322D</span></span>
-<span><span class="co">#&gt; [ 2] #3700B4</span></span>
-<span><span class="co">#&gt; [ 3] #1F77B4</span></span>
-<span><span class="co">#&gt; [ 4] #DD0000</span></span>
-<span><span class="co">#&gt; [ 5] #A000FF</span></span>
-<span><span class="co">#&gt; [ 6] #FF7F0E</span></span>
-<span><span class="co">#&gt; [ 7] #D9A1FF</span></span>
-<span><span class="co">#&gt; [ 8] #A8FF00</span></span>
+<span><span class="co">#&gt; [ 1] #520000</span></span>
+<span><span class="co">#&gt; [ 2] #2E008F</span></span>
+<span><span class="co">#&gt; [ 3] #005C2A</span></span>
+<span><span class="co">#&gt; [ 4] #8900FF</span></span>
+<span><span class="co">#&gt; [ 5] #1F77B4</span></span>
+<span><span class="co">#&gt; [ 6] #7EA984</span></span>
+<span><span class="co">#&gt; [ 7] #FF7F0E</span></span>
+<span><span class="co">#&gt; [ 8] #00FFFF</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Quality Metrics Summary --</span></span>
-<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.191</span></span>
-<span><span class="co">#&gt; * Optimizer Performance Ratio      : 61.8%</span></span>
-<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.109</span></span>
+<span><span class="co">#&gt; * Min. Perceptual Distance (OKLAB): 0.207</span></span>
+<span><span class="co">#&gt; * Optimizer Performance Ratio      : 66.9%</span></span>
+<span><span class="co">#&gt; * Min. CVD-Safe Distance (OKLAB)  : 0.106</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -- Generation Details --</span></span>
 <span><span class="co">#&gt; * Optimizer Iterations: 5000</span></span>
@@ -455,7 +513,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

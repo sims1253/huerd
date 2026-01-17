@@ -13,7 +13,7 @@ include fixed brand colors."><meta property="og:image" content="https://sims1253
 
     <a class="navbar-brand me-2" href="../index.html">huerd</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,8 @@ include fixed brand colors.</p>
 <span>  return_metrics <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  progress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  optimizer <span class="op">=</span> <span class="st">"nloptr_cobyla"</span></span>
+<span>  optimizer <span class="op">=</span> <span class="st">"nloptr_cobyla"</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -122,10 +123,11 @@ attributes. Default is TRUE.</p></dd>
 
 <dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
 <dd><p>Named numeric vector. Weights for multi-objective optimization.
-Supports: <code>c(distance = 1)</code> for discrete distance optimization (default),
+Supports: <code>c(distance = 1)</code> for discrete distance optimization,
 <code>c(smooth_repulsion = 1)</code> for smooth repulsion objective using inverse squared
 distances, or <code>c(smooth_logsumexp = 1)</code> for smooth log-sum-exp objective.
-Default is NULL (equivalent to pure distance optimization).</p></dd>
+Default is NULL, which is internally equivalent to <code>c(distance = 1)</code> for
+most optimizers. For "nlopt_lbfgs", NULL defaults to <code>smooth_repulsion</code>.</p></dd>
 
 
 <dt id="arg-optimizer">optimizer<a class="anchor" aria-label="anchor" href="#arg-optimizer"></a></dt>
@@ -137,8 +139,13 @@ using the DIRECT algorithm (best choice for scientific reproducibility and high
 quality, though may be slower), "nlopt_neldermead" for derivative-free local
 optimization using the Nelder-Mead simplex algorithm (good alternative to COBYLA
 for robust local optimization), "nlopt_lbfgs" for gradient-based L-BFGS optimization
-(fastest convergence for smooth objectives, requires smooth weights). The framework
-is designed to easily support additional optimizers in future versions.</p></dd>
+(fastest convergence for smooth objectives; works best with <code>smooth_repulsion</code> or
+<code>smooth_logsumexp</code> weights). The framework is designed to easily support
+additional optimizers in future versions.</p></dd>
+
+
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
+<dd><p>Additional arguments reserved for future use.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -229,9 +236,9 @@ and visualized with <code><a href="plot_palette_analysis.html">plot_palette_anal
 <span class="r-in"><span>  progress <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Using smooth optimization with L-BFGS (fastest for large palettes)</span></span></span>
+<span class="r-in"><span><span class="co"># Using smooth optimization with L-BFGS (efficient for larger palettes)</span></span></span>
 <span class="r-in"><span><span class="va">smooth_palette</span> <span class="op">&lt;-</span> <span class="fu">generate_palette</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  n <span class="op">=</span> <span class="fl">8</span>,</span></span>
+<span class="r-in"><span>  n <span class="op">=</span> <span class="fl">12</span>,</span></span>
 <span class="r-in"><span>  weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>smooth_repulsion <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  optimizer <span class="op">=</span> <span class="st">"nlopt_lbfgs"</span>,</span></span>
 <span class="r-in"><span>  progress <span class="op">=</span> <span class="cn">FALSE</span></span></span>
@@ -267,7 +274,7 @@ and visualized with <code><a href="plot_palette_analysis.html">plot_palette_anal
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

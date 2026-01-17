@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">huerd</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,44 @@
       <small>Source: <a href="https://github.com/sims1253/huerd/blob/sims/dev/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.3" id="huerd-053">huerd 0.5.3<a class="anchor" aria-label="anchor" href="#huerd-053"></a></h2>
+<div class="section level3">
+<h3 id="code-quality-improvements-0-5-3">Code Quality Improvements<a class="anchor" aria-label="anchor" href="#code-quality-improvements-0-5-3"></a></h3>
+<p>This release focuses on code quality, maintainability, and consistency improvements identified through comprehensive code review.</p>
+<div class="section level4">
+<h4 id="user-messaging-0-5-3">User Messaging<a class="anchor" aria-label="anchor" href="#user-messaging-0-5-3"></a></h4>
+<ul><li>Replaced <code><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat()</a></code> calls with semantic <code>cli</code> messaging functions (<code>cli_alert_info()</code>, <code>cli_alert_warning()</code>, <code>cli_alert_success()</code>, <code>cli_inform()</code>) for better user experience</li>
+<li>Added <code>cli</code> to package Imports</li>
+</ul></div>
+<div class="section level4">
+<h4 id="type-safety--performance-0-5-3">Type Safety &amp; Performance<a class="anchor" aria-label="anchor" href="#type-safety--performance-0-5-3"></a></h4>
+<ul><li>Replaced <code><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply()</a></code> with <code><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply()</a></code> for type-stable return values</li>
+<li>Replaced <code><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na()</a></code> with <code><a href="https://rdrr.io/r/base/NA.html" class="external-link">anyNA()</a></code> for more efficient NA detection</li>
+<li>Fixed style issues: <code>=</code> → <code>&lt;-</code> for assignment, <code>1:n</code> → <code>seq_len(n)</code> for safer indexing, <code>T</code>/<code>F</code> → <code>TRUE</code>/<code>FALSE</code>
+</li>
+</ul></div>
+<div class="section level4">
+<h4 id="code-organization-0-5-3">Code Organization<a class="anchor" aria-label="anchor" href="#code-organization-0-5-3"></a></h4>
+<ul><li>Added named constants for magic numbers: <code>.CANDIDATE_POOL_BASE</code>, <code>.MIN_DISTANCE_THRESHOLD</code>, <code>.OKLAB_TOLERANCE</code>
+</li>
+<li>Extracted repeated clamping code to <code>.clamp_to_bounds()</code> helper function</li>
+<li>Added <code>@param</code> documentation to internal helper functions</li>
+<li>Removed dead/commented-out code</li>
+</ul></div>
+<div class="section level4">
+<h4 id="api-consistency-0-5-3">API Consistency<a class="anchor" aria-label="anchor" href="#api-consistency-0-5-3"></a></h4>
+<ul><li>Added <code>...</code> parameter to exported functions for future extensibility</li>
+<li>Fixed <code><a href="../reference/simulate_palette_cvd.html">simulate_palette_cvd()</a></code> to always return a named list for consistent API behavior</li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="bug-fixes-0-5-3">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-3"></a></h3>
+<ul><li>Corrected gradient formulas in smooth optimization objectives (<code>gradient_smooth_repulsion()</code> and <code>gradient_smooth_logsumexp()</code>)</li>
+<li>Added input validation to gradient functions</li>
+<li>Added numerical gradient verification tests to ensure correctness</li>
+</ul><hr></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.2" id="huerd-052-2025-07-21">huerd 0.5.2 (2025-07-21)<a class="anchor" aria-label="anchor" href="#huerd-052-2025-07-21"></a></h2>
 <div class="section level3">
@@ -208,7 +246,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
