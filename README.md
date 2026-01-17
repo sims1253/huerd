@@ -36,27 +36,28 @@ Generate a palette with 5 colors:
 ``` r
 library(huerd)
 
+set.seed(42)
 palette <- generate_palette(8, progress = FALSE)
 print(palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #420031
-#> [ 2] #0000F0
-#> [ 3] #008B00
-#> [ 4] #FF0000
-#> [ 5] #F800FF
-#> [ 6] #FF9A00
-#> [ 7] #00CCFF
-#> [ 8] #00FFFF
+#> [ 1] #371D00
+#> [ 2] #483E00
+#> [ 3] #7C00D2
+#> [ 4] #757800
+#> [ 5] #AF4D88
+#> [ 6] #0096C7
+#> [ 7] #FF004B
+#> [ 8] #00DFC3
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.143
-#> * Optimizer Performance Ratio      : 46.0%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.098
+#> * Min. Perceptual Distance (OKLAB): 0.111
+#> * Optimizer Performance Ratio      : 35.9%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.096
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 593
+#> * Optimizer Iterations: 693
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
@@ -67,6 +68,7 @@ Include specific colors while optimizing the remaining colors:
 ``` r
 library(huerd)
 
+set.seed(123)
 palette <- generate_palette(
   n = 8,
   include_colors = c("#4A6B8A", "#E5A04C"),
@@ -76,22 +78,22 @@ print(palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #562C08
-#> [ 2] #7A5300
+#> [ 1] #1B1000
+#> [ 2] #5F4151
 #> [ 3] #4A6B8A
-#> [ 4] #6188E5
-#> [ 5] #9EAAB1
-#> [ 6] #E5A04C
-#> [ 7] #D0CAFF
-#> [ 8] #6DFF00
+#> [ 4] #EA0000
+#> [ 5] #008ED7
+#> [ 6] #FF00CB
+#> [ 7] #E5A04C
+#> [ 8] #FCADFF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.136
-#> * Optimizer Performance Ratio      : 44.0%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.129
+#> * Min. Perceptual Distance (OKLAB): 0.131
+#> * Optimizer Performance Ratio      : 42.4%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.101
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 546
+#> * Optimizer Iterations: 370
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
@@ -102,6 +104,7 @@ Choose from 5 different optimization algorithms based on your needs:
 ``` r
 library(huerd)
 
+set.seed(456)
 # COBYLA: Default deterministic optimizer for general use
 cobyla_palette <- generate_palette(6, optimizer = "nloptr_cobyla", progress = FALSE)
 
@@ -120,15 +123,15 @@ lbfgs_palette <- generate_palette(6, optimizer = "nlopt_lbfgs",
                                   weights = c(smooth_repulsion = 1), progress = FALSE)
 
 cat("COBYLA:", paste(cobyla_palette, collapse = ", "), "\n")
-#> COBYLA: #000064, #830000, #0000FF, #FF0000, #FFB900, #A3D0FF
+#> COBYLA: #100405, #960081, #008700, #FF2BBD, #00C700, #00FFFF
 cat("SANN:", paste(sann_palette, collapse = ", "), "\n")
-#> SANN: #0F0C00, #4C006B, #004500, #DD6A00, #AD88AE, #74DDFF
+#> SANN: #000C02, #770000, #B20070, #FF0000, #FFB5FF, #A8FF00
 cat("DIRECT:", paste(direct_palette, collapse = ", "), "\n")
 #> DIRECT: #636363, #636363, #636363, #636363, #636363, #636363
 cat("Nelder-Mead:", paste(neldermead_palette, collapse = ", "), "\n")
-#> Nelder-Mead: #AB0000, #FF3000, #FF00FF, #FF89FF, #00FFFF, #FFE100
+#> Nelder-Mead: #2F00E4, #0089A1, #FF0000, #FF48FF, #00C99E, #00FCFF
 cat("L-BFGS:", paste(lbfgs_palette, collapse = ", "), "\n")
-#> L-BFGS: #2E0079, #000092, #293700, #FF0000, #00FF00, #00FFFF
+#> L-BFGS: #003700, #2E0079, #000092, #FF0000, #FF00FF, #00FFFF
 ```
 
 ## Multi-Objective Framework
@@ -139,6 +142,7 @@ discrete and smooth optimization support:
 ``` r
 library(huerd)
 
+set.seed(789)
 # Discrete distance optimization (default)
 distance_palette <- generate_palette(
   n = 6,
@@ -163,25 +167,74 @@ logsumexp_palette <- generate_palette(
   progress = FALSE
 )
 
+# Compare optimization results
+cat("Distance-based palette:\n")
+#> Distance-based palette:
 print(distance_palette)
 #> 
 #> -- huerd Color Palette (6 colors) --
 #> Colors:
-#> [ 1] #460113
-#> [ 2] #912F00
-#> [ 3] #008AFF
-#> [ 4] #FF0087
-#> [ 5] #F1E200
+#> [ 1] #002B00
+#> [ 2] #9B0000
+#> [ 3] #C80000
+#> [ 4] #FF0000
+#> [ 5] #0095FF
+#> [ 6] #00DDC2
+#> 
+#> -- Quality Metrics Summary --
+#> * Min. Perceptual Distance (OKLAB): 0.097
+#> * Optimizer Performance Ratio      : 26.6%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.067
+#> 
+#> -- Generation Details --
+#> * Optimizer Iterations: 407
+#> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
+cat("\nSmooth repulsion palette:\n")
+#> 
+#> Smooth repulsion palette:
+print(smooth_palette)
+#> 
+#> -- huerd Color Palette (8 colors) --
+#> Colors:
+#> [ 1] #003700
+#> [ 2] #2E0079
+#> [ 3] #000092
+#> [ 4] #2A3700
+#> [ 5] #FF0000
+#> [ 6] #FF00FF
+#> [ 7] #00FF00
+#> [ 8] #00FFFF
+#> 
+#> -- Quality Metrics Summary --
+#> * Min. Perceptual Distance (OKLAB): 0.043
+#> * Optimizer Performance Ratio      : 13.9%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.012
+#> 
+#> -- Generation Details --
+#> * Optimizer Iterations: 28
+#> * Optimizer Status: NLOPT_SUCCESS: Generic success return value.
+cat("\nLog-sum-exp palette:\n")
+#> 
+#> Log-sum-exp palette:
+print(logsumexp_palette)
+#> 
+#> -- huerd Color Palette (6 colors) --
+#> Colors:
+#> [ 1] #003700
+#> [ 2] #000092
+#> [ 3] #AD00FF
+#> [ 4] #FF0000
+#> [ 5] #00FF00
 #> [ 6] #00FFFF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.206
-#> * Optimizer Performance Ratio      : 56.4%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.192
+#> * Min. Perceptual Distance (OKLAB): 0.238
+#> * Optimizer Performance Ratio      : 65.1%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.050
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 470
-#> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
+#> * Optimizer Iterations: 28
+#> * Optimizer Status: NLOPT_SUCCESS: Generic success return value.
 ```
 
 ## Diagnostic Dashboard
@@ -191,11 +244,12 @@ Get a quick overview of your palette properties:
 ``` r
 library(huerd)
 
+set.seed(2024)
 palette <- generate_palette(8, progress = FALSE)
 plot_palette_analysis(palette, force_font_scale = 0.6)
 ```
 
-<img src="man/figures/README-dashboard-1.png" width="100%" />
+<img src="man/figures/README-dashboard-1.png" alt="" width="100%" />
 
 ## Palette Quality Evaluation
 
@@ -204,16 +258,17 @@ Or look at the numerical evaluation results:
 ``` r
 library(huerd)
 
+set.seed(314)
 palette <- generate_palette(8, progress = FALSE)
 evaluation <- evaluate_palette(palette)
 
 # Access raw metrics (no subjective scoring)
 cat("Minimum distance:", evaluation$distances$min, "\n")
-#> Minimum distance: 0.1671957
+#> Minimum distance: 0.139767
 cat("Performance ratio:", evaluation$distances$performance_ratio * 100, "%\n")
-#> Performance ratio: 53.95788 %
+#> Performance ratio: 45.10603 %
 cat("CVD worst case:", evaluation$cvd_safety$worst_case_min_distance, "\n")
-#> CVD worst case: 0.1004561
+#> CVD worst case: 0.1112826
 ```
 
 ## Custom Parameters
@@ -223,6 +278,7 @@ Fine-tune the generation process with advanced options:
 ``` r
 library(huerd)
 
+set.seed(271)
 palette <- generate_palette(
   n = 8,
   initialization = "harmony",              # Color harmony-based initialization
@@ -235,22 +291,22 @@ print(palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #009B72
-#> [ 2] #BA61C1
-#> [ 3] #DF6056
-#> [ 4] #8881FF
-#> [ 5] #FF83A9
-#> [ 6] #EDB580
-#> [ 7] #85F8FF
-#> [ 8] #FDFDC9
+#> [ 1] #AB5445
+#> [ 2] #AC7D3B
+#> [ 3] #8FA800
+#> [ 4] #C0BC00
+#> [ 5] #FF93D2
+#> [ 6] #B2B8FF
+#> [ 7] #4CDF9C
+#> [ 8] #59FDE7
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.130
-#> * Optimizer Performance Ratio      : 42.0%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.080
+#> * Min. Perceptual Distance (OKLAB): 0.092
+#> * Optimizer Performance Ratio      : 29.6%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.072
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 1011
+#> * Optimizer Iterations: 753
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
@@ -259,6 +315,7 @@ print(palette)
 ``` r
 library(huerd)
 
+set.seed(161)
 # 1. Generate brand palette with advanced optimization
 brand_palette <- generate_palette(
   n = 8,
@@ -271,27 +328,28 @@ brand_palette <- generate_palette(
   return_metrics = TRUE,
   progress = TRUE
 )
-#> Preparing for palette generation...
-#> Adapting initialization from fixed colors' aesthetics...
+#> ℹ Preparing for palette generation...
+#> ℹ Adapting initialization from fixed colors' aesthetics...
 #> Initializing 6 free colors (method: harmony)...
 #> Optimizing 6 free colors using sann...
-#> Finalizing palette...
-#> Done.
+#> ℹ Finalizing palette...
+#> 
+#> ✔ Done
 
 # 2. Diagnostic analysis
 plot_palette_analysis(brand_palette, force_font_scale = 0.6)
 ```
 
-<img src="man/figures/README-workflow-1.png" width="100%" />
+<img src="man/figures/README-workflow-1.png" alt="" width="100%" />
 
 ``` r
 
 # 3. Quality evaluation
 evaluation <- evaluate_palette(brand_palette)
 cat("Min distance:", round(evaluation$distances$min, 3), "\n")
-#> Min distance: 0.191
+#> Min distance: 0.207
 cat("Performance:", round(evaluation$distances$performance_ratio * 100, 1), "%\n")
-#> Performance: 61.8 %
+#> Performance: 66.9 %
 
 # 4. CVD accessibility check
 cvd_safe <- is_cvd_safe(brand_palette)
@@ -308,60 +366,60 @@ print(cvd_simulation)
 #> 
 #> -- huerd CVD Simulation Result (Multiple Types, Severity: 1.00) --
 #> Palette for: original
-#>   [ 1] #00322D
-#>   [ 2] #3700B4
-#>   [ 3] #1F77B4
-#>   [ 4] #DD0000
-#>   [ 5] #A000FF
-#>   [ 6] #FF7F0E
-#>   [ 7] #D9A1FF
-#>   [ 8] #A8FF00
+#>   [ 1] #520000
+#>   [ 2] #2E008F
+#>   [ 3] #005C2A
+#>   [ 4] #8900FF
+#>   [ 5] #1F77B4
+#>   [ 6] #7EA984
+#>   [ 7] #FF7F0E
+#>   [ 8] #00FFFF
 #> Palette for: protan
-#>   [ 1] #2F2E2D
-#>   [ 2] #003FB8
-#>   [ 3] #5A79B7
-#>   [ 4] #5D5100
-#>   [ 5] #0068FF
-#>   [ 6] #A59100
-#>   [ 7] #8FB4FF
-#>   [ 8] #FFEB00
+#>   [ 1] #1E1900
+#>   [ 2] #003192
+#>   [ 3] #5C5326
+#>   [ 4] #0064FF
+#>   [ 5] #5A79B7
+#>   [ 6] #AAA182
+#>   [ 7] #A59100
+#>   [ 8] #EDF2FF
 #> Palette for: deutan
-#>   [ 1] #282A2E
-#>   [ 2] #0032B1
-#>   [ 3] #456CB3
-#>   [ 4] #8D7C00
-#>   [ 5] #006BFB
-#>   [ 6] #C4AE05
-#>   [ 7] #9CB8FC
-#>   [ 8] #FFE537
+#>   [ 1] #312A00
+#>   [ 2] #00278D
+#>   [ 3] #534C2E
+#>   [ 4] #0060FB
+#>   [ 5] #456CB3
+#>   [ 6] #A39D86
+#>   [ 7] #C4AE05
+#>   [ 8] #D0DDFF
 #> Palette for: tritan
-#>   [ 1] #003330
-#>   [ 2] #004868
-#>   [ 3] #00868D
-#>   [ 4] #F4000B
-#>   [ 5] #8C6196
-#>   [ 6] #FF616D
-#>   [ 7] #D5AEC4
-#>   [ 8] #ACF3D9
+#>   [ 1] #5C0001
+#>   [ 2] #003752
+#>   [ 3] #005A50
+#>   [ 4] #676496
+#>   [ 5] #00868D
+#>   [ 6] #79A79F
+#>   [ 7] #FF616D
+#>   [ 8] #00FFFE
 
 # 6. Display final palette (colors are brightness-sorted)
 print(brand_palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #00322D
-#> [ 2] #3700B4
-#> [ 3] #1F77B4
-#> [ 4] #DD0000
-#> [ 5] #A000FF
-#> [ 6] #FF7F0E
-#> [ 7] #D9A1FF
-#> [ 8] #A8FF00
+#> [ 1] #520000
+#> [ 2] #2E008F
+#> [ 3] #005C2A
+#> [ 4] #8900FF
+#> [ 5] #1F77B4
+#> [ 6] #7EA984
+#> [ 7] #FF7F0E
+#> [ 8] #00FFFF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.191
-#> * Optimizer Performance Ratio      : 61.8%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.109
+#> * Min. Perceptual Distance (OKLAB): 0.207
+#> * Optimizer Performance Ratio      : 66.9%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.106
 #> 
 #> -- Generation Details --
 #> * Optimizer Iterations: 5000

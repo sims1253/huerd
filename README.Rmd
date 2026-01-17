@@ -45,6 +45,7 @@ Generate a palette with 5 colors:
 ```{r example}
 library(huerd)
 
+set.seed(42)
 palette <- generate_palette(8, progress = FALSE)
 print(palette)
 ```
@@ -56,6 +57,7 @@ Include specific colors while optimizing the remaining colors:
 ```{r constrained}
 library(huerd)
 
+set.seed(123)
 palette <- generate_palette(
   n = 8,
   include_colors = c("#4A6B8A", "#E5A04C"),
@@ -72,6 +74,7 @@ Choose from 5 different optimization algorithms based on your needs:
 ```{r optimizers}
 library(huerd)
 
+set.seed(456)
 # COBYLA: Default deterministic optimizer for general use
 cobyla_palette <- generate_palette(6, optimizer = "nloptr_cobyla", progress = FALSE)
 
@@ -103,6 +106,7 @@ The package includes a multi-objective optimization framework with both discrete
 ```{r multiobjective}
 library(huerd)
 
+set.seed(789)
 # Discrete distance optimization (default)
 distance_palette <- generate_palette(
   n = 6,
@@ -127,7 +131,13 @@ logsumexp_palette <- generate_palette(
   progress = FALSE
 )
 
+# Compare optimization results
+cat("Distance-based palette:\n")
 print(distance_palette)
+cat("\nSmooth repulsion palette:\n")
+print(smooth_palette)
+cat("\nLog-sum-exp palette:\n")
+print(logsumexp_palette)
 ```
 
 ## Diagnostic Dashboard
@@ -137,6 +147,7 @@ Get a quick overview of your palette properties:
 ```{r dashboard}
 library(huerd)
 
+set.seed(2024)
 palette <- generate_palette(8, progress = FALSE)
 plot_palette_analysis(palette, force_font_scale = 0.6)
 ```
@@ -148,6 +159,7 @@ Or look at the numerical evaluation results:
 ```{r evaluation}
 library(huerd)
 
+set.seed(314)
 palette <- generate_palette(8, progress = FALSE)
 evaluation <- evaluate_palette(palette)
 
@@ -164,6 +176,7 @@ Fine-tune the generation process with advanced options:
 ```{r custom}
 library(huerd)
 
+set.seed(271)
 palette <- generate_palette(
   n = 8,
   initialization = "harmony",              # Color harmony-based initialization
@@ -180,6 +193,7 @@ print(palette)
 ```{r workflow}
 library(huerd)
 
+set.seed(161)
 # 1. Generate brand palette with advanced optimization
 brand_palette <- generate_palette(
   n = 8,
