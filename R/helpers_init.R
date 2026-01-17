@@ -57,7 +57,9 @@
 
   if (influence > 0 && is.finite(aesthetic_profile$mean_L)) {
     if (progress) {
-      cat("Adapting initialization from fixed colors' aesthetics...\n")
+      cli::cli_alert_info(
+        "Adapting initialization from fixed colors' aesthetics..."
+      )
     }
 
     # --- Adapt k-means++ OKLAB L-bounds using mean +/- (sd * multiplier) ---
@@ -128,8 +130,8 @@
     if (
       derived_L_min_hcl >= derived_L_max_hcl || !is.finite(derived_L_min_hcl)
     ) {
-      derived_L_min_hcl = init_hcl_bounds$L[1]
-      derived_L_max_hcl = init_hcl_bounds$L[2]
+      derived_L_min_hcl <- init_hcl_bounds$L[1]
+      derived_L_max_hcl <- init_hcl_bounds$L[2]
     }
 
     mean_C_fixed_hcl <- temp_hcl_fixed[, "c"]
@@ -140,8 +142,8 @@
     if (
       derived_C_min_hcl >= derived_C_max_hcl || !is.finite(derived_C_min_hcl)
     ) {
-      derived_C_min_hcl = init_hcl_bounds$C[1]
-      derived_C_max_hcl = init_hcl_bounds$C[2]
+      derived_C_min_hcl <- init_hcl_bounds$C[1]
+      derived_C_max_hcl <- init_hcl_bounds$C[2]
     }
 
     final_L_min_hcl <- (1 - influence) *
@@ -233,10 +235,9 @@ initialize_kmeans_plus_plus <- function(
 ) {
   oklab_ab_gen_bounds <- list(a = c(-0.4, 0.4), b = c(-0.4, 0.4))
   # Calculate initial candidate pool size: base pool size or proportional to free colors
-  candidate_pool_base <- 2000
   candidate_multiplier <- 200
   n_candidates_initial_pool <- max(
-    candidate_pool_base,
+    .CANDIDATE_POOL_BASE,
     n_free * candidate_multiplier
   )
 
@@ -271,8 +272,8 @@ initialize_kmeans_plus_plus <- function(
     nrow(candidates) < n_free * candidate_density_factor &&
       nrow(candidates) < min_candidate_threshold
   ) {
-    cat(
-      "Info: Gamut filter reduced candidates. Broadening L-bounds for candidate generation using base init_lightness_bounds.\n"
+    cli::cli_alert_info(
+      "Gamut filter reduced candidates. Broadening L-bounds for candidate generation using base init_lightness_bounds."
     )
     broader_l_bounds <- base_init_lightness_bounds
     candidates_fallback <- generate_candidates(
@@ -293,11 +294,12 @@ initialize_kmeans_plus_plus <- function(
       to = "oklab"
     )
     # OKLAB tolerance for gamut validation via round-trip conversion
-    tolerance <- 1e-6
     valid_fb <- !is.na(rgb_fb[, 1]) &
-      abs(candidates_fallback[, 1] - oklab_fb_roundtrip[, 1]) < tolerance &
-      abs(candidates_fallback[, 2] - oklab_fb_roundtrip[, 2]) < tolerance &
-      abs(candidates_fallback[, 3] - oklab_fb_roundtrip[, 3]) < tolerance
+      abs(candidates_fallback[, 1] - oklab_fb_roundtrip[, 1]) <
+        .OKLAB_TOLERANCE &
+      abs(candidates_fallback[, 2] - oklab_fb_roundtrip[, 2]) <
+        .OKLAB_TOLERANCE &
+      abs(candidates_fallback[, 3] - oklab_fb_roundtrip[, 3]) < .OKLAB_TOLERANCE
     candidates <- candidates_fallback[valid_fb, , drop = FALSE]
   }
 
@@ -311,7 +313,9 @@ initialize_kmeans_plus_plus <- function(
     if (
       sum(valid_chroma) < n_free && sum(valid_chroma) < nrow(candidates) * 0.1
     ) {
-      cat("Info: Chroma filter is very restrictive. Relaxing it slightly.\n")
+      cli::cli_alert_info(
+        "Chroma filter is very restrictive. Relaxing it slightly."
+      )
       max_dev_relaxed <- max_dev * chroma_filter_params$relaxation_factor
       valid_chroma <- abs(cand_C - target_C) <= max_dev_relaxed
     }
@@ -319,8 +323,8 @@ initialize_kmeans_plus_plus <- function(
   }
 
   if (nrow(candidates) == 0 && n_free > 0) {
-    cat(
-      "Warning: No valid candidate colors found after all filters. Returning empty set.\n"
+    cli::cli_alert_warning(
+      "No valid candidate colors found after all filters. Returning empty set."
     )
     return(matrix(
       numeric(0),
@@ -407,7 +411,7 @@ initialize_harmony_based <- function(n_free, fixed_colors_oklab, hcl_bounds) {
     new_hues[2] <- (current_hues_sorted[1] + 240) %% 360
   } else {
     all_hues_for_gaps <- current_hues_sorted
-    for (i in 1:n_free) {
+    for (i in seq_len(n_free)) {
       if (length(all_hues_for_gaps) == 0) {
         all_hues_for_gaps <- c(stats::runif(1, 0, 359))
       }

@@ -4,7 +4,7 @@
 \alias{is_cvd_safe}
 \title{Check Palette CVD Safety}
 \usage{
-is_cvd_safe(colors, min_cvd_distance = 0.08)
+is_cvd_safe(colors, min_cvd_distance = 0.08, ...)
 }
 \arguments{
 \item{colors}{Character vector of hex colors or an OKLAB matrix.}
@@ -13,6 +13,8 @@ is_cvd_safe(colors, min_cvd_distance = 0.08)
 (in OK LAB space) that any two colors in the palette should maintain
 under simulated deuteranopia, protanopia, and tritanopia. Default is 0.08.
 Recall JND is ~0.02.}
+
+\item{...}{Additional arguments reserved for future use.}
 }
 \value{
 Logical. \code{TRUE} if the palette's \code{worst_case_min_distance} from

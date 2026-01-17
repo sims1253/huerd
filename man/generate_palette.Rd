@@ -16,7 +16,8 @@ generate_palette(
   return_metrics = TRUE,
   progress = interactive(),
   weights = NULL,
-  optimizer = "nloptr_cobyla"
+  optimizer = "nloptr_cobyla",
+  ...
 )
 }
 \arguments{
@@ -50,10 +51,11 @@ attributes. Default is TRUE.}
 \item{progress}{Logical. Show progress messages. Default is \code{interactive()}.}
 
 \item{weights}{Named numeric vector. Weights for multi-objective optimization.
-Supports: \code{c(distance = 1)} for discrete distance optimization (default),
+Supports: \code{c(distance = 1)} for discrete distance optimization,
 \code{c(smooth_repulsion = 1)} for smooth repulsion objective using inverse squared
 distances, or \code{c(smooth_logsumexp = 1)} for smooth log-sum-exp objective.
-Default is NULL (equivalent to pure distance optimization).}
+Default is NULL, which is internally equivalent to \code{c(distance = 1)} for
+most optimizers. For "nlopt_lbfgs", NULL defaults to \code{smooth_repulsion}.}
 
 \item{optimizer}{Character. Optimization algorithm to use. Currently supported:
 "nloptr_cobyla" (default) for deterministic optimization with constraint handling,
@@ -63,8 +65,11 @@ using the DIRECT algorithm (best choice for scientific reproducibility and high
 quality, though may be slower), "nlopt_neldermead" for derivative-free local
 optimization using the Nelder-Mead simplex algorithm (good alternative to COBYLA
 for robust local optimization), "nlopt_lbfgs" for gradient-based L-BFGS optimization
-(fastest convergence for smooth objectives, requires smooth weights). The framework
-is designed to easily support additional optimizers in future versions.}
+(fastest convergence for smooth objectives; works best with \code{smooth_repulsion} or
+\code{smooth_logsumexp} weights). The framework is designed to easily support
+additional optimizers in future versions.}
+
+\item{...}{Additional arguments reserved for future use.}
 }
 \value{
 A character vector of hex colors with class \code{huerd_palette}, automatically
@@ -145,9 +150,9 @@ neldermead_palette <- generate_palette(
   progress = FALSE
 )
 
-# Using smooth optimization with L-BFGS (fastest for large palettes)
+# Using smooth optimization with L-BFGS (efficient for larger palettes)
 smooth_palette <- generate_palette(
-  n = 8,
+  n = 12,
   weights = c(smooth_repulsion = 1),
   optimizer = "nlopt_lbfgs",
   progress = FALSE

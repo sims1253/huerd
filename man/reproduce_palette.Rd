@@ -4,7 +4,7 @@
 \alias{reproduce_palette}
 \title{Reproduce Palette from Existing huerd_palette Object}
 \usage{
-reproduce_palette(palette, progress = NULL)
+reproduce_palette(palette, progress = NULL, ...)
 }
 \arguments{
 \item{palette}{A huerd_palette object (result from \code{generate_palette()})
@@ -12,6 +12,8 @@ containing generation metadata.}
 
 \item{progress}{Logical. Show progress messages. Default is \code{interactive()}.
 If NULL, uses the progress setting from the original generation.}
+
+\item{...}{Additional arguments reserved for future use.}
 }
 \value{
 A character vector of hex colors with class \code{huerd_palette},
@@ -24,14 +26,21 @@ object using the stored generation metadata.
 \details{
 This function reads the generation metadata stored in the \code{generation_metadata}
 attribute of a huerd_palette object and re-runs \code{generate_palette()} with
-the exact same parameters. When a random seed was captured during original
-generation, the reproduction will be identical if the optimizer supports
-the usage of a seed. For deterministic optimizers like "nlopt_direct",
-reproduction should always be identical regardless of random seed.
+the exact same parameters.
+
+Reproducibility depends on the optimizer used:
+\itemize{
+\item \strong{Deterministic optimizers} ("nlopt_direct", "nloptr_cobyla",
+"nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
+regardless of random seed, as these algorithms produce the same results
+for the same inputs.
+\item \strong{Stochastic optimizers} ("sann"): Reproduction requires restoring
+the random seed captured during original generation. Call \code{set.seed()}
+before \code{generate_palette()} if you need reproducible results.
+}
 
 The function validates that the input object contains the necessary metadata
-and provides informative error messages if reproduction fails due to missing
-metadata or package version incompatibilities.
+and provides informative error messages if reproduction fails.
 }
 \examples{
 \dontrun{

@@ -1,3 +1,35 @@
+# huerd 0.5.3
+
+## Code Quality Improvements
+
+This release focuses on code quality, maintainability, and consistency improvements identified through comprehensive code review.
+
+### User Messaging
+- Replaced `cat()` calls with semantic `cli` messaging functions (`cli_alert_info()`, `cli_alert_warning()`, `cli_alert_success()`, `cli_inform()`) for better user experience
+- Added `cli` to package Imports
+
+### Type Safety & Performance
+- Replaced `sapply()` with `vapply()` for type-stable return values
+- Replaced `is.na()` with `anyNA()` for more efficient NA detection
+- Fixed style issues: `=` → `<-` for assignment, `1:n` → `seq_len(n)` for safer indexing, `T`/`F` → `TRUE`/`FALSE`
+
+### Code Organization
+- Added named constants for magic numbers: `.CANDIDATE_POOL_BASE`, `.MIN_DISTANCE_THRESHOLD`, `.OKLAB_TOLERANCE`
+- Extracted repeated clamping code to `.clamp_to_bounds()` helper function
+- Added `@param` documentation to internal helper functions
+- Removed dead/commented-out code
+
+### API Consistency
+- Added `...` parameter to exported functions for future extensibility
+- Fixed `simulate_palette_cvd()` to always return a named list for consistent API behavior
+
+## Bug Fixes
+- Corrected gradient formulas in smooth optimization objectives (`gradient_smooth_repulsion()` and `gradient_smooth_logsumexp()`)
+- Added input validation to gradient functions
+- Added numerical gradient verification tests to ensure correctness
+
+---
+
 # huerd 0.5.2 (2025-07-21)
 
 ## Bug Fixes

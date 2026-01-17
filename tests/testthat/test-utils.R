@@ -129,7 +129,9 @@ test_that("print.huerd_palette runs without error for basic palette", {
   class(palette) <- c("huerd_palette", class(palette))
 
   expect_no_error({
-    output <- capture.output(result <- print(palette))
+    output <- capture.output({
+      result <- print(palette)
+    })
     expect_identical(result, palette)
   })
 })
@@ -139,7 +141,9 @@ test_that("print.huerd_palette handles empty palette", {
   class(empty_palette) <- c("huerd_palette", class(empty_palette))
 
   expect_no_error({
-    output <- capture.output(result <- print(empty_palette))
+    output <- capture.output({
+      result <- print(empty_palette)
+    })
     expect_identical(result, empty_palette)
   })
 })
@@ -171,7 +175,9 @@ test_that("print.huerd_evaluation works correctly", {
   class(evaluation) <- "huerd_evaluation"
 
   expect_no_error({
-    output <- capture.output(result <- print(evaluation))
+    output <- capture.output({
+      result <- print(evaluation)
+    })
     expect_identical(result, evaluation)
   })
 })
@@ -183,7 +189,9 @@ test_that("print.huerd_simulation_result works for single CVD type", {
   attr(cvd_result, "severity") <- 1.0
 
   expect_no_error({
-    output <- capture.output(result <- print(cvd_result))
+    output <- capture.output({
+      result <- print(cvd_result)
+    })
     expect_identical(result, cvd_result)
   })
 })

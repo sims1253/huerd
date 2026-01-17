@@ -1043,3 +1043,40 @@ test_that("smooth optimization handles edge cases gracefully", {
     )
   })
 })
+
+test_that("L-BFGS optimizer behavior with non-smooth weights", {
+  # L-BFGS is designed for smooth objectives.
+
+  # When non-smooth weights are passed, it falls back to smooth_repulsion.
+  # This test documents this behavior.
+
+  # With NULL weights (default), L-BFGS uses smooth_repulsion internally
+  palette_default <- generate_palette(
+    n = 3,
+    optimizer = "nlopt_lbfgs",
+    progress = FALSE
+  )
+  expect_true(inherits(palette_default, "huerd_palette"))
+  expect_length(palette_default, 3)
+
+  # With distance weight, L-BFGS still works (uses smooth_repulsion)
+  # Note: This is a silent fallback behavior
+  palette_distance <- generate_palette(
+    n = 3,
+    weights = c(distance = 1),
+    optimizer = "nlopt_lbfgs",
+    progress = FALSE
+  )
+  expect_true(inherits(palette_distance, "huerd_palette"))
+  expect_length(palette_distance, 3)
+
+  # Explicit smooth weights produce valid results
+  palette_smooth <- generate_palette(
+    n = 3,
+    weights = c(smooth_repulsion = 1),
+    optimizer = "nlopt_lbfgs",
+    progress = FALSE
+  )
+  expect_true(inherits(palette_smooth, "huerd_palette"))
+  expect_length(palette_smooth, 3)
+})

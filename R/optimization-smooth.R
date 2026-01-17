@@ -79,19 +79,28 @@ objective_smooth_logsumexp <- function(colors_oklab, k = 10) {
 #' @return Matrix of gradients (n x 3) for each color component
 #' @details
 #' For each color c_k, the gradient is:
-#' ∇_k f = -2 * Σ_i≠k (1/(d_ik^2 + ε)^2) * (c_k - c_i) / d_ik
+#' ∇_k f = -2 * Σ_i≠k (c_k - c_i) / (d_ik^2 + ε)^2
 #' where d_ik is the Euclidean distance between colors k and i.
 #' @noRd
 gradient_smooth_repulsion <- function(colors_oklab, epsilon = 1e-8) {
+  # Validate inputs
+  if (!is.matrix(colors_oklab) || ncol(colors_oklab) != 3) {
+    stop("colors_oklab must be a matrix with 3 columns")
+  }
+
   n_colors <- nrow(colors_oklab)
+  if (n_colors < 2) {
+    return(matrix(0, nrow = n_colors, ncol = 3)) # No gradient for single color
+  }
+
   n_dims <- ncol(colors_oklab)
 
   # Initialize gradient matrix
   gradient <- matrix(0, nrow = n_colors, ncol = n_dims)
 
   # Calculate gradients for each color
-  for (k in 1:n_colors) {
-    for (i in 1:n_colors) {
+  for (k in seq_len(n_colors)) {
+    for (i in seq_len(n_colors)) {
       if (i != k) {
         # Distance between colors k and i
         diff_vector <- colors_oklab[k, ] - colors_oklab[i, ]
@@ -99,7 +108,7 @@ gradient_smooth_repulsion <- function(colors_oklab, epsilon = 1e-8) {
 
         # Gradient contribution from pair (k, i)
         if (distance > epsilon) {
-          gradient_factor <- -2 / ((distance^2 + epsilon)^2) / distance
+          gradient_factor <- -2 / ((distance^2 + epsilon)^2)
           gradient[k, ] <- gradient[k, ] + gradient_factor * diff_vector
         }
       }
@@ -116,10 +125,20 @@ gradient_smooth_repulsion <- function(colors_oklab, epsilon = 1e-8) {
 #'
 #' @param colors_oklab Matrix of colors in OKLAB space (n x 3)
 #' @param k Temperature parameter (default: 10)
+#' @param epsilon Small constant for numerical stability (default: 1e-8)
 #' @return Matrix of gradients (n x 3) for each color component
 #' @noRd
-gradient_smooth_logsumexp <- function(colors_oklab, k = 10) {
+gradient_smooth_logsumexp <- function(colors_oklab, k = 10, epsilon = 1e-8) {
+  # Validate inputs
+  if (!is.matrix(colors_oklab) || ncol(colors_oklab) != 3) {
+    stop("colors_oklab must be a matrix with 3 columns")
+  }
+
   n_colors <- nrow(colors_oklab)
+  if (n_colors < 2) {
+    return(matrix(0, nrow = n_colors, ncol = 3)) # No gradient for single color
+  }
+
   n_dims <- ncol(colors_oklab)
 
   # Initialize gradient matrix
@@ -133,18 +152,22 @@ gradient_smooth_logsumexp <- function(colors_oklab, k = 10) {
   # Apply log-sum-exp trick for numerical stability
   max_val <- max(neg_k_distances[neg_k_distances != -Inf])
   exp_values <- exp(neg_k_distances - max_val)
-  sum_exp <- sum(exp_values)
+  # Note: The full matrix counts each pair twice, but the objective uses unique pairs.
+  # We divide by 2 to normalize weights correctly with the objective function.
+  sum_exp <- sum(exp_values) / 2
 
   # Calculate gradients for each color
-  for (m in 1:n_colors) {
-    for (n in 1:n_colors) {
+  for (m in seq_len(n_colors)) {
+    for (n in seq_len(n_colors)) {
       if (m != n) {
         diff_vector <- colors_oklab[m, ] - colors_oklab[n, ]
         distance <- distances[m, n]
 
-        if (distance > 1e-8) {
+        if (distance > epsilon) {
           weight <- exp_values[m, n] / sum_exp
-          gradient_factor <- -weight * (-k) / distance
+          # For f = (1/k)*log(sum(exp(-k*d))), the gradient is:
+          # ∂f/∂c_m = Σ_n weight_mn * (-1) * (c_m - c_n) / d_mn
+          gradient_factor <- -weight / distance
           gradient[m, ] <- gradient[m, ] + gradient_factor * diff_vector
         }
       }

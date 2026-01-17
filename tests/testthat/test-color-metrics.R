@@ -413,12 +413,12 @@ test_that("evaluate_palette_quality handles hex colors input directly (bug fix)"
   hex_colors <- c("#FF0000", "#00FF00", "#0000FF")
 
   # Should not crash and should work correctly
+  result <- NULL
   expect_no_error({
     result <- evaluate_palette_quality(hex_colors)
   })
 
   # Should return proper structure
-  result <- evaluate_palette_quality(hex_colors)
   expect_true(is.list(result))
   expect_equal(result$n_colors, 3)
   expect_true("distances" %in% names(result))

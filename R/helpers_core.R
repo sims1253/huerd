@@ -415,7 +415,7 @@ calculate_perceptual_distances <- function(colors_oklab) {
   if (nrow(colors_oklab) < 2) {
     mat_out <- matrix(0, nrow = nrow(colors_oklab), ncol = nrow(colors_oklab))
     # If the single color has NA components, distance to self is NA
-    if (any(is.na(colors_oklab))) {
+    if (anyNA(colors_oklab)) {
       mat_out[,] <- NA_real_
     }
     return(mat_out)

@@ -8,6 +8,7 @@
 #' Returns raw metrics without subjective scoring for post-hoc analysis.
 #'
 #' @param colors A character vector of hex colors, or a matrix of colors in OK LAB space.
+#' @param ... Additional arguments reserved for future use.
 #' @return A list of evaluation metrics with class `huerd_evaluation`.
 #'         Contains raw metrics including distances, CVD safety, and distribution
 #'         for objective analysis without subjective heuristic scoring.
@@ -19,7 +20,7 @@
 #'
 #' # The performance_ratio compares the achieved min distance to an estimated maximum
 #' # metrics$distances$performance_ratio
-evaluate_palette <- function(colors) {
+evaluate_palette <- function(colors, ...) {
   # --- Input Validation and Pre-processing ---
   if (is.character(colors)) {
     if (length(colors) == 0) {
@@ -225,7 +226,7 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
   # Convert OKLAB to hex colors for CVD simulation
   hex_colors <- .oklab_to_hex(oklab_colors)
 
-  if (any(is.na(hex_colors))) {
+  if (anyNA(hex_colors)) {
     warning(
       "CVD metrics: Some input colors are outside sRGB gamut; results may be NA.",
       call. = FALSE
@@ -323,7 +324,7 @@ analyze_color_distribution <- function(oklab_colors) {
   n <- nrow(oklab_colors)
   na_range <- c(NA_real_, NA_real_)
 
-  if (n == 0 || any(is.na(oklab_colors))) {
+  if (n == 0 || anyNA(oklab_colors)) {
     return(list(
       lightness_oklab = list(range = na_range, mean = NA_real_, sd = NA_real_),
       chroma_oklab = list(range = na_range, mean = NA_real_, sd = NA_real_),
@@ -350,18 +351,18 @@ analyze_color_distribution <- function(oklab_colors) {
 
   return(list(
     lightness_oklab = list(
-      range = if (n > 0) range(L_values, na.rm = T) else na_range,
-      mean = if (n > 0) mean(L_values, na.rm = T) else NA_real_,
-      sd = if (n > 1) stats::sd(L_values, na.rm = T) else NA_real_
+      range = if (n > 0) range(L_values, na.rm = TRUE) else na_range,
+      mean = if (n > 0) mean(L_values, na.rm = TRUE) else NA_real_,
+      sd = if (n > 1) stats::sd(L_values, na.rm = TRUE) else NA_real_
     ),
     chroma_oklab = list(
-      range = if (n > 0) range(chroma, na.rm = T) else na_range,
-      mean = if (n > 0) mean(chroma, na.rm = T) else NA_real_,
-      sd = if (n > 1) stats::sd(chroma, na.rm = T) else NA_real_
+      range = if (n > 0) range(chroma, na.rm = TRUE) else na_range,
+      mean = if (n > 0) mean(chroma, na.rm = TRUE) else NA_real_,
+      sd = if (n > 1) stats::sd(chroma, na.rm = TRUE) else NA_real_
     ),
     hue_oklab = list(
       circular_variance = circ_var,
-      range_degrees = if (n > 0) range(hue_deg, na.rm = T) else na_range
+      range_degrees = if (n > 0) range(hue_deg, na.rm = TRUE) else na_range
     )
   ))
 }

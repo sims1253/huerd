@@ -220,13 +220,25 @@ print.huerd_simulation_result <- function(x, ...) {
   sim_type_attr <- attr(x, "cvd_type") %||% "unknown"
   severity_attr <- attr(x, "severity") %||% NA_real_
 
-  if (is.list(x) && "original" %in% names(x)) {
-    cat(
-      "\n-- huerd CVD Simulation Result (Multiple Types, Severity: ",
-      sprintf('%.2f', severity_attr),
-      ") --\n",
-      sep = ""
-    )
+  if (is.list(x)) {
+    # Determine if this is "all" types (has original) or single type
+    if ("original" %in% names(x)) {
+      cat(
+        "\n-- huerd CVD Simulation Result (Multiple Types, Severity: ",
+        sprintf('%.2f', severity_attr),
+        ") --\n",
+        sep = ""
+      )
+    } else {
+      cat(
+        "\n-- huerd CVD Simulation Result (Type: ",
+        sim_type_attr,
+        ", Severity: ",
+        sprintf('%.2f', severity_attr),
+        ") --\n",
+        sep = ""
+      )
+    }
     for (type in names(x)) {
       cat("Palette for: ", type, "\n", sep = "")
       colors_vec <- x[[type]]
@@ -236,16 +248,6 @@ print.huerd_simulation_result <- function(x, ...) {
         print_color_vector(colors_vec)
       }
     }
-  } else if (is.character(x)) {
-    cat(
-      "\n-- huerd CVD Simulation Result (Type: ",
-      sim_type_attr,
-      ", Severity: ",
-      sprintf('%.2f', severity_attr),
-      ") --\n",
-      sep = ""
-    )
-    print_color_vector(x)
   } else {
     cat("\n-- huerd CVD Simulation Result --\n")
     cat("Unrecognized simulation result format.\n")
@@ -263,6 +265,8 @@ print.huerd_simulation_result <- function(x, ...) {
 }
 
 #' Calculate sRGB luminance for color contrast
+#' @param color_val A hex color string
+#' @return Numeric luminance value between 0 and 1
 #' @noRd
 .calculate_luminance <- function(color_val) {
   col_rgb <- grDevices::col2rgb(color_val)
@@ -277,6 +281,8 @@ print.huerd_simulation_result <- function(x, ...) {
 }
 
 #' Print a single color with swatch
+#' @param color_val A hex color string
+#' @param item_label Label text to display
 #' @noRd
 .print_color_with_swatch <- function(color_val, item_label) {
   if (!.is_valid_hex_color(color_val)) {
@@ -333,3 +339,13 @@ print_color_vector <- function(colors_vec, indent = "  ") {
     )
   )
 }
+
+# Constants
+#' @noRd
+.CANDIDATE_POOL_BASE <- 2000
+
+#' @noRd
+.MIN_DISTANCE_THRESHOLD <- 0.08
+
+#' @noRd
+.OKLAB_TOLERANCE <- 1e-6

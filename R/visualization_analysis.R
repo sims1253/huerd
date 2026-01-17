@@ -13,6 +13,7 @@
 #'
 #' @param colors A character vector of hex colors or a matrix of colors in OKLAB space.
 #' @param force_font_scale Allows to force a specific font scale
+#' @param ... Additional arguments reserved for future use.
 #' @return Invisibly returns the evaluation result from evaluate_palette.
 #' @importFrom grid gpar grid.rect grid.text grobTree textGrob rectGrob
 #' @importFrom gridExtra grid.arrange
@@ -23,7 +24,8 @@
 #' plot_palette_analysis(colors)
 plot_palette_analysis <- function(
   colors,
-  force_font_scale = NULL
+  force_font_scale = NULL,
+  ...
 ) {
   if (length(colors) < 2) {
     warning("Need at least two colors for a palette.")
@@ -140,8 +142,8 @@ plot_palette_analysis <- function(
 create_color_swatches <- function(hex_colors, evaluation, font_scale = 0.8) {
   n <- length(hex_colors)
 
-  rgp_colors = farver::decode_colour(hex_colors)
-  oklab_colors = farver::convert_colour(rgp_colors, from = "rgb", to = "oklab")
+  rgp_colors <- farver::decode_colour(hex_colors)
+  oklab_colors <- farver::convert_colour(rgp_colors, from = "rgb", to = "oklab")
 
   # Create a viewport for this subplot
   vp <- grid::viewport(name = "swatches")
@@ -158,7 +160,7 @@ create_color_swatches <- function(hex_colors, evaluation, font_scale = 0.8) {
 
   # Color swatches
   swatch_width <- 0.9 / n
-  for (i in 1:n) {
+  for (i in seq_len(n)) {
     x_pos <- (i - 0.5) / n
 
     # Color rectangle
@@ -251,16 +253,16 @@ create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
   # Normalize distances for color mapping
   max_dist <- max(dist_matrix, na.rm = TRUE)
   # min_dist <- min(dist_matrix[dist_matrix > 0], na.rm = TRUE)
-  min_dist <- 0.08
+  min_dist <- .MIN_DISTANCE_THRESHOLD
 
-  # TODO use the 0.08 threshold for meaningful difference as a lower bound and something reasonable as upper bound.
-  # 0.08 # Reasonable multiple of the OKLAB JND of ~0.02
+  # TODO use the .MIN_DISTANCE_THRESHOLD threshold for meaningful difference as a lower bound and something reasonable as upper bound.
+  # .MIN_DISTANCE_THRESHOLD # Reasonable multiple of the OKLAB JND of ~0.02
   # And same for the max dist. The scale should be fixed to be able to compare palettes.
 
   # TODO automatically center the matrix
 
-  for (i in 1:n) {
-    for (j in 1:n) {
+  for (i in seq_len(n)) {
+    for (j in seq_len(n)) {
       x_pos <- 0.1 + (j - 0.5) * cell_size
       y_pos <- 0.88 - (i - 0.5) * cell_size
 
@@ -308,7 +310,7 @@ create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
   }
 
   # Add axis labels
-  for (i in 1:n) {
+  for (i in seq_len(n)) {
     # X-axis labels
     grobs[[length(grobs) + 1]] <- grid::textGrob(
       as.character(i),
@@ -362,8 +364,8 @@ create_color_space <- function(hex_colors, font_scale = 0.8) {
   #a_range <- range(oklab_colors[, 2], na.rm = TRUE)
   #b_range <- range(oklab_colors[, 3], na.rm = TRUE)
 
-  a_range = c(-0.35, 0.35)
-  b_range = c(-0.35, 0.35)
+  a_range <- c(-0.35, 0.35)
+  b_range <- c(-0.35, 0.35)
 
   # Expand ranges slightly for better visualization
   a_padding <- diff(a_range) * 0.1
@@ -389,7 +391,7 @@ create_color_space <- function(hex_colors, font_scale = 0.8) {
   }
 
   # Plot points
-  for (i in 1:n) {
+  for (i in seq_len(n)) {
     x_pos <- scale_a(oklab_colors[i, 2])
     y_pos <- scale_b(oklab_colors[i, 3])
 
@@ -458,7 +460,7 @@ create_cvd_simulation <- function(hex_colors, font_scale = 0.8) {
     "Greyscale"
   )
 
-  for (row in 1:5) {
+  for (row in seq_len(5)) {
     y_pos <- 0.85 - (row - 1) * 0.16
 
     # Row label
@@ -487,7 +489,7 @@ create_cvd_simulation <- function(hex_colors, font_scale = 0.8) {
 
     # Color swatches
     swatch_width <- 0.7 / n
-    for (i in 1:n) {
+    for (i in seq_len(n)) {
       x_pos <- 0.25 + (i - 0.5) * swatch_width
 
       # Color rectangle
@@ -502,7 +504,7 @@ create_cvd_simulation <- function(hex_colors, font_scale = 0.8) {
   }
 
   # Add color indices below
-  for (i in 1:n) {
+  for (i in seq_len(n)) {
     x_pos <- 0.2 + (i - 0.5) * swatch_width
     grobs[[length(grobs) + 1]] <- grid::textGrob(
       as.character(i),
@@ -527,10 +529,10 @@ create_comparative_palettes <- function(
   grobs <- list()
 
   for (i in seq_along(distance_data)) {
-    distance_data[[i]] = distance_data[[i]][distance_data[[i]] != 0]
+    distance_data[[i]] <- distance_data[[i]][distance_data[[i]] != 0]
   }
 
-  n_palettes = length(distance_data)
+  n_palettes <- length(distance_data)
 
   plot_area_x <- c(0.15, 0.95)
   plot_area_y <- c(0.15, 0.85)
@@ -605,7 +607,7 @@ create_comparative_palettes <- function(
     )
 
     # Scale stats to plot coordinates
-    scaled_stats <- sapply(stats, scale_y)
+    scaled_stats <- vapply(stats, scale_y, numeric(1))
 
     # Colors for highlighting
     is_input_palette <- palette_nm == "huerd"
@@ -677,5 +679,5 @@ get_ref_palette_distances <- function(palette_name, n) {
     to = "oklab"
   )
 
-  return(ref_dist_matrix <- calculate_perceptual_distances(ref_oklab))
+  return(calculate_perceptual_distances(ref_oklab))
 }

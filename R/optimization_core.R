@@ -1,3 +1,13 @@
+#' Clamp values to bounds
+#' @param values Numeric vector to clamp
+#' @param lower Lower bound
+#' @param upper Upper bound
+#' @return Clamped values
+#' @noRd
+.clamp_to_bounds <- function(values, lower, upper) {
+  pmax(lower, pmin(upper, values))
+}
+
 #' Optimize Color Palette using Pure Minimax Box-Constrained Optimization
 #'
 #' This function takes an initial set of colors and optimizes the positions of
@@ -105,7 +115,7 @@ optimize_colors_constrained <- function(
       list(
         solution = initial_free_params,
         status = -999,
-        message = paste("Error in nloptr:", e$message),
+        message = paste0("Error in nloptr: ", e$message),
         objective = initial_obj_val
       )
     }
@@ -114,17 +124,20 @@ optimize_colors_constrained <- function(
   # Process and return results
   optimized_free_colors_oklab <- matrix(result$solution, ncol = 3, byrow = TRUE)
   # Final clamp to ensure solution is strictly within bounds
-  optimized_free_colors_oklab[, 1] <- pmax(
+  optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 1],
     lower_bounds[1],
-    pmin(upper_bounds[1], optimized_free_colors_oklab[, 1])
+    upper_bounds[1]
   )
-  optimized_free_colors_oklab[, 2] <- pmax(
+  optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 2],
     lower_bounds[2],
-    pmin(upper_bounds[2], optimized_free_colors_oklab[, 2])
+    upper_bounds[2]
   )
-  optimized_free_colors_oklab[, 3] <- pmax(
+  optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 3],
     lower_bounds[3],
-    pmin(upper_bounds[3], optimized_free_colors_oklab[, 3])
+    upper_bounds[3]
   )
 
   final_colors_oklab <- initial_colors_oklab
@@ -210,17 +223,9 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
   # Convert to 0-1 range (colorspace expects 0-1, farver returns 0-255)
   rgb_matrix_01 <- rgb_matrix_255 / 255
 
-  if (any(is.na(rgb_matrix_01))) {
+  if (anyNA(rgb_matrix_01)) {
     return(0)
   }
-
-  #if (!is.matrix(rgb_matrix_01) || ncol(rgb_matrix_01) != 3) {
-  # Force matrix structure if lost during conversion
-  #  rgb_matrix_01 <- as.matrix(rgb_matrix_01)
-  #  if (ncol(rgb_matrix_01) != 3) {
-  #    return(0) # Invalid color data
-  #  }
-  #}
 
   srgb_obj <- colorspace::sRGB(rgb_matrix_01)
 
@@ -357,7 +362,7 @@ optimize_colors_sann <- function(
       list(
         par = initial_free_params,
         convergence = -999,
-        message = paste("Error in optim SANN:", e$message),
+        message = paste0("Error in optim SANN: ", e$message),
         value = initial_obj_val
       )
     }
@@ -367,17 +372,20 @@ optimize_colors_sann <- function(
   optimized_free_colors_oklab <- matrix(result$par, ncol = 3, byrow = TRUE)
 
   # Final clamp to ensure solution is strictly within bounds
-  optimized_free_colors_oklab[, 1] <- pmax(
+  optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 1],
     lower_bounds[1],
-    pmin(upper_bounds[1], optimized_free_colors_oklab[, 1])
+    upper_bounds[1]
   )
-  optimized_free_colors_oklab[, 2] <- pmax(
+  optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 2],
     lower_bounds[2],
-    pmin(upper_bounds[2], optimized_free_colors_oklab[, 2])
+    upper_bounds[2]
   )
-  optimized_free_colors_oklab[, 3] <- pmax(
+  optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 3],
     lower_bounds[3],
-    pmin(upper_bounds[3], optimized_free_colors_oklab[, 3])
+    upper_bounds[3]
   )
 
   final_colors_oklab <- initial_colors_oklab
@@ -514,7 +522,7 @@ optimize_colors_nlopt_direct <- function(
       list(
         solution = initial_free_params,
         status = -999,
-        message = paste("Error in nloptr DIRECT:", e$message),
+        message = paste0("Error in nloptr DIRECT: ", e$message),
         objective = initial_obj_val
       )
     }
@@ -523,17 +531,20 @@ optimize_colors_nlopt_direct <- function(
   # Process and return results
   optimized_free_colors_oklab <- matrix(result$solution, ncol = 3, byrow = TRUE)
   # Final clamp to ensure solution is strictly within bounds
-  optimized_free_colors_oklab[, 1] <- pmax(
+  optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 1],
     lower_bounds[1],
-    pmin(upper_bounds[1], optimized_free_colors_oklab[, 1])
+    upper_bounds[1]
   )
-  optimized_free_colors_oklab[, 2] <- pmax(
+  optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 2],
     lower_bounds[2],
-    pmin(upper_bounds[2], optimized_free_colors_oklab[, 2])
+    upper_bounds[2]
   )
-  optimized_free_colors_oklab[, 3] <- pmax(
+  optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 3],
     lower_bounds[3],
-    pmin(upper_bounds[3], optimized_free_colors_oklab[, 3])
+    upper_bounds[3]
   )
 
   final_colors_oklab <- initial_colors_oklab
@@ -665,7 +676,7 @@ optimize_colors_nlopt_neldermead <- function(
       list(
         solution = initial_free_params,
         status = -999,
-        message = paste("Error in nloptr Nelder-Mead:", e$message),
+        message = paste0("Error in nloptr Nelder-Mead: ", e$message),
         objective = initial_obj_val
       )
     }
@@ -674,17 +685,20 @@ optimize_colors_nlopt_neldermead <- function(
   # Process and return results
   optimized_free_colors_oklab <- matrix(result$solution, ncol = 3, byrow = TRUE)
   # Final clamp to ensure solution is strictly within bounds
-  optimized_free_colors_oklab[, 1] <- pmax(
+  optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 1],
     lower_bounds[1],
-    pmin(upper_bounds[1], optimized_free_colors_oklab[, 1])
+    upper_bounds[1]
   )
-  optimized_free_colors_oklab[, 2] <- pmax(
+  optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 2],
     lower_bounds[2],
-    pmin(upper_bounds[2], optimized_free_colors_oklab[, 2])
+    upper_bounds[2]
   )
-  optimized_free_colors_oklab[, 3] <- pmax(
+  optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 3],
     lower_bounds[3],
-    pmin(upper_bounds[3], optimized_free_colors_oklab[, 3])
+    upper_bounds[3]
   )
 
   final_colors_oklab <- initial_colors_oklab
@@ -717,6 +731,9 @@ optimize_colors_nlopt_neldermead <- function(
 #' @param initial_colors_oklab Initial color matrix in OKLAB space
 #' @param fixed_mask Logical vector indicating which colors are fixed
 #' @param max_iterations Maximum optimization iterations
+#' @param weights Named numeric vector specifying which smooth objective to use.
+#'   If contains "smooth_logsumexp" with positive value, uses log-sum-exp objective.
+#'   Otherwise uses smooth repulsion objective. Default is NULL (uses repulsion).
 #' @param track_states Whether to track optimization states
 #' @param save_every Save state every N iterations
 #' @param return_states Whether to return optimization states
@@ -741,11 +758,17 @@ optimize_colors_lbfgs <- function(
   # Track iteration count
   eval_f_env <- new.env()
   eval_f_env$iter <- 0
-  optimization_states <- list()
+
+  # Initialize state tracking if enabled
+  optimization_states <- NULL
+  if (track_states) {
+    optimization_states <- list()
+  }
 
   # Define bounds for free colors (OKLAB space)
-  lower_bounds <- rep(c(0, -0.4, -0.4), n_free_colors)
-  upper_bounds <- rep(c(1, 0.4, 0.4), n_free_colors)
+  # Using 0.001/0.999 to avoid numerical issues at exact boundaries
+  lower_bounds <- rep(c(0.001, -0.4, -0.4), n_free_colors)
+  upper_bounds <- rep(c(0.999, 0.4, 0.4), n_free_colors)
 
   # Determine which smooth objective to use based on weights
   use_logsumexp <- !is.null(weights) &&
@@ -852,7 +875,7 @@ optimize_colors_lbfgs <- function(
           iterations = eval_f_env$iter,
           nloptr_status = -1,
           final_objective_value = NA_real_,
-          status_message = paste("L-BFGS optimization failed:", e$message)
+          status_message = paste0("L-BFGS optimization failed: ", e$message)
         )
       )
     }

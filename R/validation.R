@@ -33,7 +33,10 @@ validate_color_input_smart <- function(
     validation_result$valid <- FALSE
     validation_result$errors <- c(
       validation_result$errors,
-      "Colors must be character vector (hex) or numeric matrix (OKLAB)"
+      paste0(
+        "Cannot generate palette: no base colors provided ",
+        "and n_colors not specified"
+      )
     )
   }
 
@@ -96,16 +99,16 @@ validate_hex_colors <- function(colors, validation_result, strict_mode) {
       validation_result$valid <- FALSE
       validation_result$errors <- c(
         validation_result$errors,
-        paste(
-          "Invalid hex colors:",
+        paste0(
+          "Invalid hex colors: ",
           paste(colors[invalid_hex], collapse = ", ")
         )
       )
     } else {
       validation_result$warnings <- c(
         validation_result$warnings,
-        paste(
-          "Invalid hex colors will be ignored:",
+        paste0(
+          "Invalid hex colors will be ignored: ",
           paste(
             colors[invalid_hex][1:min(3, sum(invalid_hex))],
             collapse = ", "
@@ -169,7 +172,7 @@ validate_oklab_matrix <- function(colors, validation_result, strict_mode) {
   }
 
   # Check for missing values
-  if (any(is.na(colors))) {
+  if (anyNA(colors)) {
     if (strict_mode) {
       validation_result$valid <- FALSE
       validation_result$errors <- c(

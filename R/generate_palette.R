@@ -56,7 +56,7 @@
   n_fixed <- length(include_colors)
 
   if (progress) {
-    cat("Preparing for palette generation...\n")
+    cli::cli_alert_info("Preparing for palette generation...")
   }
 
   fixed_oklab <- NULL
@@ -117,13 +117,8 @@
   progress
 ) {
   if (progress) {
-    cat(
-      "Initializing ",
-      n_free,
-      " free colors (method: ",
-      initialization,
-      ")...\n",
-      sep = ""
+    cli::cli_inform(
+      "Initializing {n_free} free colors (method: {initialization})..."
     )
   }
 
@@ -143,13 +138,8 @@
 
   if (actual_n_init_free < n_free) {
     if (progress) {
-      cat(
-        "Warning: Initialization generated ",
-        actual_n_init_free,
-        " of ",
-        n_free,
-        " requested free colors. Palette will be smaller.\n",
-        sep = ""
+      cli::cli_alert_warning(
+        "Initialization generated {actual_n_init_free} of {n_free} requested free colors. Palette will be smaller."
       )
     }
     if (actual_n_init_free == 0) {
@@ -190,13 +180,8 @@
   weights = NULL
 ) {
   if (progress && n_free > 0) {
-    cat(
-      "Optimizing ",
-      n_free,
-      " free colors using ",
-      optimizer,
-      "...\n",
-      sep = ""
+    cli::cli_inform(
+      "Optimizing {n_free} free colors using {optimizer}..."
     )
   }
 
@@ -252,7 +237,7 @@
   generation_metadata = NULL
 ) {
   if (progress) {
-    cat("Finalizing palette...\n")
+    cli::cli_alert_info("Finalizing palette...")
   }
 
   # Convert to hex first, then sort by brightness (due to gamut clamping effects)
@@ -298,7 +283,7 @@
   }
 
   if (progress) {
-    cat("Done.\n")
+    cli::cli_alert_success("Done")
   }
 
   hex_colors
@@ -331,10 +316,11 @@
 #'   attributes. Default is TRUE.
 #' @param progress Logical. Show progress messages. Default is `interactive()`.
 #' @param weights Named numeric vector. Weights for multi-objective optimization.
-#'   Supports: `c(distance = 1)` for discrete distance optimization (default),
+#'   Supports: `c(distance = 1)` for discrete distance optimization,
 #'   `c(smooth_repulsion = 1)` for smooth repulsion objective using inverse squared
 #'   distances, or `c(smooth_logsumexp = 1)` for smooth log-sum-exp objective.
-#'   Default is NULL (equivalent to pure distance optimization).
+#'   Default is NULL, which is internally equivalent to `c(distance = 1)` for
+#'   most optimizers. For "nlopt_lbfgs", NULL defaults to `smooth_repulsion`.
 #' @param optimizer Character. Optimization algorithm to use. Currently supported:
 #'   "nloptr_cobyla" (default) for deterministic optimization with constraint handling,
 #'   "sann" for stochastic simulated annealing (excellent quality but not perfectly
@@ -343,8 +329,10 @@
 #'   quality, though may be slower), "nlopt_neldermead" for derivative-free local
 #'   optimization using the Nelder-Mead simplex algorithm (good alternative to COBYLA
 #'   for robust local optimization), "nlopt_lbfgs" for gradient-based L-BFGS optimization
-#'   (fastest convergence for smooth objectives, requires smooth weights). The framework
-#'   is designed to easily support additional optimizers in future versions.
+#'   (fastest convergence for smooth objectives; works best with `smooth_repulsion` or
+#'   `smooth_logsumexp` weights). The framework is designed to easily support
+#'   additional optimizers in future versions.
+#' @param ... Additional arguments reserved for future use.
 #'
 #' @return A character vector of hex colors with class `huerd_palette`, automatically
 #'   sorted by brightness (lightness). If `return_metrics = TRUE`, includes evaluation
@@ -414,9 +402,9 @@
 #'   progress = FALSE
 #' )
 #'
-#' # Using smooth optimization with L-BFGS (fastest for large palettes)
+#' # Using smooth optimization with L-BFGS (efficient for larger palettes)
 #' smooth_palette <- generate_palette(
-#'   n = 8,
+#'   n = 12,
 #'   weights = c(smooth_repulsion = 1),
 #'   optimizer = "nlopt_lbfgs",
 #'   progress = FALSE
@@ -451,7 +439,8 @@ generate_palette <- function(
   return_metrics = TRUE,
   progress = interactive(),
   weights = NULL,
-  optimizer = "nloptr_cobyla"
+  optimizer = "nloptr_cobyla",
+  ...
 ) {
   generation_metadata <- list(
     n_colors = n,
@@ -564,6 +553,7 @@ generate_palette <- function(
 #'   containing generation metadata.
 #' @param progress Logical. Show progress messages. Default is `interactive()`.
 #'   If NULL, uses the progress setting from the original generation.
+#' @param ... Additional arguments reserved for future use.
 #'
 #' @return A character vector of hex colors with class `huerd_palette`,
 #'   identical to the input palette when reproduction is successful.
@@ -571,14 +561,21 @@ generate_palette <- function(
 #' @details
 #' This function reads the generation metadata stored in the `generation_metadata`
 #' attribute of a huerd_palette object and re-runs `generate_palette()` with
-#' the exact same parameters. When a random seed was captured during original
-#' generation, the reproduction will be identical if the optimizer supports
-#' the usage of a seed. For deterministic optimizers like "nlopt_direct",
-#' reproduction should always be identical regardless of random seed.
+#' the exact same parameters.
+#'
+#' Reproducibility depends on the optimizer used:
+#' \itemize{
+#'   \item **Deterministic optimizers** ("nlopt_direct", "nloptr_cobyla",
+#'     "nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
+#'     regardless of random seed, as these algorithms produce the same results
+#'     for the same inputs.
+#'   \item **Stochastic optimizers** ("sann"): Reproduction requires restoring
+#'     the random seed captured during original generation. Call `set.seed()`
+#'     before `generate_palette()` if you need reproducible results.
+#' }
 #'
 #' The function validates that the input object contains the necessary metadata
-#' and provides informative error messages if reproduction fails due to missing
-#' metadata or package version incompatibilities.
+#' and provides informative error messages if reproduction fails.
 #'
 #' @examples
 #' \dontrun{
@@ -603,7 +600,7 @@ generate_palette <- function(
 #' }
 #'
 #' @export
-reproduce_palette <- function(palette, progress = NULL) {
+reproduce_palette <- function(palette, progress = NULL, ...) {
   # Validate input
   if (!inherits(palette, "huerd_palette")) {
     stop(
@@ -657,7 +654,7 @@ reproduce_palette <- function(palette, progress = NULL) {
   # Restore random seed if available
   if (!is.null(metadata$seed)) {
     if (progress) {
-      cat("Restoring random seed for reproducibility...\n")
+      cli::cli_alert_info("Restoring random seed for reproducibility...")
     }
     .Random.seed <<- metadata$seed
   }
@@ -677,7 +674,7 @@ reproduce_palette <- function(palette, progress = NULL) {
   }
 
   if (progress) {
-    cat("Reproducing palette using stored metadata...\n")
+    cli::cli_alert_info("Reproducing palette using stored metadata...")
   }
 
   # Reproduce the palette using stored parameters

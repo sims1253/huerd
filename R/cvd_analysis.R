@@ -10,10 +10,12 @@
 #'   Default is 1.0.
 #' @param plot Logical. Whether to plot a comparison using base R graphics.
 #'   Default is FALSE.
+#' @param ... Additional arguments reserved for future use.
 #'
-#' @return If `cvd_type` is "all", returns a list with simulated palettes for
-#'   each type (and original). Otherwise returns a character vector of simulated hex colors.
-#'   The output object also inherits from `huerd_simulation_result`.
+#' @return A list with simulated palettes. If `cvd_type` is "all", the list
+#'   contains elements `original`, `protan`, `deutan`, and `tritan`. For a single
+#'   CVD type, the list contains a single element named after that type (e.g.,
+#'   `protan`). The output object also inherits from `huerd_simulation_result`.
 #'
 #' @examples
 #' palette_ex <- generate_palette(6, progress = FALSE)
@@ -32,7 +34,8 @@ simulate_palette_cvd <- function(
   colors,
   cvd_type = c("all", "protan", "deutan", "tritan"),
   severity = 1.0,
-  plot = FALSE
+  plot = FALSE,
+  ...
 ) {
   cvd_type_arg <- match.arg(cvd_type)
 
@@ -57,7 +60,9 @@ simulate_palette_cvd <- function(
     res <- if (cvd_type_arg == "all") {
       list(original = character(0))
     } else {
-      character(0)
+      res_list <- list()
+      res_list[[cvd_type_arg]] <- character(0)
+      res_list
     }
     class(res) <- c("huerd_simulation_result", class(res))
     attr(res, "cvd_type") <- cvd_type_arg
@@ -101,7 +106,8 @@ simulate_palette_cvd <- function(
     # Map back to original positions (handling NAs)
     result_vec <- colors
     result_vec[!is.na(colors)] <- simulated_colors
-    output_results <- result_vec
+    output_results <- list()
+    output_results[[cvd_type_arg]] <- result_vec
   }
 
   class(output_results) <- c("huerd_simulation_result", class(output_results))
@@ -109,10 +115,11 @@ simulate_palette_cvd <- function(
   attr(output_results, "severity") <- severity
 
   if (plot) {
-    plot_list <- if (is.list(output_results)) {
-      output_results
+    # For single CVD types, prepend original colors for comparison
+    if (cvd_type_arg != "all") {
+      plot_list <- c(list(original = colors), output_results)
     } else {
-      list(original = colors, simulated = output_results)
+      plot_list <- output_results
     }
     plot_cvd_comparison(plot_list)
   }
@@ -226,12 +233,13 @@ plot_cvd_comparison <- function(palette_list) {
 #'   (in OK LAB space) that any two colors in the palette should maintain
 #'   under simulated deuteranopia, protanopia, and tritanopia. Default is 0.08.
 #'   Recall JND is ~0.02.
+#' @param ... Additional arguments reserved for future use.
 #'
 #' @return Logical. `TRUE` if the palette's `worst_case_min_distance` from
 #'   `evaluate_palette()` is greater than or equal to `min_cvd_distance`,
 #'   `FALSE` otherwise. Returns `TRUE` if palette has fewer than 2 colors.
 #' @export
-is_cvd_safe <- function(colors, min_cvd_distance = 0.08) {
+is_cvd_safe <- function(colors, min_cvd_distance = 0.08, ...) {
   if (!is.numeric(min_cvd_distance) || min_cvd_distance <= 0) {
     stop("min_cvd_distance must be a positive number.")
   }

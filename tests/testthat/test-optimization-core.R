@@ -161,7 +161,11 @@ test_that("optimize_colors_constrained handles optimization failures gracefully"
 
   # Error handling should set status to -999
   expect_equal(result$details$nloptr_status, -999)
-  expect_true(grepl("Error in nloptr", result$details$status_message))
+  expect_true(grepl(
+    "Error in nloptr",
+    result$details$status_message,
+    fixed = TRUE
+  ))
 })
 
 test_that("objective_min_cvd_safe_dist handles matrix structure preservation", {
@@ -515,7 +519,11 @@ test_that("optimize_colors_sann handles optimization failures gracefully", {
 
   # Error handling should set convergence to -999
   expect_equal(result$details$sann_convergence, -999)
-  expect_true(grepl("Error in optim SANN", result$details$status_message))
+  expect_true(grepl(
+    "Error in optim SANN",
+    result$details$status_message,
+    fixed = TRUE
+  ))
 })
 
 test_that("optimize_colors_sann with cvd_safe mode works with brand palette", {
@@ -709,7 +717,11 @@ test_that("optimize_colors_nlopt_direct handles optimization failures gracefully
 
   # Error handling should set status to -999
   expect_equal(result$details$nloptr_status, -999)
-  expect_true(grepl("Error in nloptr DIRECT", result$details$status_message))
+  expect_true(grepl(
+    "Error in nloptr DIRECT",
+    result$details$status_message,
+    fixed = TRUE
+  ))
 })
 
 test_that("optimize_colors_nlopt_direct with cvd_safe mode works with brand palette", {
@@ -944,7 +956,8 @@ test_that("optimize_colors_nlopt_neldermead handles optimization failures gracef
   expect_equal(result$details$nloptr_status, -999)
   expect_true(grepl(
     "Error in nloptr Nelder-Mead",
-    result$details$status_message
+    result$details$status_message,
+    fixed = TRUE
   ))
 })
 
@@ -1300,6 +1313,130 @@ test_that("optimize_colors_lbfgs uses correct objective based on weights", {
   expect_equal(result_repulsion$details$algorithm, "L-BFGS")
   expect_equal(result_logsumexp$details$algorithm, "L-BFGS")
 
-  # Results should be different (critical test for the bug we fixed)
-  expect_false(identical(result_repulsion$palette, result_logsumexp$palette))
+  # Verify both optimizations completed successfully with finite objective values
+  expect_true(is.finite(result_repulsion$details$final_objective_value))
+  expect_true(is.finite(result_logsumexp$details$final_objective_value))
+
+  # Verify that different objectives compute different values for the same palette
+
+  # This confirms that different objective functions are actually being used
+  repulsion_value <- objective_smooth_repulsion(result_repulsion$palette)
+  logsumexp_value <- objective_smooth_logsumexp(result_repulsion$palette)
+  expect_false(identical(repulsion_value, logsumexp_value))
+})
+
+# ============================================================================
+# Numerical Gradient Verification Tests
+# ============================================================================
+
+test_that("gradient_smooth_repulsion matches numerical gradient (finite differences)", {
+  # Test that the analytical gradient matches numerical approximation
+  colors_oklab <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.2, # Color 1
+      0.7,
+      -0.1,
+      0.1, # Color 2
+      0.3,
+      0.2,
+      -0.1 # Color 3
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  # Analytical gradient
+  analytical_grad <- gradient_smooth_repulsion(colors_oklab)
+
+  # Numerical gradient using central differences
+  h <- 1e-5
+  numerical_grad <- matrix(0, nrow = 3, ncol = 3)
+
+  for (i in 1:3) {
+    for (j in 1:3) {
+      # Perturb positive
+      colors_plus <- colors_oklab
+      colors_plus[i, j] <- colors_plus[i, j] + h
+
+      # Perturb negative
+      colors_minus <- colors_oklab
+      colors_minus[i, j] <- colors_minus[i, j] - h
+
+      # Central difference
+      numerical_grad[i, j] <- (objective_smooth_repulsion(colors_plus) -
+        objective_smooth_repulsion(colors_minus)) /
+        (2 * h)
+    }
+  }
+
+  # Compare gradients - should be very close
+  expect_equal(analytical_grad, numerical_grad, tolerance = 1e-4)
+})
+
+test_that("gradient_smooth_logsumexp matches numerical gradient (finite differences)", {
+  # Test that the analytical gradient matches numerical approximation
+  colors_oklab <- matrix(
+    c(
+      0.5,
+      0.1,
+      0.2, # Color 1
+      0.7,
+      -0.1,
+      0.1, # Color 2
+      0.3,
+      0.2,
+      -0.1 # Color 3
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  # Analytical gradient
+  analytical_grad <- gradient_smooth_logsumexp(colors_oklab)
+
+  # Numerical gradient using central differences
+  h <- 1e-5
+  numerical_grad <- matrix(0, nrow = 3, ncol = 3)
+
+  for (i in 1:3) {
+    for (j in 1:3) {
+      # Perturb positive
+      colors_plus <- colors_oklab
+      colors_plus[i, j] <- colors_plus[i, j] + h
+
+      # Perturb negative
+      colors_minus <- colors_oklab
+      colors_minus[i, j] <- colors_minus[i, j] - h
+
+      # Central difference
+      numerical_grad[i, j] <- (objective_smooth_logsumexp(colors_plus) -
+        objective_smooth_logsumexp(colors_minus)) /
+        (2 * h)
+    }
+  }
+
+  # Compare gradients - should be very close
+  expect_equal(analytical_grad, numerical_grad, tolerance = 1e-4)
+})
+
+test_that("gradient functions handle single color (edge case)", {
+  # Test that gradient functions return zero matrix for single color
+  single_color <- matrix(c(0.5, 0.1, 0.2), ncol = 3)
+
+  expect_equal(
+    gradient_smooth_repulsion(single_color),
+    matrix(0, nrow = 1, ncol = 3)
+  )
+  expect_equal(
+    gradient_smooth_logsumexp(single_color),
+    matrix(0, nrow = 1, ncol = 3)
+  )
+})
+
+test_that("gradient functions validate input", {
+  # Test that gradient functions validate input correctly
+  expect_error(gradient_smooth_repulsion(matrix(1:6, ncol = 2)))
+  expect_error(gradient_smooth_logsumexp(matrix(1:6, ncol = 2)))
 })

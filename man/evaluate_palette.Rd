@@ -4,10 +4,12 @@
 \alias{evaluate_palette}
 \title{Evaluate Palette Quality}
 \usage{
-evaluate_palette(colors)
+evaluate_palette(colors, ...)
 }
 \arguments{
 \item{colors}{A character vector of hex colors, or a matrix of colors in OK LAB space.}
+
+\item{...}{Additional arguments reserved for future use.}
 }
 \value{
 A list of evaluation metrics with class \code{huerd_evaluation}.
