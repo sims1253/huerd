@@ -1,3 +1,39 @@
+# huerd 0.6.0
+
+## New Features
+
+### ggplot2 Integration
+- `scale_color_huerd()`, `scale_fill_huerd()`, `scale_colour_huerd()` functions for seamless ggplot2 integration
+
+### Convenience Functions  
+- `quick_palette()` for one-line palette generation
+- `brand_palette()` for brand color integration
+- `export_palette()` for palette export functionality
+- `interpret_palette_quality()` for palette quality interpretation
+
+### S3 Plot Method
+- `plot.huerd_palette()` method with "swatches" and "analysis" plot types
+- Enhanced visualization options for palette inspection
+
+### Documentation
+- Three new workflow vignettes: data-scientist-workflow, designer-workflow, package-developer-workflow
+- Comprehensive user story-based documentation
+
+## User Story Enhancements
+
+- Simplified API for common use cases based on real user personas
+- One-line palette generation for data scientists
+- Brand color integration for designers  
+- Programmatic API improvements for package developers
+
+## Testing Improvements
+
+- All 1,006 tests now use testthat 3rd edition describe-it pattern
+- Added integration tests based on user story workflows
+- All tests passing
+
+---
+
 # huerd 0.5.3
 
 ## Code Quality Improvements

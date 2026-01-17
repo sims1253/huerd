@@ -1,0 +1,596 @@
+{
+  "edges": [
+    {
+      "from_file": "generate_palette.R",
+      "from_func": "generate_palette",
+      "to_file": "generate_palette.R",
+      "to_func": ".initialize_and_validate_colors"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": "validate_inputs",
+      "to_file": "helpers_core.R",
+      "to_func": ".validate_include_colors"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "evaluate_palette_quality",
+      "to_file": "helpers_core.R",
+      "to_func": "calculate_perceptual_distances"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_distance_heatmap",
+      "to_file": "visualization_analysis.R",
+      "to_func": ".scale_font"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".finalize_palette",
+      "to_file": "utils.R",
+      "to_func": ".oklab_to_hex"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_constrained",
+      "to_file": "optimization_core.R",
+      "to_func": ".clamp_to_bounds"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_nlopt_direct",
+      "to_file": "optimization_core.R",
+      "to_func": ".clamp_to_bounds"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".initialize_and_validate_colors",
+      "to_file": "helpers_init.R",
+      "to_func": "initialize_colors"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": "validate_inputs",
+      "to_file": "helpers_core.R",
+      "to_func": ".validate_weights"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "objective_function_aggregator",
+      "to_file": "optimization_core.R",
+      "to_func": "objective_min_cvd_safe_dist"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "evaluate_palette_quality",
+      "to_file": "color_metrics.R",
+      "to_func": "analyze_color_distribution"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": "generate_palette",
+      "to_file": "generate_palette.R",
+      "to_func": ".optimize_palette"
+    },
+    {
+      "from_file": "utils.R",
+      "from_func": "print_color_vector",
+      "to_file": "utils.R",
+      "to_func": ".print_color_item"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": "generate_palette",
+      "to_file": "helpers_core.R",
+      "to_func": "validate_inputs"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".process_fixed_colors",
+      "to_file": "utils.R",
+      "to_func": ".hex_to_oklab"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_comparative_palettes",
+      "to_file": "visualization_analysis.R",
+      "to_func": ".scale_font"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".optimize_palette",
+      "to_file": "optimization_core.R",
+      "to_func": "optimize_colors_nlopt_neldermead"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "objective_min_cvd_safe_dist",
+      "to_file": "optimization_core.R",
+      "to_func": "objective_min_perceptual_dist"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".optimize_palette",
+      "to_file": "optimization_core.R",
+      "to_func": "optimize_colors_nlopt_direct"
+    },
+    {
+      "from_file": "convenience.R",
+      "from_func": "brand_palette",
+      "to_file": "generate_palette.R",
+      "to_func": "generate_palette"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": "generate_palette",
+      "to_file": "helpers_core.R",
+      "to_func": ".handle_no_free_colors"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_sann",
+      "to_file": "optimization_core.R",
+      "to_func": ".clamp_to_bounds"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "plot_palette_analysis",
+      "to_file": "visualization_analysis.R",
+      "to_func": "create_distance_heatmap"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_color_swatches",
+      "to_file": "visualization_analysis.R",
+      "to_func": ".scale_font"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": ".handle_no_free_colors",
+      "to_file": "color_metrics.R",
+      "to_func": "evaluate_palette"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "plot_palette_analysis",
+      "to_file": "helpers_core.R",
+      "to_func": "calculate_perceptual_distances"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "objective_function_aggregator",
+      "to_file": "optimization_core.R",
+      "to_func": "objective_min_perceptual_dist"
+    },
+    {
+      "from_file": "utils.R",
+      "from_func": "print.huerd_simulation_result",
+      "to_file": "utils.R",
+      "to_func": "print_color_vector"
+    },
+    {
+      "from_file": "convenience.R",
+      "from_func": "interpret_palette_quality",
+      "to_file": "color_metrics.R",
+      "to_func": "evaluate_palette"
+    },
+    {
+      "from_file": "utils.R",
+      "from_func": ".print_color_item",
+      "to_file": "utils.R",
+      "to_func": ".print_color_with_swatch"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": "generate_palette",
+      "to_file": "generate_palette.R",
+      "to_func": ".finalize_palette"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": "generate_palette",
+      "to_file": "generate_palette.R",
+      "to_func": ".process_fixed_colors"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_sann",
+      "to_file": "optimization_core.R",
+      "to_func": "objective_min_cvd_safe_dist"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "plot_palette_analysis",
+      "to_file": "visualization_analysis.R",
+      "to_func": "create_cvd_simulation"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_sann",
+      "to_file": "optimization_core.R",
+      "to_func": "eval_f"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": "reproduce_palette",
+      "to_file": "generate_palette.R",
+      "to_func": "generate_palette"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "analyze_cvd_safety_metrics",
+      "to_file": "utils.R",
+      "to_func": ".hex_to_oklab"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": "validate_inputs",
+      "to_file": "helpers_core.R",
+      "to_func": ".validate_n_include_colors_consistency"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_nlopt_neldermead",
+      "to_file": "optimization_core.R",
+      "to_func": ".clamp_to_bounds"
+    },
+    {
+      "from_file": "convenience.R",
+      "from_func": "plot.huerd_palette",
+      "to_file": "visualization_analysis.R",
+      "to_func": "plot_palette_analysis"
+    },
+    {
+      "from_file": "helpers_init.R",
+      "from_func": "initialize_colors",
+      "to_file": "helpers_init.R",
+      "to_func": "initialize_kmeans_plus_plus"
+    },
+    {
+      "from_file": "cvd_analysis.R",
+      "from_func": "is_cvd_safe",
+      "to_file": "color_metrics.R",
+      "to_func": "evaluate_palette"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_cvd_simulation",
+      "to_file": "visualization_analysis.R",
+      "to_func": ".scale_font"
+    },
+    {
+      "from_file": "validation.R",
+      "from_func": "validate_color_input_smart",
+      "to_file": "validation.R",
+      "to_func": "validate_oklab_matrix"
+    },
+    {
+      "from_file": "cvd_analysis.R",
+      "from_func": "simulate_palette_cvd",
+      "to_file": "cvd_analysis.R",
+      "to_func": "plot_cvd_comparison"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_distance_heatmap",
+      "to_file": "helpers_core.R",
+      "to_func": "calculate_perceptual_distances"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "plot_palette_analysis",
+      "to_file": "visualization_analysis.R",
+      "to_func": "create_comparative_palettes"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".prepare_initialization",
+      "to_file": "helpers_init.R",
+      "to_func": ".calculate_aesthetic_profile"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_nlopt_neldermead",
+      "to_file": "optimization_core.R",
+      "to_func": "objective_min_cvd_safe_dist"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_nlopt_neldermead",
+      "to_file": "optimization_core.R",
+      "to_func": "eval_f"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": "validate_inputs",
+      "to_file": "helpers_core.R",
+      "to_func": ".validate_init_lightness_bounds"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".optimize_palette",
+      "to_file": "optimization_core.R",
+      "to_func": "optimize_colors_sann"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "analyze_cvd_safety_metrics",
+      "to_file": "helpers_core.R",
+      "to_func": "calculate_perceptual_distances"
+    },
+    {
+      "from_file": "convenience.R",
+      "from_func": "quick_palette",
+      "to_file": "generate_palette.R",
+      "to_func": "generate_palette"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".setup_palette_params",
+      "to_file": "helpers_core.R",
+      "to_func": ".merge_aesthetic_config"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "plot_palette_analysis",
+      "to_file": "visualization_analysis.R",
+      "to_func": "get_ref_palette_distances"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".initialize_and_validate_colors",
+      "to_file": "helpers_core.R",
+      "to_func": ".handle_no_free_colors"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".prepare_initialization",
+      "to_file": "helpers_init.R",
+      "to_func": ".adapt_init_params"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": "validate_inputs",
+      "to_file": "helpers_core.R",
+      "to_func": ".validate_aesthetic_params"
+    },
+    {
+      "from_file": "utils.R",
+      "from_func": ".print_color_with_swatch",
+      "to_file": "utils.R",
+      "to_func": ".is_valid_hex_color"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": "validate_inputs",
+      "to_file": "helpers_core.R",
+      "to_func": ".validate_init_hcl_bounds"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "evaluate_palette_quality",
+      "to_file": "utils.R",
+      "to_func": ".hex_to_oklab"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".finalize_palette",
+      "to_file": "utils.R",
+      "to_func": ".hex_to_oklab"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": "generate_palette",
+      "to_file": "generate_palette.R",
+      "to_func": ".prepare_initialization"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "evaluate_palette_quality",
+      "to_file": "color_metrics.R",
+      "to_func": ".get_estimated_max_dist"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "evaluate_palette",
+      "to_file": "color_metrics.R",
+      "to_func": "evaluate_palette_quality"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_color_space",
+      "to_file": "utils.R",
+      "to_func": ".hex_to_oklab"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_color_space",
+      "to_file": "visualization_analysis.R",
+      "to_func": ".scale_font"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_color_space",
+      "to_file": "visualization_analysis.R",
+      "to_func": "scale_a"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "analyze_cvd_safety_metrics",
+      "to_file": "utils.R",
+      "to_func": ".oklab_to_hex"
+    },
+    {
+      "from_file": "helpers_init.R",
+      "from_func": "initialize_kmeans_plus_plus",
+      "to_file": "utils.R",
+      "to_func": ".oklab_to_hex"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": "generate_palette",
+      "to_file": "generate_palette.R",
+      "to_func": ".setup_palette_params"
+    },
+    {
+      "from_file": "helpers_init.R",
+      "from_func": "initialize_kmeans_plus_plus",
+      "to_file": "helpers_init.R",
+      "to_func": "generate_candidates"
+    },
+    {
+      "from_file": "utils.R",
+      "from_func": "print.huerd_palette",
+      "to_file": "utils.R",
+      "to_func": "print_color_vector"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "objective_min_perceptual_dist",
+      "to_file": "helpers_core.R",
+      "to_func": "calculate_perceptual_distances"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": "validate_inputs",
+      "to_file": "helpers_core.R",
+      "to_func": ".validate_optimizer"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_color_space",
+      "to_file": "visualization_analysis.R",
+      "to_func": "scale_b"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "get_ref_palette_distances",
+      "to_file": "helpers_core.R",
+      "to_func": "calculate_perceptual_distances"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": "validate_inputs",
+      "to_file": "helpers_core.R",
+      "to_func": ".validate_n"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".optimize_palette",
+      "to_file": "optimization_core.R",
+      "to_func": "optimize_colors_constrained"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".optimize_palette",
+      "to_file": "optimization_core.R",
+      "to_func": "optimize_colors_lbfgs"
+    },
+    {
+      "from_file": "validation.R",
+      "from_func": "validate_color_input_smart",
+      "to_file": "validation.R",
+      "to_func": "validate_hex_colors"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_constrained",
+      "to_file": "optimization_core.R",
+      "to_func": "objective_min_cvd_safe_dist"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_nlopt_direct",
+      "to_file": "optimization_core.R",
+      "to_func": "objective_min_cvd_safe_dist"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_constrained",
+      "to_file": "optimization_core.R",
+      "to_func": "eval_f"
+    },
+    {
+      "from_file": "optimization_core.R",
+      "from_func": "optimize_colors_nlopt_direct",
+      "to_file": "optimization_core.R",
+      "to_func": "eval_f"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "plot_palette_analysis",
+      "to_file": "utils.R",
+      "to_func": ".hex_to_oklab"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "plot_palette_analysis",
+      "to_file": "visualization_analysis.R",
+      "to_func": "create_color_space"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "evaluate_palette",
+      "to_file": "utils.R",
+      "to_func": ".hex_to_oklab"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "create_comparative_palettes",
+      "to_file": "visualization_analysis.R",
+      "to_func": "scale_y"
+    },
+    {
+      "from_file": "helpers_core.R",
+      "from_func": "validate_inputs",
+      "to_file": "helpers_core.R",
+      "to_func": ".validate_aesthetic_init_config"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "plot_palette_analysis",
+      "to_file": "visualization_analysis.R",
+      "to_func": "create_color_swatches"
+    },
+    {
+      "from_file": "helpers_init.R",
+      "from_func": "initialize_colors",
+      "to_file": "helpers_init.R",
+      "to_func": "initialize_harmony_based"
+    },
+    {
+      "from_file": "validation.R",
+      "from_func": "validate_hex_colors",
+      "to_file": "utils.R",
+      "to_func": ".hex_to_oklab"
+    },
+    {
+      "from_file": "visualization_analysis.R",
+      "from_func": "plot_palette_analysis",
+      "to_file": "color_metrics.R",
+      "to_func": "evaluate_palette"
+    },
+    {
+      "from_file": "ggplot2-scales.R",
+      "from_func": ".huerd_pal",
+      "to_file": "generate_palette.R",
+      "to_func": "generate_palette"
+    },
+    {
+      "from_file": "generate_palette.R",
+      "from_func": ".finalize_palette",
+      "to_file": "color_metrics.R",
+      "to_func": "evaluate_palette"
+    },
+    {
+      "from_file": "color_metrics.R",
+      "from_func": "evaluate_palette_quality",
+      "to_file": "color_metrics.R",
+      "to_func": "analyze_cvd_safety_metrics"
+    }
+  ],
+  "languages": [
+    "r"
+  ],
+  "timestamp": 1768650034.5287
+}

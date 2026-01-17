@@ -29,14 +29,16 @@ You can install the development version of huerd from GitHub with:
 pak::pak("sims1253/huerd")
 ```
 
-## Basic Example
+## Basic Usage
 
-Generate a palette with 5 colors:
+Generate a palette with 5 colors using either the standard or quick
+method:
 
 ``` r
 library(huerd)
 
 set.seed(42)
+# Standard generation with full control
 palette <- generate_palette(8, progress = FALSE)
 print(palette)
 #> 
@@ -59,6 +61,182 @@ print(palette)
 #> -- Generation Details --
 #> * Optimizer Iterations: 693
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
+
+# Quick generation for immediate use
+quick_palette <- quick_palette(8)
+print(quick_palette)
+#> 
+#> -- huerd Color Palette (8 colors) --
+#> Colors:
+#> [ 1] #003C00
+#> [ 2] #740084
+#> [ 3] #5320F5
+#> [ 4] #FF0000
+#> [ 5] #00CB99
+#> [ 6] #FF5EFF
+#> [ 7] #00F8FF
+#> [ 8] #FFDE51
+#> 
+#> -- Quality Metrics Summary --
+#> * Min. Perceptual Distance (OKLAB): 0.163
+#> * Optimizer Performance Ratio      : 52.7%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.144
+#> 
+#> -- Generation Details --
+#> * Optimizer Iterations: 623
+#> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
+```
+
+Visualize your palette:
+
+``` r
+library(huerd)
+
+set.seed(42)
+palette <- generate_palette(8, progress = FALSE)
+plot(palette, type = "swatches")
+```
+
+<img src="man/figures/README-visualize-1.png" alt="" width="100%" />
+
+## Constrained Color Palettes
+
+## ggplot2 Integration
+
+Use huerd palettes directly in your ggplot2 visualizations:
+
+``` r
+library(ggplot2)
+library(huerd)
+
+# Create a huerd palette
+set.seed(42)
+huerd_colors <- generate_palette(5, progress = FALSE)
+
+# Example with iris data using scale_color_huerd()
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species)) +
+  geom_point(size = 3) +
+  scale_color_huerd(palette = huerd_colors) +
+  theme_minimal() +
+  labs(title = "Iris Dataset with huerd Colors")
+```
+
+<img src="man/figures/README-ggplot-1.png" alt="" width="100%" />
+
+``` r
+
+# Example with mtcars data using scale_fill_huerd()
+ggplot(mtcars, aes(x = factor(cyl), fill = factor(cyl))) +
+  geom_bar() +
+  scale_fill_huerd(palette = huerd_colors) +
+  theme_minimal() +
+  labs(title = "Car Cylinder Count with huerd Colors",
+       x = "Number of Cylinders", y = "Count")
+```
+
+<img src="man/figures/README-ggplot-2.png" alt="" width="100%" />
+
+## Convenience Functions
+
+Access pre-made palettes and export options for different workflows:
+
+``` r
+library(huerd)
+
+# Get a quick palette without generation
+quick_colors <- quick_palette(6)
+print(quick_colors)
+#> 
+#> -- huerd Color Palette (6 colors) --
+#> Colors:
+#> [ 1] #4B0000
+#> [ 2] #00718B
+#> [ 3] #C10000
+#> [ 4] #FF00FF
+#> [ 5] #FAB800
+#> [ 6] #00FFFF
+#> 
+#> -- Quality Metrics Summary --
+#> * Min. Perceptual Distance (OKLAB): 0.270
+#> * Optimizer Performance Ratio      : 73.9%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.178
+#> 
+#> -- Generation Details --
+#> * Optimizer Iterations: 596
+#> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
+
+# Access the default brand palette
+brand_colors <- brand_palette(c("#003366", "#FF6600"), n_total = 6)
+print(brand_colors)
+#> 
+#> -- huerd Color Palette (6 colors) --
+#> Colors:
+#> [ 1] #003366
+#> [ 2] #854700
+#> [ 3] #006D91
+#> [ 4] #AE7BFB
+#> [ 5] #FF6600
+#> [ 6] #A1EB9F
+#> 
+#> -- Quality Metrics Summary --
+#> * Min. Perceptual Distance (OKLAB): 0.182
+#> * Optimizer Performance Ratio      : 49.9%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.180
+#> 
+#> -- Generation Details --
+#> * Optimizer Iterations: 276
+#> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
+
+# Export palette in different formats for web development
+color_names <- paste0("color_", seq_along(quick_colors))
+css_output <- export_palette(quick_colors, format = "css", names = color_names)
+cat("CSS Output:\n", css_output, "\n\n")
+#> CSS Output:
+#>  :root {
+#>   --color_1: #4B0000;
+#>   --color_2: #00718B;
+#>   --color_3: #C10000;
+#>   --color_4: #FF00FF;
+#>   --color_5: #FAB800;
+#>   --color_6: #00FFFF;
+#> }
+
+sass_output <- export_palette(quick_colors, format = "sass", names = color_names)
+cat("Sass Output:\n", sass_output, "\n\n")
+#> Sass Output:
+#>  $color_1: #4B0000;
+#> $color_2: #00718B;
+#> $color_3: #C10000;
+#> $color_4: #FF00FF;
+#> $color_5: #FAB800;
+#> $color_6: #00FFFF;
+
+json_output <- export_palette(quick_colors, format = "json", names = color_names)
+cat("JSON Output:\n", json_output, "\n")
+#> JSON Output:
+#>  {
+#>     "color_1": "#4B0000",
+#>     "color_2": "#00718B",
+#>     "color_3": "#C10000",
+#>     "color_4": "#FF00FF",
+#>     "color_5": "#FAB800",
+#>     "color_6": "#00FFFF"
+#> }
+
+# Interpret palette quality metrics
+quality_info <- interpret_palette_quality(quick_colors)
+print(quality_info)
+#> 
+#> ── Palette Quality Assessment ──
+#> 
+#> This 6-color palette is highly optimized (74% of theoretical maximum).
+#> Excellent - colors are highly distinct and easy to differentiate
+#> 
+#> ── Distinctness
+#> Excellent - colors are highly distinct and easy to differentiate
+#> 
+#> ── Accessibility
+#> Excellent - palette is safe for most color vision deficiencies
 ```
 
 ## Constrained Color Palettes
@@ -317,7 +495,7 @@ library(huerd)
 
 set.seed(161)
 # 1. Generate brand palette with advanced optimization
-brand_palette <- generate_palette(
+my_brand_palette <- generate_palette(
   n = 8,
   include_colors = c("#1f77b4", "#ff7f0e"),  # Fixed brand colors
   fixed_aesthetic_influence = 0.9,
@@ -337,7 +515,7 @@ brand_palette <- generate_palette(
 #> ✔ Done
 
 # 2. Diagnostic analysis
-plot_palette_analysis(brand_palette, force_font_scale = 0.6)
+plot_palette_analysis(my_brand_palette, force_font_scale = 0.6)
 ```
 
 <img src="man/figures/README-workflow-1.png" alt="" width="100%" />
@@ -345,14 +523,14 @@ plot_palette_analysis(brand_palette, force_font_scale = 0.6)
 ``` r
 
 # 3. Quality evaluation
-evaluation <- evaluate_palette(brand_palette)
+evaluation <- evaluate_palette(my_brand_palette)
 cat("Min distance:", round(evaluation$distances$min, 3), "\n")
 #> Min distance: 0.207
 cat("Performance:", round(evaluation$distances$performance_ratio * 100, 1), "%\n")
 #> Performance: 66.9 %
 
 # 4. CVD accessibility check
-cvd_safe <- is_cvd_safe(brand_palette)
+cvd_safe <- is_cvd_safe(my_brand_palette)
 if (cvd_safe) {
   cat("Palette is CVD-accessible\n")
 } else {
@@ -361,7 +539,7 @@ if (cvd_safe) {
 #> Palette is CVD-accessible
 
 # 5. CVD simulation for verification
-cvd_simulation <- simulate_palette_cvd(brand_palette, cvd_type = "all")
+cvd_simulation <- simulate_palette_cvd(my_brand_palette, cvd_type = "all")
 print(cvd_simulation)
 #> 
 #> -- huerd CVD Simulation Result (Multiple Types, Severity: 1.00) --
@@ -403,7 +581,7 @@ print(cvd_simulation)
 #>   [ 8] #00FFFE
 
 # 6. Display final palette (colors are brightness-sorted)
-print(brand_palette)
+print(my_brand_palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
@@ -425,3 +603,23 @@ print(brand_palette)
 #> * Optimizer Iterations: 5000
 #> * Optimizer Status: Optimization converged
 ```
+
+## Workflow Guides
+
+The huerd package includes comprehensive vignettes for different user
+needs:
+
+- **[Data Scientist
+  Workflow](https://sims1253.github.io/huerd/articles/data-scientist-workflow.html)**:
+  Create accessible dashboard visualizations with optimized color
+  schemes for color vision deficient viewers.
+
+- **[Designer
+  Workflow](https://sims1253.github.io/huerd/articles/designer-workflow.html)**:
+  Integrate brand colors into cohesive palettes and export them in
+  various formats (CSS, Sass, JSON) for web development.
+
+- **[Package Developer
+  Workflow](https://sims1253.github.io/huerd/articles/package-developer-workflow.html)**:
+  Use the programmatic API for reproducible palette generation and
+  integrate huerd into your own packages or applications.
