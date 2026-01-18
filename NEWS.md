@@ -45,6 +45,7 @@ This release focuses on code quality, maintainability, and consistency improveme
 - Fixed style issues: `=` → `<-` for assignment, `1:n` → `seq_len(n)` for safer indexing, `T`/`F` → `TRUE`/`FALSE`
 
 ### Code Organization
+
 - Added named constants for magic numbers: `.CANDIDATE_POOL_BASE`, `.MIN_DISTANCE_THRESHOLD`, `.OKLAB_TOLERANCE`
 - Extracted repeated clamping code to `.clamp_to_bounds()` helper function
 - Added `@param` documentation to internal helper functions
@@ -171,6 +172,7 @@ This release focuses on code quality, maintainability, and consistency improveme
 
 - Updated test files to use utility functions.
 
+
 # huerd 0.1.1 (2025-07-01)
 
 ## Minor Changes
@@ -225,3 +227,4 @@ The following experimental and non-essential features have been removed to strea
 - Initial release.
 - Core functionality for palette generation using the CAM16 and CIECAM16 color models.
 - Features for color space conversion and animation of the optimization process.
+

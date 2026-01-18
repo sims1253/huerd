@@ -10,8 +10,7 @@ reproduce_palette(palette, progress = NULL, ...)
 \item{palette}{A huerd_palette object (result from \code{generate_palette()})
 containing generation metadata.}
 
-\item{progress}{Logical. Show progress messages. Default is \code{interactive()}.
-If NULL, uses the progress setting from the original generation.}
+\item{progress}{Logical. Show progress messages. Default is NULL; if NULL, the behavior falls back to \code{interactive()}.}
 
 \item{...}{Additional arguments reserved for future use.}
 }

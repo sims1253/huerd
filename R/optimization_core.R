@@ -778,7 +778,8 @@ optimize_colors_lbfgs <- function(
       current_state <- list(
         iteration = eval_f_env$iter,
         colors_oklab = temp_all_colors_oklab,
-        objective_value = objective_value
+        objective_value = objective_value,
+        timestamp = Sys.time()
       )
       optimization_states[[length(optimization_states) + 1]] <<- current_state
     }
@@ -828,18 +829,20 @@ optimize_colors_lbfgs <- function(
       )
 
       # Defensive clamp: ensure solution is strictly within bounds
-      # Apply per-component pmax(lower_bounds, pmin(. , upper_bounds))
-      optimized_free_colors[, 1] <- pmax(
+      optimized_free_colors[, 1] <- .clamp_to_bounds(
+        optimized_free_colors[, 1],
         lower_bounds[1],
-        pmin(upper_bounds[1], optimized_free_colors[, 1])
+        upper_bounds[1]
       )
-      optimized_free_colors[, 2] <- pmax(
+      optimized_free_colors[, 2] <- .clamp_to_bounds(
+        optimized_free_colors[, 2],
         lower_bounds[2],
-        pmin(upper_bounds[2], optimized_free_colors[, 2])
+        upper_bounds[2]
       )
-      optimized_free_colors[, 3] <- pmax(
+      optimized_free_colors[, 3] <- .clamp_to_bounds(
+        optimized_free_colors[, 3],
         lower_bounds[3],
-        pmin(upper_bounds[3], optimized_free_colors[, 3])
+        upper_bounds[3]
       )
 
       optimized_all_colors_oklab <- initial_colors_oklab

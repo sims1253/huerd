@@ -23,7 +23,7 @@
 #'   - `"high"`: More iterations for better results (slower)
 #' @param lightness Character string or numeric vector specifying lightness
 #'   constraints:
-#'   - `"any"`: No lightness constraints (full range)
+#'   - `"any"`: Balanced range (L: 0.2-0.9)
 #'   - `"light"`: Prefer lighter colors (L: 0.5-0.9)
 #'   - `"dark"`: Prefer darker colors (L: 0.2-0.6)
 #'   - `"mid"`: Prefer mid-range lightness (L: 0.35-0.75)
@@ -209,13 +209,18 @@ export_palette <- function(
 
   # Validate/sanitize names based on format
   if (format == "json") {
-    # Escape JSON special characters in names (quotes and backslashes)
+    # Escape JSON special characters in names
     names <- gsub("\\\\", "\\\\\\\\", names) # Escape backslashes first
+    # Escape control characters
+    names <- gsub("\n", "\\\\n", names)
+    names <- gsub("\r", "\\\\r", names)
+    names <- gsub("\t", "\\\\t", names)
+    names <- gsub("\f", "\\\\f", names)
     names <- gsub('"', '\\\\"', names, fixed = TRUE) # Escape quotes
   } else if (format == "csv") {
     # Escape CSV special characters (quotes and commas)
     names <- gsub('"', '""', names, fixed = TRUE) # Double up quotes
-    needs_quoting <- grepl('[",]', names) | names == ""
+    needs_quoting <- grepl('[",\n\r]', names) | names == ""
     names[needs_quoting] <- paste0('"', names[needs_quoting], '"')
   } else if (format %in% c("css", "sass")) {
     # Validate CSS/Sass variable names

@@ -98,22 +98,6 @@ describe("evaluate_palette_quality()", {
     hex_colors <- c("#FF0000")
     oklab_colors <- .hex_to_oklab(hex_colors)
 
-    heuristic_targets <- list(
-      min_distance = 0.1,
-      performance_ratio = 0.8,
-      worst_case_cvd_min_distance = 0.08,
-      lightness_range = 0.5,
-      chroma_range = 0.3
-    )
-
-    heuristic_weights <- list(
-      min_distance = 0.3,
-      performance_ratio = 0.2,
-      worst_case_cvd_min_distance = 0.2,
-      lightness_range = 0.15,
-      chroma_range = 0.15
-    )
-
     result <- evaluate_palette_quality(oklab_colors)
 
     expect_true(is.list(result))

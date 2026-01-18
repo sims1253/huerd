@@ -38,6 +38,7 @@ You can install the development version of huerd from GitHub with:
 # install.packages("pak")
 pak::pak("sims1253/huerd")
 ```
+
 ## Basic Usage
 
 Generate a palette with 8 colors using either the standard or quick method:
