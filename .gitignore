@@ -41,3 +41,4 @@ create_hex_logo.R
 .venv/
 pkgdown/
 .Rcheck/
+..Rcheck/
