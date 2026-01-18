@@ -353,21 +353,21 @@ system.time({
   fast <- generate_palette(8, max_iterations = 100, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   0.547   0.001   0.548
+#>   0.628   0.000   0.628
 
 # Default generation
 system.time({
   default <- generate_palette(8, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   1.431   0.000   1.431
+#>   1.623   0.000   1.623
 
 # High quality generation
 system.time({
   quality <- generate_palette(8, max_iterations = 3000, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   0.982   0.000   0.983
+#>   1.114   0.000   1.114
 ```
 
 For performance-critical applications:
