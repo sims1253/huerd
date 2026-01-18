@@ -646,7 +646,6 @@ optimize_colors_nlopt_neldermead <- function(
     return(if (is.finite(objective_value)) objective_value else 1e10) # Fallback for non-finite objectives
   }
 
-
   # Define bounds for free colors (OKLAB space)
   # Using 0.001/0.999 to avoid numerical issues at exact boundaries
   lower_bounds <- rep(c(0.001, -0.4, -0.4), n_free_colors)
@@ -893,7 +892,8 @@ optimize_colors_lbfgs <- function(
     },
     error = function(e) {
       # Fallback to initial colors on error
-      return_value <- list(
+      # Use <<- to assign to the parent frame so return_value exists outside tryCatch
+      return_value <<- list(
         palette = initial_colors_oklab,
         details = list(
           algorithm = "L-BFGS (failed)",

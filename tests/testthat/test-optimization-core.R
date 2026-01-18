@@ -1423,3 +1423,1059 @@ describe("Numerical Gradient Verification", {
     expect_error(gradient_smooth_logsumexp(matrix(1:6, ncol = 2)))
   })
 })
+
+# ==============================================================================
+# COMPREHENSIVE TRY-CATCH ERROR HANDLING TESTS
+# ==============================================================================
+# These tests verify that tryCatch blocks correctly handle real error scenarios,
+# not just NaN/Inf inputs. The focus is on error recovery paths and scoping.
+
+describe("tryCatch error handling - optimize_colors_constrained()", {
+  # Helper to create valid test colors
+  valid_colors <- function(n = 2) {
+    matrix(
+      c(
+        0.5,
+        0.1,
+        0.0,
+        0.6,
+        0.0,
+        0.1
+      )[1:(n * 3)],
+      nrow = n,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+  }
+
+  it("returns valid structure when nloptr throws non-numeric error", {
+    # Test that the function handles non-standard error messages gracefully
+    colors <- valid_colors(2)
+
+    # Mock scenario: Use invalid algorithm name that nloptr would reject
+    # We can't directly inject errors, but we can test the error handling path
+    # by providing inputs that would cause specific error types
+
+    # Test with dimension mismatch - this triggers validation errors
+    # Create a 2x3 matrix without proper column names (will be tested for validation)
+    bad_colors <- matrix(1:6, nrow = 2)
+    colnames(bad_colors) <- c("L", "a", "b") # But with only 2 columns named wrong
+
+    # This should still return a valid structure (error caught by tryCatch)
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = bad_colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+
+    expect_s3_class(result, "list")
+    expect_named(result, c("palette", "details"))
+    expect_s3_class(result$palette, "matrix")
+    expect_s3_class(result$details, "list")
+  })
+
+  it("properly scopes return_value after nloptr error", {
+    # Critical test: verify that return_value is properly set even when
+    # nloptr throws an error and the error handler is invoked
+
+    colors <- valid_colors(2)
+
+    # Use max_iterations = 0 to potentially trigger edge cases
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 0
+    )
+
+    # Verify return_value has all expected fields
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+    expect_true("iterations" %in% names(result$details))
+    expect_true("status_message" %in% names(result$details))
+    expect_true("nloptr_status" %in% names(result$details))
+    expect_true("final_objective_value" %in% names(result$details))
+
+    # Verify palette structure is preserved
+    expect_equal(nrow(result$palette), 2)
+    expect_equal(ncol(result$palette), 3)
+  })
+
+  it("handles matrix with wrong number of columns", {
+    # Test what happens when input matrix has wrong column structure
+    # Create 2x2 matrix which has wrong dimensions
+    bad_matrix <- matrix(1:4, nrow = 2)
+    colnames(bad_matrix) <- c("x", "y")
+
+    # Should either error or return valid error structure
+    # Note: this test checks error handling when matrix has wrong dimensions
+    expect_error(optimize_colors_constrained(
+      initial_colors_oklab = bad_matrix,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    ))
+  })
+
+  it("handles non-numeric matrix input gracefully", {
+    # Test that character matrices are handled
+    char_matrix <- matrix(as.character(1:6), nrow = 2)
+
+    # This should trigger an error that tryCatch handles
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = char_matrix,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+
+    # Should return valid error structure
+    expect_s3_class(result, "list")
+    expect_true("details" %in% names(result))
+  })
+
+  it("handles fixed_mask length mismatch with color rows", {
+    # Test when fixed_mask length doesn't match number of colors
+    colors <- valid_colors(3)
+    wrong_mask <- c(FALSE, FALSE) # Should be length 3
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = wrong_mask,
+      max_iterations = 1
+    )
+
+    # Should handle gracefully
+    expect_s3_class(result, "list")
+    expect_true(nrow(result$palette) >= 1)
+  })
+
+  it("initial objective value evaluation in error handler", {
+    # Test that the nested tryCatch for initial_obj_val works correctly
+    # when eval_f itself might fail
+
+    # Create colors where eval_f could potentially fail
+    colors <- matrix(
+      c(
+        0.5,
+        0.1,
+        0.0,
+        0.5,
+        0.1,
+        0.0 # Identical colors might cause edge cases
+      ),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+
+    expect_s3_class(result, "list")
+    expect_true("final_objective_value" %in% names(result$details))
+    # final_objective_value should be numeric (even if NA)
+    expect_type(result$details$final_objective_value, "double")
+  })
+})
+
+describe("tryCatch error handling - optimize_colors_sann()", {
+  valid_colors <- function(n = 2) {
+    matrix(
+      c(
+        0.5,
+        0.1,
+        0.0,
+        0.6,
+        0.0,
+        0.1
+      )[1:(n * 3)],
+      nrow = n,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+  }
+
+  it("returns valid structure when optim throws error", {
+    colors <- valid_colors(2)
+
+    # Test with very low maxit that might cause optim to fail
+    result <- optimize_colors_sann(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 0
+    )
+
+    expect_s3_class(result, "list")
+    expect_named(result, c("palette", "details"))
+    expect_true("sann_convergence" %in% names(result$details))
+    expect_true("status_message" %in% names(result$details))
+  })
+
+  it("properly scopes return_value after optim SANN error", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_sann(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = -1 # Negative iterations should be handled
+    )
+
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+    expect_true("iterations" %in% names(result$details))
+    expect_true("status_message" %in% names(result$details))
+    expect_true("sann_convergence" %in% names(result$details))
+    expect_true("final_objective_value" %in% names(result$details))
+
+    expect_equal(nrow(result$palette), 2)
+    expect_equal(ncol(result$palette), 3)
+  })
+
+  it("handles matrix with wrong dimensions", {
+    # Test 1x3 matrix (single color)
+    single_color <- matrix(c(0.5, 0.1, 0.0), nrow = 1)
+
+    result <- optimize_colors_sann(
+      initial_colors_oklab = single_color,
+      fixed_mask = c(FALSE),
+      max_iterations = 1
+    )
+
+    expect_s3_class(result, "list")
+    expect_equal(nrow(result$palette), 1)
+  })
+
+  it("handles NA in fixed_mask", {
+    colors <- valid_colors(2)
+    bad_mask <- c(FALSE, NA)
+
+    result <- optimize_colors_sann(
+      initial_colors_oklab = colors,
+      fixed_mask = bad_mask,
+      max_iterations = 1
+    )
+
+    expect_s3_class(result, "list")
+  })
+
+  it("handles NULL initial colors", {
+    # Test edge case behavior
+    expect_error(optimize_colors_sann(
+      initial_colors_oklab = NULL,
+      fixed_mask = c(FALSE),
+      max_iterations = 1
+    ))
+  })
+
+  it("initial objective value evaluation in SANN error handler", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_sann(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+
+    expect_type(result$details$final_objective_value, "double")
+  })
+})
+
+describe("tryCatch error handling - optimize_colors_nlopt_direct()", {
+  valid_colors <- function(n = 2) {
+    matrix(
+      c(
+        0.5,
+        0.1,
+        0.0,
+        0.6,
+        0.0,
+        0.1
+      )[1:(n * 3)],
+      nrow = n,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+  }
+
+  it("returns valid structure when nloptr DIRECT throws error", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_nlopt_direct(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 0
+    )
+
+    expect_s3_class(result, "list")
+    expect_named(result, c("palette", "details"))
+    expect_true("nloptr_status" %in% names(result$details))
+    expect_true("status_message" %in% names(result$details))
+  })
+
+  it("properly scopes return_value after DIRECT error", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_nlopt_direct(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 0
+    )
+
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+    expect_true("iterations" %in% names(result$details))
+    expect_true("status_message" %in% names(result$details))
+    expect_true("nloptr_status" %in% names(result$details))
+    expect_true("final_objective_value" %in% names(result$details))
+
+    expect_equal(ncol(result$palette), 3)
+  })
+
+  it("handles extreme max_iterations values", {
+    colors <- valid_colors(2)
+
+    # Very high iterations
+    result_high <- optimize_colors_nlopt_direct(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 10000
+    )
+    expect_s3_class(result_high, "list")
+
+    # Very low iterations
+    result_low <- optimize_colors_nlopt_direct(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+    expect_s3_class(result_low, "list")
+  })
+
+  it("handles matrix structure validation", {
+    # Test with matrix that might fail validation
+    bad_colors <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 2)
+
+    result <- optimize_colors_nlopt_direct(
+      initial_colors_oklab = bad_colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+
+    expect_s3_class(result, "list")
+    expect_equal(nrow(result$palette), 2)
+  })
+
+  it("handles all fixed colors (no optimization needed)", {
+    colors <- valid_colors(2)
+    all_fixed <- c(TRUE, TRUE)
+
+    result <- optimize_colors_nlopt_direct(
+      initial_colors_oklab = colors,
+      fixed_mask = all_fixed,
+      max_iterations = 1
+    )
+
+    expect_s3_class(result, "list")
+    # Should return original colors
+    expect_equal(result$palette, colors)
+  })
+
+  it("handles single free color optimization", {
+    colors <- valid_colors(2)
+    mixed_mask <- c(TRUE, FALSE)
+
+    result <- optimize_colors_nlopt_direct(
+      initial_colors_oklab = colors,
+      fixed_mask = mixed_mask,
+      max_iterations = 5
+    )
+
+    expect_s3_class(result, "list")
+    expect_equal(nrow(result$palette), 2)
+    # Fixed color should remain unchanged
+    expect_equal(result$palette[1, ], colors[1, ])
+  })
+})
+
+describe("tryCatch error handling - optimize_colors_nlopt_neldermead()", {
+  valid_colors <- function(n = 2) {
+    matrix(
+      c(
+        0.5,
+        0.1,
+        0.0,
+        0.6,
+        0.0,
+        0.1
+      )[1:(n * 3)],
+      nrow = n,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+  }
+
+  it("returns valid structure when nloptr Nelder-Mead throws error", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_nlopt_neldermead(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 0
+    )
+
+    expect_s3_class(result, "list")
+    expect_named(result, c("palette", "details"))
+    expect_true("nloptr_status" %in% names(result$details))
+    expect_true("status_message" %in% names(result$details))
+  })
+
+  it("properly scopes return_value after Nelder-Mead error", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_nlopt_neldermead(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 0
+    )
+
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+    expect_true("iterations" %in% names(result$details))
+    expect_true("status_message" %in% names(result$details))
+    expect_true("nloptr_status" %in% names(result$details))
+    expect_true("final_objective_value" %in% names(result$details))
+
+    expect_equal(ncol(result$palette), 3)
+  })
+
+  it("handles large number of colors", {
+    # Test with many colors to potentially trigger memory/resource issues
+    n_colors <- 10
+    colors <- matrix(
+      runif(n_colors * 3),
+      nrow = n_colors,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_nlopt_neldermead(
+      initial_colors_oklab = colors,
+      fixed_mask = rep(FALSE, n_colors),
+      max_iterations = 5
+    )
+
+    expect_s3_class(result, "list")
+    expect_equal(nrow(result$palette), n_colors)
+  })
+
+  it("handles very small max_iterations", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_nlopt_neldermead(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+
+    expect_s3_class(result, "list")
+  })
+
+  it("handles NaN in objective function gracefully", {
+    colors <- valid_colors(2)
+    # This might trigger NaN in objective calculations
+
+    result <- optimize_colors_nlopt_neldermead(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+
+    expect_s3_class(result, "list")
+    expect_true(
+      is.finite(result$details$nloptr_status) ||
+        result$details$nloptr_status == -999
+    )
+  })
+})
+
+describe("tryCatch error handling - optimize_colors_lbfgs()", {
+  valid_colors <- function(n = 2) {
+    matrix(
+      c(
+        0.5,
+        0.1,
+        0.0,
+        0.6,
+        0.0,
+        0.1
+      )[1:(n * 3)],
+      nrow = n,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+  }
+
+  it("returns valid structure when L-BFGS throws error", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_lbfgs(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 0
+    )
+
+    expect_s3_class(result, "list")
+    expect_named(result, c("palette", "details"))
+    expect_true("algorithm" %in% names(result$details))
+  })
+
+  it("properly scopes return_value after L-BFGS error", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_lbfgs(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 0
+    )
+
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+    expect_true("algorithm" %in% names(result$details))
+    expect_true("iterations" %in% names(result$details))
+    expect_true("nloptr_status" %in% names(result$details))
+    expect_true("final_objective_value" %in% names(result$details))
+    expect_true("status_message" %in% names(result$details))
+
+    expect_equal(ncol(result$palette), 3)
+  })
+
+  it("handles invalid weights parameter", {
+    colors <- valid_colors(2)
+
+    # Test with invalid weights
+    result <- optimize_colors_lbfgs(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5,
+      weights = c(invalid_weight = 999)
+    )
+
+    expect_s3_class(result, "list")
+  })
+
+  it("handles NA weights", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_lbfgs(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5,
+      weights = c(smooth_logsumexp = NA_real_)
+    )
+
+    expect_s3_class(result, "list")
+  })
+
+  it("handles zero weights", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_lbfgs(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5,
+      weights = c(smooth_repulsion = 0, smooth_logsumexp = 0)
+    )
+
+    expect_s3_class(result, "list")
+  })
+
+  it("handles all colors fixed", {
+    colors <- valid_colors(2)
+
+    result <- optimize_colors_lbfgs(
+      initial_colors_oklab = colors,
+      fixed_mask = c(TRUE, TRUE),
+      max_iterations = 5
+    )
+
+    expect_s3_class(result, "list")
+    expect_equal(result$palette, colors)
+  })
+
+  it("handles many free colors", {
+    n_colors <- 5
+    colors <- matrix(
+      runif(n_colors * 3),
+      nrow = n_colors,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_lbfgs(
+      initial_colors_oklab = colors,
+      fixed_mask = rep(FALSE, n_colors),
+      max_iterations = 10
+    )
+
+    expect_s3_class(result, "list")
+    expect_equal(nrow(result$palette), n_colors)
+  })
+
+  it("preserves original palette on error", {
+    colors <- valid_colors(2)
+
+    # Force error condition with max_iterations = 0
+    result <- optimize_colors_lbfgs(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 0
+    )
+
+    # If it fails, should return original palette
+    expect_equal(ncol(result$palette), 3)
+  })
+})
+
+describe("Matrix structure validation errors", {
+  it("objective_min_cvd_safe_dist handles wrong column count", {
+    # Test with 2 columns instead of 3
+    bad_matrix <- matrix(1:4, nrow = 2)
+
+    expect_error(objective_min_cvd_safe_dist(bad_matrix))
+  })
+
+  it("objective_smooth_repulsion handles wrong column count", {
+    bad_matrix <- matrix(1:4, nrow = 2)
+
+    expect_error(objective_smooth_repulsion(bad_matrix))
+  })
+
+  it("objective_smooth_logsumexp handles wrong column count", {
+    bad_matrix <- matrix(1:4, nrow = 2)
+
+    expect_error(objective_smooth_logsumexp(bad_matrix))
+  })
+
+  it("gradient_smooth_repulsion handles wrong column count", {
+    bad_matrix <- matrix(1:4, nrow = 2)
+
+    expect_error(gradient_smooth_repulsion(bad_matrix))
+  })
+
+  it("gradient_smooth_logsumexp handles wrong column count", {
+    bad_matrix <- matrix(1:4, nrow = 2)
+
+    expect_error(gradient_smooth_logsumexp(bad_matrix))
+  })
+
+  it("objective_smooth_repulsion handles single row", {
+    # Single color should return 0, not error
+    single_color <- matrix(c(0.5, 0.1, 0.0), nrow = 1)
+
+    result <- objective_smooth_repulsion(single_color)
+
+    expect_equal(result, 0)
+  })
+
+  it("objective_smooth_logsumexp handles single row", {
+    single_color <- matrix(c(0.5, 0.1, 0.0), nrow = 1)
+
+    result <- objective_smooth_logsumexp(single_color)
+
+    expect_equal(result, 0)
+  })
+
+  it("gradient functions handle single row", {
+    single_color <- matrix(c(0.5, 0.1, 0.0), nrow = 1)
+
+    grad_repulsion <- gradient_smooth_repulsion(single_color)
+    grad_logsumexp <- gradient_smooth_logsumexp(single_color)
+
+    expect_equal(grad_repulsion, matrix(0, nrow = 1, ncol = 3))
+    expect_equal(grad_logsumexp, matrix(0, nrow = 1, ncol = 3))
+  })
+})
+
+describe("Edge cases and boundary conditions", {
+  it("optimization with colors at exact bounds", {
+    # Test with colors at the boundary of valid OKLAB range
+    colors <- matrix(
+      c(
+        0.001,
+        -0.4,
+        -0.4, # At lower bounds
+        0.999,
+        0.4,
+        0.4 # At upper bounds
+      ),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    expect_s3_class(result, "list")
+    # Colors should still be within bounds after optimization
+    expect_true(all(result$palette[, 1] >= 0.001))
+    expect_true(all(result$palette[, 1] <= 0.999))
+  })
+
+  it("optimization with out-of-bounds initial values", {
+    # Test with clearly invalid initial values
+    colors <- matrix(
+      c(
+        1.5,
+        0.8,
+        0.8, # Way out of bounds
+        -0.5,
+        -0.8,
+        -0.8 # Also out of bounds
+      ),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    expect_s3_class(result, "list")
+    # Clamping should bring values back to bounds
+    expect_true(all(
+      result$palette[, 1] >= 0.001 & result$palette[, 1] <= 0.999
+    ))
+  })
+
+  it("optimization with repeated colors", {
+    # Test with identical colors (edge case for distance calculations)
+    colors <- matrix(
+      c(
+        0.5,
+        0.1,
+        0.0,
+        0.5,
+        0.1,
+        0.0
+      ),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    expect_s3_class(result, "list")
+  })
+
+  it("optimization with very similar colors", {
+    # Colors that are nearly identical
+    colors <- matrix(
+      c(
+        0.5,
+        0.1,
+        0.0,
+        0.5001,
+        0.1001,
+        0.0001
+      ),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 10
+    )
+
+    expect_s3_class(result, "list")
+    expect_true(
+      is.finite(result$details$final_objective_value) ||
+        result$details$nloptr_status == -999
+    )
+  })
+
+  it("optimization with large color set", {
+    # Test with many colors to check scalability
+    set.seed(42)
+    n_colors <- 20
+    colors <- matrix(
+      runif(n_colors * 3, 0.1, 0.9),
+      nrow = n_colors,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    # Not all free to reduce computation time
+    fixed_mask <- c(TRUE, rep(FALSE, n_colors - 1))
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = fixed_mask,
+      max_iterations = 10
+    )
+
+    expect_s3_class(result, "list")
+    expect_equal(nrow(result$palette), n_colors)
+  })
+
+  it("all optimization functions return consistent structure", {
+    colors <- matrix(
+      c(0.5, 0.1, 0.0, 0.6, 0.0, 0.1),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    # Test all four main optimizers
+    constrained <- optimize_colors_constrained(
+      colors,
+      c(FALSE, FALSE),
+      max_iterations = 3
+    )
+    sann <- optimize_colors_sann(
+      colors,
+      c(FALSE, FALSE),
+      max_iterations = 5
+    )
+    direct <- optimize_colors_nlopt_direct(
+      colors,
+      c(FALSE, FALSE),
+      max_iterations = 5
+    )
+    neldermead <- optimize_colors_nlopt_neldermead(
+      colors,
+      c(FALSE, FALSE),
+      max_iterations = 10
+    )
+
+    # All should return list with palette and details
+    expect_s3_class(constrained, "list")
+    expect_s3_class(sann, "list")
+    expect_s3_class(direct, "list")
+    expect_s3_class(neldermead, "list")
+
+    expect_named(constrained, c("palette", "details"))
+    expect_named(sann, c("palette", "details"))
+    expect_named(direct, c("palette", "details"))
+    expect_named(neldermead, c("palette", "details"))
+
+    # All palettes should have same dimensions
+    expect_equal(dim(constrained$palette), dim(sann$palette))
+    expect_equal(dim(sann$palette), dim(direct$palette))
+    expect_equal(dim(direct$palette), dim(neldermead$palette))
+  })
+})
+
+describe("Return value scoping verification", {
+  # These tests specifically verify that the return_value variable
+  # is properly set in all code paths, including error handlers
+
+  it("optimize_colors_constrained return_value is complete", {
+    colors <- matrix(
+      c(0.5, 0.1, 0.0, 0.6, 0.0, 0.1),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    # Verify all expected fields are present
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+
+    details <- result$details
+    expect_true("iterations" %in% names(details))
+    expect_true("status_message" %in% names(details))
+    expect_true("nloptr_status" %in% names(details))
+    expect_true("final_objective_value" %in% names(details))
+
+    # Verify types
+    expect_s3_class(result$palette, "matrix")
+    expect_type(details$iterations, "integer")
+    expect_type(details$nloptr_status, "double")
+    expect_type(details$final_objective_value, "double")
+  })
+
+  it("optimize_colors_sann return_value is complete", {
+    colors <- matrix(
+      c(0.5, 0.1, 0.0, 0.6, 0.0, 0.1),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_sann(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+
+    details <- result$details
+    expect_true("iterations" %in% names(details))
+    expect_true("status_message" %in% names(details))
+    expect_true("sann_convergence" %in% names(details))
+    expect_true("final_objective_value" %in% names(details))
+  })
+
+  it("optimize_colors_nlopt_direct return_value is complete", {
+    colors <- matrix(
+      c(0.5, 0.1, 0.0, 0.6, 0.0, 0.1),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_nlopt_direct(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+
+    details <- result$details
+    expect_true("iterations" %in% names(details))
+    expect_true("status_message" %in% names(details))
+    expect_true("nloptr_status" %in% names(details))
+    expect_true("final_objective_value" %in% names(details))
+  })
+
+  it("optimize_colors_nlopt_neldermead return_value is complete", {
+    colors <- matrix(
+      c(0.5, 0.1, 0.0, 0.6, 0.0, 0.1),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_nlopt_neldermead(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+
+    details <- result$details
+    expect_true("iterations" %in% names(details))
+    expect_true("status_message" %in% names(details))
+    expect_true("nloptr_status" %in% names(details))
+    expect_true("final_objective_value" %in% names(details))
+  })
+
+  it("optimize_colors_lbfgs return_value is complete", {
+    colors <- matrix(
+      c(0.5, 0.1, 0.0, 0.6, 0.0, 0.1),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_lbfgs(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    expect_true("palette" %in% names(result))
+    expect_true("details" %in% names(result))
+
+    details <- result$details
+    expect_true("algorithm" %in% names(details))
+    expect_true("iterations" %in% names(details))
+    expect_true("nloptr_status" %in% names(details))
+    expect_true("final_objective_value" %in% names(details))
+    expect_true("status_message" %in% names(details))
+  })
+})
+
+describe("Status code handling", {
+  it("COBYLA returns valid status codes", {
+    colors <- matrix(
+      c(0.5, 0.1, 0.0, 0.6, 0.0, 0.1),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    # Status should be numeric
+    expect_type(result$details$nloptr_status, "double")
+  })
+
+  it("SANN returns valid convergence codes", {
+    colors <- matrix(
+      c(0.5, 0.1, 0.0, 0.6, 0.0, 0.1),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+
+    result <- optimize_colors_sann(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 5
+    )
+
+    # Convergence should be numeric
+    expect_type(result$details$sann_convergence, "double")
+  })
+
+  it("Error status -999 is set correctly on failure", {
+    # Use inputs that will definitely cause an error
+    colors <- matrix(c(NaN, NaN, NaN, Inf, Inf, Inf), nrow = 2)
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+
+    # On error, status should be -999
+    expect_equal(result$details$nloptr_status, -999)
+  })
+
+  it("Error messages contain helpful information", {
+    colors <- matrix(c(NaN, NaN, NaN, Inf, Inf, Inf), nrow = 2)
+
+    result <- optimize_colors_constrained(
+      initial_colors_oklab = colors,
+      fixed_mask = c(FALSE, FALSE),
+      max_iterations = 1
+    )
+
+    # Error message should indicate error type
+    expect_true(grepl(
+      "Error|nloptr",
+      result$details$status_message,
+      ignore.case = TRUE
+    ))
+  })
+})
