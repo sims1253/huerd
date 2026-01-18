@@ -19,9 +19,9 @@ reproduce_palette(palette, progress = NULL, ...)
 
 - progress:
 
-  Logical. Show progress messages. Default is
-  [`interactive()`](https://rdrr.io/r/base/interactive.html). If NULL,
-  uses the progress setting from the original generation.
+  Logical. Show progress messages. Default is NULL; if NULL, the
+  behavior falls back to
+  [`interactive()`](https://rdrr.io/r/base/interactive.html).
 
 - ...:
 
