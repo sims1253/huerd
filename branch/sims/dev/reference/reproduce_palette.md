@@ -1,7 +1,7 @@
 # Reproduce Palette from Existing huerd_palette Object
 
 Recreates an identical color palette from a previously generated
-huerd_palette object using the stored generation metadata.
+huerd_palette object using stored generation metadata.
 
 ## Usage
 
@@ -43,14 +43,14 @@ Reproducibility depends on the optimizer used:
 
 - **Deterministic optimizers** ("nlopt_direct", "nloptr_cobyla",
   "nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
-  regardless of random seed, as these algorithms produce the same
+  regardless of the random seed, as these algorithms produce the same
   results for the same inputs.
 
 - **Stochastic optimizers** ("sann"): Reproduction requires restoring
-  the random seed captured during original generation. Call
-  [`set.seed()`](https://rdrr.io/r/base/Random.html) before
-  [`generate_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/generate_palette.md)
-  if you need reproducible results.
+  the random seed captured during the original generation. The seed is
+  scoped using
+  [`withr::with_seed()`](https://withr.r-lib.org/reference/with_seed.html)
+  to avoid mutating global state.
 
 The function validates that the input object contains the necessary
 metadata and provides informative error messages if reproduction fails.

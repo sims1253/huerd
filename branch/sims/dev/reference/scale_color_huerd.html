@@ -83,7 +83,7 @@ OKLAB color space to maximize perceptual distinctness.</p>
 <dl><dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
 <dd><p>A <code>huerd_palette</code> object (from <code><a href="generate_palette.html">generate_palette()</a></code>) to use.
 If <code>NULL</code>, a palette will be generated automatically based on the number
-of levels in the data.</p></dd>
+of levels in your data.</p></dd>
 
 
 <dt id="arg-brand-colors">brand_colors<a class="anchor" aria-label="anchor" href="#arg-brand-colors"></a></dt>
@@ -99,8 +99,8 @@ generating palettes on-the-fly, or to <code><a href="https://ggplot2.tidyverse.o
 
 <dt id="arg-aesthetics">aesthetics<a class="anchor" aria-label="anchor" href="#arg-aesthetics"></a></dt>
 <dd><p>Character string or vector of aesthetic names to apply
-the scale to. Defaults to <code>"colour"</code> for <code>scale_color_huerd()</code> and</p>
-<p><code>"fill"</code> for <code>scale_fill_huerd()</code>.</p></dd>
+the scale to. Defaults to <code>"colour"</code> for <code>scale_color_huerd()</code>
+and <code>"fill"</code> for <code>scale_fill_huerd()</code>.</p></dd>
 
 
 <dt id="arg-na-value">na.value<a class="anchor" aria-label="anchor" href="#arg-na-value"></a></dt>
@@ -114,10 +114,11 @@ the scale to. Defaults to <code>"colour"</code> for <code>scale_color_huerd()</c
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>There are two ways to use these scales:</p>
-<p>1
-<strong>Pre-generated palette</strong>: Pass a <code>huerd_palette</code> object to the <code>palette</code>
-argument. This is useful when you want to reuse the same palette across</p>
-<p>multiple plots or need fine control over generation parameters.</p><ol><li><p><strong>On-the-fly generation</strong>: Leave <code>palette = NULL</code> and the scale will
+<ol><li><p><strong>Pre-generated palette</strong>: Pass a <code>huerd_palette</code> object to the
+<code>palette</code> argument. This is useful when you want to reuse the same
+palette across multiple plots or need fine control over generation
+parameters.</p></li>
+<li><p><strong>On-the-fly generation</strong>: Leave <code>palette = NULL</code> and the scale will
 automatically generate an optimized palette based on the number of
 levels in your data. Use <code>brand_colors</code> to include specific colors.</p></li>
 </ol></div>

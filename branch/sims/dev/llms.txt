@@ -16,7 +16,7 @@ pak::pak("sims1253/huerd")
 
 ## Basic Usage
 
-Generate a palette with 5 colors using either the standard or quick
+Generate a palette with 8 colors using either the standard or quick
 method:
 
 ``` r
@@ -83,8 +83,6 @@ plot(palette, type = "swatches")
 ```
 
 ![](reference/figures/README-visualize-1.png)
-
-## Constrained Color Palettes
 
 ## ggplot2 Integration
 

@@ -2,50 +2,65 @@
 
 ## huerd 0.6.0
 
+### Bug Fixes
+
+- Fixed hex color validation regex in
+  [`evaluate_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/evaluate_palette.md)
+  to properly reject literal “NA” strings while allowing actual NA
+  values
+- Fixed flaky test in `test-optimization-core.R` for nlopt_neldermead
+  optimizer performance expectations
+- Fixed
+  [`reproduce_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/reproduce_palette.md)
+  to properly restore RNG state using
+  [`withr::with_preserve_seed()`](https://withr.r-lib.org/reference/with_seed.html)
+  instead of direct `.Random.seed` manipulation
+- Fixed `validate_oklab_matrix()` test errors by properly initializing
+  validation_result structure
+
+### Code Quality Improvements
+
+- Added comprehensive documentation to internal helper functions with
+  [@param](https://github.com/param) descriptions
+- Improved error handling and validation in
+  [`export_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/export_palette.md)
+  for different export formats (JSON, CSV, CSS, Sass)
+- Enhanced L-BFGS optimizer state consistency by adding `colors_oklab`
+  field and defensive clamping
+- Updated all tests to use testthat 3rd edition describe/it BDD pattern
+  (1,006+ tests)
+- Fixed CVD analysis tests to handle list structure return from
+  [`simulate_palette_cvd()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/simulate_palette_cvd.md)
+
 ### New Features
 
-#### ggplot2 Integration
-
-- [`scale_color_huerd()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/scale_color_huerd.md),
+- Added
+  [`quick_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/quick_palette.md)
+  for one-line palette generation
+- Added
+  [`brand_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/brand_palette.md)
+  for brand color integration
+- Added
+  [`export_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/export_palette.md)
+  with support for JSON, CSV, CSS, and Sass formats
+- Added
+  [`interpret_palette_quality()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/interpret_palette_quality.md)
+  for palette quality assessment
+- Added
+  [`plot.huerd_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/plot.huerd_palette.md)
+  method with “swatches” and “analysis” plot types
+- Added ggplot2 integration:
+  [`scale_color_huerd()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/scale_color_huerd.md),
   [`scale_fill_huerd()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/scale_color_huerd.md),
   [`scale_colour_huerd()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/scale_color_huerd.md)
-  functions for seamless ggplot2 integration
 
-#### Convenience Functions
+### Infrastructure
 
-- [`quick_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/quick_palette.md)
-  for one-line palette generation
-- [`brand_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/brand_palette.md)
-  for brand color integration
-- [`export_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/export_palette.md)
-  for palette export functionality
-- [`interpret_palette_quality()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/interpret_palette_quality.md)
-  for palette quality interpretation
-
-#### S3 Plot Method
-
-- [`plot.huerd_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/plot.huerd_palette.md)
-  method with “swatches” and “analysis” plot types
-- Enhanced visualization options for palette inspection
-
-#### Documentation
-
-- Three new workflow vignettes: data-scientist-workflow,
-  designer-workflow, package-developer-workflow
-- Comprehensive user story-based documentation
-
-### User Story Enhancements
-
-- Simplified API for common use cases based on real user personas
-- One-line palette generation for data scientists
-- Brand color integration for designers  
-- Programmatic API improvements for package developers
-
-### Testing Improvements
-
-- All 1,006 tests now use testthat 3rd edition describe-it pattern
-- Added integration tests based on user story workflows
-- All tests passing
+- Added `withr` to Suggests for proper RNG state management
+- Updated .gitignore with .venv/ and pkgdown/ patterns
+- Updated .Rbuildignore with corrected .venv exclusion pattern
+- Added comprehensive vignettes for data scientist, designer, and
+  package developer workflows
 
 ------------------------------------------------------------------------
 

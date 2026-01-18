@@ -2,8 +2,8 @@
 
 Creates a scientifically-grounded color palette that maximizes the
 minimum perceptual distance between any two colors using pure minimax
-optimization in the OKLAB color space. Colors are automatically sorted
-by brightness and can include fixed brand colors.
+optimization in OKLAB color space. Colors are automatically sorted by
+brightness and can include fixed brand colors.
 
 ## Usage
 
@@ -125,8 +125,8 @@ The process:
 
 1.  Initialize free colors using k-means++ or harmony-based methods
 
-2.  Optimize using box-constrained nloptr to maximize minimum perceptual
-    distance
+2.  Optimize using box-constrained nloptr to maximize the minimum
+    perceptual distance
 
 3.  Sort final palette by OKLAB lightness for intuitive ordering
 

@@ -349,25 +349,28 @@ my_plot_function <- function(data, ...) {
 library(huerd)
 
 # Fast generation (exploration)
+# Expected runtime: ~0.1-0.3 seconds (low iterations for quick exploration)
 system.time({
   fast <- generate_palette(8, max_iterations = 100, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   0.628   0.000   0.628
+#>   0.605   0.000   0.605
 
 # Default generation
+# Expected runtime: ~0.5-2.0 seconds (balanced iteration count for good quality)
 system.time({
   default <- generate_palette(8, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   1.623   0.000   1.623
+#>    1.58    0.00    1.58
 
 # High quality generation
+# Expected runtime: ~2.0-8.0 seconds (high iterations for maximum quality)
 system.time({
   quality <- generate_palette(8, max_iterations = 3000, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   1.114   0.000   1.114
+#>   1.089   0.000   1.088
 ```
 
 For performance-critical applications:

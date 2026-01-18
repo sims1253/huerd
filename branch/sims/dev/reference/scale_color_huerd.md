@@ -39,7 +39,7 @@ scale_fill_huerd(
   A `huerd_palette` object (from
   [`generate_palette()`](https://sims1253.github.io/huerd/branch/sims/dev/reference/generate_palette.md))
   to use. If `NULL`, a palette will be generated automatically based on
-  the number of levels in the data.
+  the number of levels in your data.
 
 - brand_colors:
 
@@ -57,9 +57,8 @@ scale_fill_huerd(
 - aesthetics:
 
   Character string or vector of aesthetic names to apply the scale to.
-  Defaults to `"colour"` for `scale_color_huerd()` and
-
-  `"fill"` for `scale_fill_huerd()`.
+  Defaults to `"colour"` for `scale_color_huerd()` and `"fill"` for
+  `scale_fill_huerd()`.
 
 - na.value:
 
@@ -73,13 +72,12 @@ A ggplot2 scale object.
 
 There are two ways to use these scales:
 
-1 **Pre-generated palette**: Pass a `huerd_palette` object to the
-`palette` argument. This is useful when you want to reuse the same
-palette across
+1.  **Pre-generated palette**: Pass a `huerd_palette` object to the
+    `palette` argument. This is useful when you want to reuse the same
+    palette across multiple plots or need fine control over generation
+    parameters.
 
-multiple plots or need fine control over generation parameters.
-
-1.  **On-the-fly generation**: Leave `palette = NULL` and the scale will
+2.  **On-the-fly generation**: Leave `palette = NULL` and the scale will
     automatically generate an optimized palette based on the number of
     levels in your data. Use `brand_colors` to include specific colors.
 

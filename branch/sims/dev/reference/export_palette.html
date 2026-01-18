@@ -68,7 +68,7 @@ workflows.</p>
 <dd><p>Output format. One of:</p><ul><li><p><code>"hex"</code>: Character vector of hex colors (default)</p></li>
 <li><p><code>"css"</code>: CSS custom properties (variables)</p></li>
 <li><p><code>"sass"</code>: Sass/SCSS variables</p></li>
-<li><p><code>"json"</code>: JSON array</p></li>
+<li><p><code>"json"</code>: JSON object keyed by color names</p></li>
 <li><p><code>"csv"</code>: CSV format with color names</p></li>
 </ul></dd>
 
@@ -80,13 +80,17 @@ colors are named <code>color_1</code>, <code>color_2</code>, etc.</p></dd>
 
 <dt id="arg-file">file<a class="anchor" aria-label="anchor" href="#arg-file"></a></dt>
 <dd><p>Optional file path to write the output. If <code>NULL</code>, returns the
-formatted string.</p></dd>
+formatted string. If specified, the function writes the formatted palette
+to the given file path and (invisibly) returns the file path as a
+character string.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>If <code>file</code> is <code>NULL</code>, returns the formatted palette as a character
-string (invisibly for <code>"hex"</code>). If <code>file</code> is specified</p>
+string (invisibly for <code>"hex"</code>). If <code>file</code> is specified, the function
+writes the formatted palette to the given file and (invisibly) returns the
+file path as a character string.</p>
     </div>
 
     <div class="section level2">

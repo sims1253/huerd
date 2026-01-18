@@ -30,7 +30,7 @@ export_palette(
 
   - `"sass"`: Sass/SCSS variables
 
-  - `"json"`: JSON array
+  - `"json"`: JSON object keyed by color names
 
   - `"csv"`: CSV format with color names
 
@@ -42,12 +42,16 @@ export_palette(
 - file:
 
   Optional file path to write the output. If `NULL`, returns the
-  formatted string.
+  formatted string. If specified, the function writes the formatted
+  palette to the given file path and (invisibly) returns the file path
+  as a character string.
 
 ## Value
 
 If `file` is `NULL`, returns the formatted palette as a character string
-(invisibly for `"hex"`). If `file` is specified
+(invisibly for `"hex"`). If `file` is specified, the function writes the
+formatted palette to the given file and (invisibly) returns the file
+path as a character string.
 
 ## Examples
 

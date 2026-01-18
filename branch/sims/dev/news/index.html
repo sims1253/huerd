@@ -41,47 +41,37 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0" id="huerd-060">huerd 0.6.0<a class="anchor" aria-label="anchor" href="#huerd-060"></a></h2>
 <div class="section level3">
+<h3 id="bug-fixes-0-6-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-6-0"></a></h3>
+<ul><li>Fixed hex color validation regex in <code><a href="../reference/evaluate_palette.html">evaluate_palette()</a></code> to properly reject literal “NA” strings while allowing actual NA values</li>
+<li>Fixed flaky test in <code>test-optimization-core.R</code> for nlopt_neldermead optimizer performance expectations</li>
+<li>Fixed <code><a href="../reference/reproduce_palette.html">reproduce_palette()</a></code> to properly restore RNG state using <code><a href="https://withr.r-lib.org/reference/with_seed.html" class="external-link">withr::with_preserve_seed()</a></code> instead of direct <code>.Random.seed</code> manipulation</li>
+<li>Fixed <code>validate_oklab_matrix()</code> test errors by properly initializing validation_result structure</li>
+</ul></div>
+<div class="section level3">
+<h3 id="code-quality-improvements-0-6-0">Code Quality Improvements<a class="anchor" aria-label="anchor" href="#code-quality-improvements-0-6-0"></a></h3>
+<ul><li>Added comprehensive documentation to internal helper functions with <a href="https://github.com/param" class="external-link">@param</a> descriptions</li>
+<li>Improved error handling and validation in <code><a href="../reference/export_palette.html">export_palette()</a></code> for different export formats (JSON, CSV, CSS, Sass)</li>
+<li>Enhanced L-BFGS optimizer state consistency by adding <code>colors_oklab</code> field and defensive clamping</li>
+<li>Updated all tests to use testthat 3rd edition describe/it BDD pattern (1,006+ tests)</li>
+<li>Fixed CVD analysis tests to handle list structure return from <code><a href="../reference/simulate_palette_cvd.html">simulate_palette_cvd()</a></code>
+</li>
+</ul></div>
+<div class="section level3">
 <h3 id="new-features-0-6-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-6-0"></a></h3>
-<div class="section level4">
-<h4 id="ggplot2-integration-0-6-0">ggplot2 Integration<a class="anchor" aria-label="anchor" href="#ggplot2-integration-0-6-0"></a></h4>
-<ul><li>
-<code><a href="../reference/scale_color_huerd.html">scale_color_huerd()</a></code>, <code><a href="../reference/scale_color_huerd.html">scale_fill_huerd()</a></code>, <code><a href="../reference/scale_color_huerd.html">scale_colour_huerd()</a></code> functions for seamless ggplot2 integration</li>
-</ul></div>
-<div class="section level4">
-<h4 id="convenience-functions-0-6-0">Convenience Functions<a class="anchor" aria-label="anchor" href="#convenience-functions-0-6-0"></a></h4>
-<ul><li>
-<code><a href="../reference/quick_palette.html">quick_palette()</a></code> for one-line palette generation</li>
-<li>
-<code><a href="../reference/brand_palette.html">brand_palette()</a></code> for brand color integration</li>
-<li>
-<code><a href="../reference/export_palette.html">export_palette()</a></code> for palette export functionality</li>
-<li>
-<code><a href="../reference/interpret_palette_quality.html">interpret_palette_quality()</a></code> for palette quality interpretation</li>
-</ul></div>
-<div class="section level4">
-<h4 id="s3-plot-method-0-6-0">S3 Plot Method<a class="anchor" aria-label="anchor" href="#s3-plot-method-0-6-0"></a></h4>
-<ul><li>
-<code><a href="../reference/plot.huerd_palette.html">plot.huerd_palette()</a></code> method with “swatches” and “analysis” plot types</li>
-<li>Enhanced visualization options for palette inspection</li>
-</ul></div>
-<div class="section level4">
-<h4 id="documentation-0-6-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-6-0"></a></h4>
-<ul><li>Three new workflow vignettes: data-scientist-workflow, designer-workflow, package-developer-workflow</li>
-<li>Comprehensive user story-based documentation</li>
-</ul></div>
-</div>
-<div class="section level3">
-<h3 id="user-story-enhancements-0-6-0">User Story Enhancements<a class="anchor" aria-label="anchor" href="#user-story-enhancements-0-6-0"></a></h3>
-<ul><li>Simplified API for common use cases based on real user personas</li>
-<li>One-line palette generation for data scientists</li>
-<li>Brand color integration for designers<br></li>
-<li>Programmatic API improvements for package developers</li>
+<ul><li>Added <code><a href="../reference/quick_palette.html">quick_palette()</a></code> for one-line palette generation</li>
+<li>Added <code><a href="../reference/brand_palette.html">brand_palette()</a></code> for brand color integration</li>
+<li>Added <code><a href="../reference/export_palette.html">export_palette()</a></code> with support for JSON, CSV, CSS, and Sass formats</li>
+<li>Added <code><a href="../reference/interpret_palette_quality.html">interpret_palette_quality()</a></code> for palette quality assessment</li>
+<li>Added <code><a href="../reference/plot.huerd_palette.html">plot.huerd_palette()</a></code> method with “swatches” and “analysis” plot types</li>
+<li>Added ggplot2 integration: <code><a href="../reference/scale_color_huerd.html">scale_color_huerd()</a></code>, <code><a href="../reference/scale_color_huerd.html">scale_fill_huerd()</a></code>, <code><a href="../reference/scale_color_huerd.html">scale_colour_huerd()</a></code>
+</li>
 </ul></div>
 <div class="section level3">
-<h3 id="testing-improvements-0-6-0">Testing Improvements<a class="anchor" aria-label="anchor" href="#testing-improvements-0-6-0"></a></h3>
-<ul><li>All 1,006 tests now use testthat 3rd edition describe-it pattern</li>
-<li>Added integration tests based on user story workflows</li>
-<li>All tests passing</li>
+<h3 id="infrastructure-0-6-0">Infrastructure<a class="anchor" aria-label="anchor" href="#infrastructure-0-6-0"></a></h3>
+<ul><li>Added <code>withr</code> to Suggests for proper RNG state management</li>
+<li>Updated .gitignore with .venv/ and pkgdown/ patterns</li>
+<li>Updated .Rbuildignore with corrected .venv exclusion pattern</li>
+<li>Added comprehensive vignettes for data scientist, designer, and package developer workflows</li>
 </ul><hr></div>
 </div>
     <div class="section level2">
