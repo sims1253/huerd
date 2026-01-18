@@ -1,5 +1,5 @@
 # Default configuration for aesthetic initialization parameters.
-# Users can override these via the `aesthetic_init_config` argument in `generate_palette`.
+# Users can override these via `aesthetic_init_config` argument in `generate_palette`.
 .DEFAULT_AESTHETIC_INIT_CONFIG <- list(
   # Versioning for future API stability.
   config_version = 1,
@@ -23,7 +23,7 @@
   harmony_hcl_L_min_sd = 5,
   # Minimum allowed Standard Deviation for HCL C.
   harmony_hcl_C_min_sd = 5,
-  # Multiplier for the SDs derived from fixed colors' HCL L/C values.
+  # Multiplier for SDs derived from fixed colors' HCL L/C values.
   harmony_hcl_sd_multiplier = 1.0,
 
   # Fallback strategy.
@@ -293,7 +293,7 @@
 #'
 #' Creates a scientifically-grounded color palette that maximizes the minimum
 #' perceptual distance between any two colors using pure minimax optimization in
-#' the OKLAB color space. Colors are automatically sorted by brightness and can
+#' OKLAB color space. Colors are automatically sorted by brightness and can
 #' include fixed brand colors.
 #'
 #' @param n Integer. Total number of colors in the palette.
@@ -345,7 +345,7 @@
 #'
 #' The process:
 #' 1. Initialize free colors using k-means++ or harmony-based methods
-#' 2. Optimize using box-constrained nloptr to maximize minimum perceptual distance
+#' 2. Optimize using box-constrained nloptr to maximize the minimum perceptual distance
 #' 3. Sort final palette by OKLAB lightness for intuitive ordering
 #' 4. Apply gamut compensation during brightness sorting
 #'
@@ -359,7 +359,7 @@
 #'   \item Use `progress = TRUE` to monitor optimization convergence
 #'   \item Include 2-3 fixed colors maximum for best optimization
 #'   \item Use diagnostic dashboard `plot_palette_analysis()` for analysis
-#' }
+#'   }
 #'
 #' @examples
 #' # Simple optimal palette
@@ -442,6 +442,12 @@ generate_palette <- function(
   optimizer = "nloptr_cobyla",
   ...
 ) {
+  seed_info <- if (exists(".Random.seed")) {
+    .Random.seed
+  } else {
+    NULL
+  }
+
   generation_metadata <- list(
     n_colors = n,
     include_colors = include_colors,
@@ -454,7 +460,7 @@ generate_palette <- function(
     return_metrics = return_metrics,
     weights = weights,
     optimizer = optimizer,
-    seed = if (exists(".Random.seed")) .Random.seed else NULL,
+    seed = seed_info,
     package_version = utils::packageVersion("huerd"),
     target_space = "oklab",
     timestamp = Sys.time()
@@ -547,7 +553,7 @@ generate_palette <- function(
 #' Reproduce Palette from Existing huerd_palette Object
 #'
 #' Recreates an identical color palette from a previously generated huerd_palette
-#' object using the stored generation metadata.
+#' object using stored generation metadata.
 #'
 #' @param palette A huerd_palette object (result from `generate_palette()`)
 #'   containing generation metadata.
@@ -567,11 +573,11 @@ generate_palette <- function(
 #' \itemize{
 #'   \item **Deterministic optimizers** ("nlopt_direct", "nloptr_cobyla",
 #'     "nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
-#'     regardless of random seed, as these algorithms produce the same results
+#'     regardless of the random seed, as these algorithms produce the same results
 #'     for the same inputs.
 #'   \item **Stochastic optimizers** ("sann"): Reproduction requires restoring
-#'     the random seed captured during original generation. Call `set.seed()`
-#'     before `generate_palette()` if you need reproducible results.
+#'     the random seed captured during the original generation. The seed is scoped
+#'     using `withr::with_seed()` to avoid mutating global state.
 #' }
 #'
 #' The function validates that the input object contains the necessary metadata
@@ -614,7 +620,7 @@ reproduce_palette <- function(palette, progress = NULL, ...) {
     stop(
       "No generation metadata found in palette object. ",
       "This palette may have been created with an older version of huerd ",
-      "or the metadata was removed. Reproduction requires metadata."
+      "or metadata was removed. Reproduction requires metadata."
     )
   }
 
@@ -651,14 +657,6 @@ reproduce_palette <- function(palette, progress = NULL, ...) {
     }
   }
 
-  # Restore random seed if available
-  if (!is.null(metadata$seed)) {
-    if (progress) {
-      cli::cli_alert_info("Restoring random seed for reproducibility...")
-    }
-    .Random.seed <<- metadata$seed
-  }
-
   # Package version compatibility check
   if (!is.null(metadata$package_version)) {
     current_version <- utils::packageVersion("huerd")
@@ -677,21 +675,42 @@ reproduce_palette <- function(palette, progress = NULL, ...) {
     cli::cli_alert_info("Reproducing palette using stored metadata...")
   }
 
-  # Reproduce the palette using stored parameters
-  reproduced_palette <- generate_palette(
-    n = metadata$n_colors,
-    include_colors = metadata$include_colors,
-    initialization = metadata$initialization,
-    init_lightness_bounds = metadata$init_lightness_bounds,
-    init_hcl_bounds = metadata$init_hcl_bounds,
-    fixed_aesthetic_influence = metadata$fixed_aesthetic_influence,
-    aesthetic_init_config = metadata$aesthetic_init_config,
-    max_iterations = metadata$max_iterations,
-    return_metrics = metadata$return_metrics,
-    progress = progress,
-    weights = metadata$weights,
-    optimizer = metadata$optimizer
-  )
+  # Reproduce palette using stored parameters
+  # Use withr::set_seed to restore the exact RNG state
+  if (!is.null(metadata$seed)) {
+    reproduced_palette <- withr::with_preserve_seed({
+      .Random.seed <<- metadata$seed
+      generate_palette(
+        n = metadata$n_colors,
+        include_colors = metadata$include_colors,
+        initialization = metadata$initialization,
+        init_lightness_bounds = metadata$init_lightness_bounds,
+        init_hcl_bounds = metadata$init_hcl_bounds,
+        fixed_aesthetic_influence = metadata$fixed_aesthetic_influence,
+        aesthetic_init_config = metadata$aesthetic_init_config,
+        max_iterations = metadata$max_iterations,
+        return_metrics = metadata$return_metrics,
+        progress = progress,
+        weights = metadata$weights,
+        optimizer = metadata$optimizer
+      )
+    })
+  } else {
+    reproduced_palette <- generate_palette(
+      n = metadata$n_colors,
+      include_colors = metadata$include_colors,
+      initialization = metadata$initialization,
+      init_lightness_bounds = metadata$init_lightness_bounds,
+      init_hcl_bounds = metadata$init_hcl_bounds,
+      fixed_aesthetic_influence = metadata$fixed_aesthetic_influence,
+      aesthetic_init_config = metadata$aesthetic_init_config,
+      max_iterations = metadata$max_iterations,
+      return_metrics = metadata$return_metrics,
+      progress = progress,
+      weights = metadata$weights,
+      optimizer = metadata$optimizer
+    )
+  }
 
   # Preserve the original generation metadata to maintain perfect reproducibility
   attr(reproduced_palette, "generation_metadata") <- metadata

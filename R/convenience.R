@@ -94,6 +94,7 @@ quick_palette <- function(
     include_colors = brand_colors,
     init_lightness_bounds = lightness_bounds,
     max_iterations = max_iterations,
+    cvd_safe = cvd_safe,
     progress = FALSE
   )
 }
@@ -142,6 +143,7 @@ brand_palette <- function(brand_colors, n_total, cvd_safe = TRUE) {
     n = n_total,
     include_colors = brand_colors,
     fixed_aesthetic_influence = 0.9, # Strong influence from brand colors
+    cvd_safe = cvd_safe,
     progress = FALSE
   )
 }
@@ -157,15 +159,19 @@ brand_palette <- function(brand_colors, n_total, cvd_safe = TRUE) {
 #'   - `"hex"`: Character vector of hex colors (default)
 #'   - `"css"`: CSS custom properties (variables)
 #'   - `"sass"`: Sass/SCSS variables
-#'   - `"json"`: JSON array
+#'   - `"json"`: JSON object keyed by color names
 #'   - `"csv"`: CSV format with color names
 #' @param names Optional character vector of names for the colors. If `NULL`,
 #'   colors are named `color_1`, `color_2`, etc.
 #' @param file Optional file path to write the output. If `NULL`, returns the
-#'   formatted string.
+#'   formatted string. If specified, the function writes the formatted palette
+#'   to the given file path and (invisibly) returns the file path as a
+#'   character string.
 #'
 #' @return If `file` is `NULL`, returns the formatted palette as a character
-#'   string (invisibly for `"hex"`). If `file` is specified
+#'   string (invisibly for `"hex"`). If `file` is specified, the function
+#'   writes the formatted palette to the given file and (invisibly) returns the
+#'   file path as a character string.
 #' @examples
 #' pal <- generate_palette(5, progress = FALSE)
 #'
@@ -201,6 +207,29 @@ export_palette <- function(
     )
   }
 
+  # Validate/sanitize names based on format
+  if (format == "json") {
+    # Escape JSON special characters in names (quotes and backslashes)
+    names <- gsub("\\\\", "\\\\\\\\", names) # Escape backslashes first
+    names <- gsub('"', '\\\\"', names, fixed = TRUE) # Escape quotes
+  } else if (format == "csv") {
+    # Escape CSV special characters (quotes and commas)
+    names <- gsub('"', '""', names, fixed = TRUE) # Double up quotes
+    needs_quoting <- grepl('[",]', names) | names == ""
+    names[needs_quoting] <- paste0('"', names[needs_quoting], '"')
+  } else if (format %in% c("css", "sass")) {
+    # Validate CSS/Sass variable names
+    valid_pattern <- "^[a-zA-Z_][a-zA-Z0-9_-]*$"
+    invalid <- !grepl(valid_pattern, names)
+    if (any(invalid)) {
+      cli::cli_abort(c(
+        "{.arg names} must be valid CSS/Sass variable names.",
+        "i" = "Invalid names: {.val {names[invalid]}}",
+        "x" = "Names must start with a letter or underscore and contain only letters, numbers, underscores, and hyphens."
+      ))
+    }
+  }
+
   output <- switch(
     format,
     "hex" = colors,
@@ -213,7 +242,7 @@ export_palette <- function(
       paste(lines, collapse = "\n")
     },
     "json" = {
-      # Simple JSON without dependencies
+      # JSON object keyed by color names
       items <- paste0('    "', names, '": "', colors, '"')
       paste0("{\n", paste(items, collapse = ",\n"), "\n}")
     },
@@ -226,7 +255,7 @@ export_palette <- function(
   if (!is.null(file)) {
     writeLines(output, file)
     cli::cli_alert_success("Palette exported to {.file {file}}")
-    return(invisible(output))
+    return(invisible(file))
   }
 
   if (format == "hex") {
@@ -306,6 +335,13 @@ interpret_palette_quality <- function(palette) {
     "has room for improvement"
   }
 
+  # Handle NA performance ratio for summary
+  percent_text <- if (is.na(perf_ratio)) {
+    "not available"
+  } else {
+    sprintf("%.0f%% of theoretical maximum", perf_ratio * 100)
+  }
+
   # Interpret CVD safety
   cvd_min <- eval$cvd_safety$worst_case_min_distance
   accessibility <- if (is.null(cvd_min) || is.na(cvd_min)) {
@@ -334,10 +370,10 @@ interpret_palette_quality <- function(palette) {
 
   # Create summary
   summary <- sprintf(
-    "This %d-color palette is %s (%.0f%% of theoretical maximum). %s",
+    "This %d-color palette is %s (%s). %s",
     n,
     perf_text,
-    perf_ratio * 100,
+    percent_text,
     distinctness
   )
 

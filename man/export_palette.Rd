@@ -19,7 +19,7 @@ export_palette(
 \item \code{"hex"}: Character vector of hex colors (default)
 \item \code{"css"}: CSS custom properties (variables)
 \item \code{"sass"}: Sass/SCSS variables
-\item \code{"json"}: JSON array
+\item \code{"json"}: JSON object keyed by color names
 \item \code{"csv"}: CSV format with color names
 }}
 
@@ -27,11 +27,15 @@ export_palette(
 colors are named \code{color_1}, \code{color_2}, etc.}
 
 \item{file}{Optional file path to write the output. If \code{NULL}, returns the
-formatted string.}
+formatted string. If specified, the function writes the formatted palette
+to the given file path and (invisibly) returns the file path as a
+character string.}
 }
 \value{
 If \code{file} is \code{NULL}, returns the formatted palette as a character
-string (invisibly for \code{"hex"}). If \code{file} is specified
+string (invisibly for \code{"hex"}). If \code{file} is specified, the function
+writes the formatted palette to the given file and (invisibly) returns the
+file path as a character string.
 }
 \description{
 Export a huerd palette to common formats used in design and development

@@ -79,7 +79,7 @@ metrics as attributes.
 \description{
 Creates a scientifically-grounded color palette that maximizes the minimum
 perceptual distance between any two colors using pure minimax optimization in
-the OKLAB color space. Colors are automatically sorted by brightness and can
+OKLAB color space. Colors are automatically sorted by brightness and can
 include fixed brand colors.
 }
 \details{
@@ -90,7 +90,7 @@ grounded and focuses on a single, clear objective.
 The process:
 \enumerate{
 \item Initialize free colors using k-means++ or harmony-based methods
-\item Optimize using box-constrained nloptr to maximize minimum perceptual distance
+\item Optimize using box-constrained nloptr to maximize the minimum perceptual distance
 \item Sort final palette by OKLAB lightness for intuitive ordering
 \item Apply gamut compensation during brightness sorting
 }

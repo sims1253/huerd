@@ -33,7 +33,7 @@ scale_fill_huerd(
 \arguments{
 \item{palette}{A \code{huerd_palette} object (from \code{\link[=generate_palette]{generate_palette()}}) to use.
 If \code{NULL}, a palette will be generated automatically based on the number
-of levels in the data.}
+of levels in your data.}
 
 \item{brand_colors}{Character vector of hex colors that must be included
 in the palette. Only used when \code{palette = NULL}. These colors will be
@@ -43,9 +43,8 @@ preserved and additional colors optimized around them.}
 generating palettes on-the-fly, or to \code{\link[ggplot2:discrete_scale]{ggplot2::discrete_scale()}}.}
 
 \item{aesthetics}{Character string or vector of aesthetic names to apply
-the scale to. Defaults to \code{"colour"} for \code{scale_color_huerd()} and
-
-\code{"fill"} for \code{scale_fill_huerd()}.}
+the scale to. Defaults to \code{"colour"} for \code{scale_color_huerd()}
+and \code{"fill"} for \code{scale_fill_huerd()}.}
 
 \item{na.value}{Color to use for missing values. Defaults to \code{"grey50"}.}
 }
@@ -60,12 +59,11 @@ OKLAB color space to maximize perceptual distinctness.
 \details{
 There are two ways to use these scales:
 
-1
-\strong{Pre-generated palette}: Pass a \code{huerd_palette} object to the \code{palette}
-argument. This is useful when you want to reuse the same palette across
-
-multiple plots or need fine control over generation parameters.
 \enumerate{
+\item \strong{Pre-generated palette}: Pass a \code{huerd_palette} object to the
+\code{palette} argument. This is useful when you want to reuse the same
+palette across multiple plots or need fine control over generation
+parameters.
 \item \strong{On-the-fly generation}: Leave \code{palette = NULL} and the scale will
 automatically generate an optimized palette based on the number of
 levels in your data. Use \code{brand_colors} to include specific colors.

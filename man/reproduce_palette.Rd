@@ -21,7 +21,7 @@ identical to the input palette when reproduction is successful.
 }
 \description{
 Recreates an identical color palette from a previously generated huerd_palette
-object using the stored generation metadata.
+object using stored generation metadata.
 }
 \details{
 This function reads the generation metadata stored in the \code{generation_metadata}
@@ -32,11 +32,11 @@ Reproducibility depends on the optimizer used:
 \itemize{
 \item \strong{Deterministic optimizers} ("nlopt_direct", "nloptr_cobyla",
 "nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
-regardless of random seed, as these algorithms produce the same results
+regardless of the random seed, as these algorithms produce the same results
 for the same inputs.
 \item \strong{Stochastic optimizers} ("sann"): Reproduction requires restoring
-the random seed captured during original generation. Call \code{set.seed()}
-before \code{generate_palette()} if you need reproducible results.
+the random seed captured during the original generation. The seed is scoped
+using \code{withr::with_seed()} to avoid mutating global state.
 }
 
 The function validates that the input object contains the necessary metadata

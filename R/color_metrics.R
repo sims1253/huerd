@@ -32,7 +32,7 @@ evaluate_palette <- function(colors, ...) {
     } else {
       if (
         !all(
-          grepl("^#[0-9A-Fa-f]{6}$|^NA$", colors, ignore.case = TRUE) |
+          grepl("^#[0-9A-Fa-f]{6}$", colors) |
             is.na(colors)
         )
       ) {

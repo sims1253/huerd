@@ -10,8 +10,8 @@
 
 #' Optimize Color Palette using Pure Minimax Box-Constrained Optimization
 #'
-#' This function takes an initial set of colors and optimizes the positions of
-#' the "free" colors to maximize the minimum perceptual distance between any
+#' This function takes an initial set of colors and optimizes positions of
+#' "free" colors to maximize the minimum perceptual distance between any
 #' two colors (pure minimax objective).
 #'
 #' @param initial_colors_oklab Matrix of all colors (fixed and initial free) in OK LAB space.
@@ -20,7 +20,7 @@
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
-#' @return A list containing the optimized color matrix `palette` and `details` about the optimization.
+#' @return A list containing optimized color matrix `palette` and `details` about optimization.
 #' @noRd
 optimize_colors_constrained <- function(
   initial_colors_oklab,
@@ -163,6 +163,7 @@ optimize_colors_constrained <- function(
 }
 
 #' Aggregate Objective Function for Optimization
+#'
 #' This function computes the score to be maximized (so it returns a positive value).
 #' The main optimization function will take the negative of this.
 #' @noRd
@@ -189,7 +190,7 @@ objective_function_aggregator <- function(
   perceptual_score <- perceptual_score %||% 0
   cvd_score <- cvd_score %||% 0
 
-  # If weights are c(0,0), value will be 0.
+  # If weights are c(0, 0), value will be 0.
   return(balance_weights[1] * perceptual_score + balance_weights[2] * cvd_score)
 }
 
@@ -260,8 +261,8 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
 
 #' Optimize Color Palette using Simulated Annealing
 #'
-#' This function takes an initial set of colors and optimizes the positions of
-#' the "free" colors to maximize the minimum perceptual distance between any
+#' This function takes an initial set of colors and optimizes positions of
+#' "free" colors to maximize the minimum perceptual distance between any
 #' two colors using simulated annealing from stats::optim.
 #'
 #' @param initial_colors_oklab Matrix of all colors (fixed and initial free) in OK LAB space.
@@ -270,7 +271,7 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
-#' @return A list containing the optimized color matrix `palette` and `details` about the optimization.
+#' @return A list containing optimized color matrix `palette` and `details` about optimization.
 #' @noRd
 optimize_colors_sann <- function(
   initial_colors_oklab,
@@ -319,6 +320,9 @@ optimize_colors_sann <- function(
 
     # Capture state if tracking enabled
     if (track_states && eval_f_env$iter %% save_every == 0) {
+      temp_all_colors_oklab <- initial_colors_oklab
+      temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
+
       current_state <- list(
         iteration = eval_f_env$iter,
         colors_oklab = temp_all_colors_oklab,
@@ -418,9 +422,9 @@ optimize_colors_sann <- function(
 
 #' Optimize Color Palette using NLopt DIRECT Algorithm
 #'
-#' This function takes an initial set of colors and optimizes the positions of
-#' the "free" colors to maximize the minimum perceptual distance between any
-#' two colors using the DIRECT (Dividing Rectangles) global optimization algorithm.
+#' This function takes an initial set of colors and optimizes positions of
+#' "free" colors to maximize the minimum perceptual distance between any
+#' two colors using DIRECT (Dividing Rectangles) global optimization algorithm.
 #' This is a deterministic global optimizer that provides excellent scientific
 #' reproducibility, though it may be slower than local optimization methods.
 #'
@@ -430,7 +434,7 @@ optimize_colors_sann <- function(
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
-#' @return A list containing the optimized color matrix `palette` and `details` about the optimization.
+#' @return A list containing optimized color matrix `palette` and `details` about optimization.
 #' @noRd
 optimize_colors_nlopt_direct <- function(
   initial_colors_oklab,
@@ -530,6 +534,7 @@ optimize_colors_nlopt_direct <- function(
 
   # Process and return results
   optimized_free_colors_oklab <- matrix(result$solution, ncol = 3, byrow = TRUE)
+
   # Final clamp to ensure solution is strictly within bounds
   optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
     optimized_free_colors_oklab[, 1],
@@ -571,11 +576,11 @@ optimize_colors_nlopt_direct <- function(
 
 #' Optimize Color Palette using NLopt Nelder-Mead Algorithm
 #'
-#' This function takes an initial set of colors and optimizes the positions of
-#' the "free" colors to maximize the minimum perceptual distance between any
-#' two colors using the Nelder-Mead simplex algorithm from NLopt. This is a
+#' This function takes an initial set of colors and optimizes positions of
+#' "free" colors to maximize the minimum perceptual distance between any
+#' two colors using Nelder-Mead simplex algorithm from NLopt. This is a
 #' local optimization method that is derivative-free and robust for non-smooth
-#' objective functions, making it a good alternative to the COBYLA algorithm.
+#' objective functions, making it a good alternative to COBYLA algorithm.
 #'
 #' @param initial_colors_oklab Matrix of all colors (fixed and initial free) in OK LAB space.
 #' @param fixed_mask Logical vector indicating which rows in `initial_colors_oklab` are fixed.
@@ -583,7 +588,7 @@ optimize_colors_nlopt_direct <- function(
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
-#' @return A list containing the optimized color matrix `palette` and `details` about the optimization.
+#' @return A list containing optimized color matrix `palette` and `details` about optimization.
 #' @noRd
 optimize_colors_nlopt_neldermead <- function(
   initial_colors_oklab,
@@ -600,7 +605,7 @@ optimize_colors_nlopt_neldermead <- function(
     drop = FALSE
   ]))
 
-  # Environment to hold iteration count, accessible by the objective function
+  # Track iteration count
   eval_f_env <- new.env(parent = emptyenv())
   eval_f_env$iter <- 0
 
@@ -610,39 +615,8 @@ optimize_colors_nlopt_neldermead <- function(
     optimization_states <- list()
   }
 
-  # Objective function to be minimized by nloptr (pure minimax)
-  eval_f <- function(free_params_vec) {
-    eval_f_env$iter <- eval_f_env$iter + 1
-    current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
-
-    # Pure minimax objective: maximize minimum perceptual distance
-    temp_all_colors_oklab <- initial_colors_oklab
-    temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
-
-    # Capture state if tracking enabled
-    if (track_states && eval_f_env$iter %% save_every == 0) {
-      temp_all_colors_oklab <- initial_colors_oklab
-      temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-
-      current_state <- list(
-        iteration = eval_f_env$iter,
-        colors_oklab = temp_all_colors_oklab,
-        objective_value = if (is.finite(objective_value)) {
-          objective_value
-        } else {
-          1e10
-        },
-        timestamp = Sys.time()
-      )
-      optimization_states[[length(optimization_states) + 1]] <<- current_state
-    }
-
-    return(if (is.finite(objective_value)) objective_value else 1e10) # Fallback for non-finite objectives
-  }
-
-  # Setup and run nloptr with Nelder-Mead algorithm
-  # Box constraints for OKLAB space
+  # Define bounds for free colors (OKLAB space)
+  # Using 0.001/0.999 to avoid numerical issues at exact boundaries
   lower_bounds <- rep(c(0.001, -0.4, -0.4), n_free_colors)
   upper_bounds <- rep(
     c(
@@ -728,15 +702,15 @@ optimize_colors_nlopt_neldermead <- function(
 #' High-performance gradient-based optimization using L-BFGS algorithm
 #' paired with smooth differentiable objective functions.
 #'
-#' @param initial_colors_oklab Initial color matrix in OKLAB space
-#' @param fixed_mask Logical vector indicating which colors are fixed
-#' @param max_iterations Maximum optimization iterations
+#' @param initial_colors_oklab Initial color matrix in OKLAB space.
+#' @param fixed_mask Logical vector indicating which colors are fixed.
+#' @param max_iterations Maximum optimization iterations.
 #' @param weights Named numeric vector specifying which smooth objective to use.
 #'   If contains "smooth_logsumexp" with positive value, uses log-sum-exp objective.
 #'   Otherwise uses smooth repulsion objective. Default is NULL (uses repulsion).
-#' @param track_states Whether to track optimization states
-#' @param save_every Save state every N iterations
-#' @param return_states Whether to return optimization states
+#' @param track_states Whether to track optimization states.
+#' @param save_every Save state every N iterations.
+#' @param return_states Whether to return optimization states.
 #' @return List with optimized palette and details
 #' @noRd
 optimize_colors_lbfgs <- function(
@@ -756,7 +730,7 @@ optimize_colors_lbfgs <- function(
   ]))
 
   # Track iteration count
-  eval_f_env <- new.env()
+  eval_f_env <- new.env(parent = emptyenv())
   eval_f_env$iter <- 0
 
   # Initialize state tracking if enabled
@@ -803,7 +777,7 @@ optimize_colors_lbfgs <- function(
     if (track_states && eval_f_env$iter %% save_every == 0) {
       current_state <- list(
         iteration = eval_f_env$iter,
-        palette = farver::encode_colour(temp_all_colors_oklab, from = "oklab"),
+        colors_oklab = temp_all_colors_oklab,
         objective_value = objective_value
       )
       optimization_states[[length(optimization_states) + 1]] <<- current_state
@@ -852,6 +826,22 @@ optimize_colors_lbfgs <- function(
         ncol = 3,
         byrow = TRUE
       )
+
+      # Defensive clamp: ensure solution is strictly within bounds
+      # Apply per-component pmax(lower_bounds, pmin(. , upper_bounds))
+      optimized_free_colors[, 1] <- pmax(
+        lower_bounds[1],
+        pmin(upper_bounds[1], optimized_free_colors[, 1])
+      )
+      optimized_free_colors[, 2] <- pmax(
+        lower_bounds[2],
+        pmin(upper_bounds[2], optimized_free_colors[, 2])
+      )
+      optimized_free_colors[, 3] <- pmax(
+        lower_bounds[3],
+        pmin(upper_bounds[3], optimized_free_colors[, 3])
+      )
+
       optimized_all_colors_oklab <- initial_colors_oklab
       optimized_all_colors_oklab[!fixed_mask, ] <- optimized_free_colors
 

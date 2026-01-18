@@ -40,7 +40,7 @@ pak::pak("sims1253/huerd")
 ```
 ## Basic Usage
 
-Generate a palette with 5 colors using either the standard or quick method:
+Generate a palette with 8 colors using either the standard or quick method:
 
 ```{r example}
 library(huerd)
@@ -64,8 +64,6 @@ set.seed(42)
 palette <- generate_palette(8, progress = FALSE)
 plot(palette, type = "swatches")
 ```
-
-## Constrained Color Palettes
 
 ## ggplot2 Integration
 

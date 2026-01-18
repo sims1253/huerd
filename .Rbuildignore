@@ -14,7 +14,8 @@
 ^scripts/
 ^thesis_study_results/
 ^todo\.md$
-^\.venv$
+^\.venv
 ^\.serena$
 ^\.tldr$
 ^\.claude$
+^\.Rcheck$

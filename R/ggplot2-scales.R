@@ -48,17 +48,15 @@
 #'
 #' @param palette A `huerd_palette` object (from [generate_palette()]) to use.
 #'   If `NULL`, a palette will be generated automatically based on the number
-#'   of levels in the data.
+#'   of levels in your data.
 #' @param brand_colors Character vector of hex colors that must be included
 #'   in the palette. Only used when `palette = NULL`. These colors will be
 #'   preserved and additional colors optimized around them.
 #' @param ... Additional arguments passed to [generate_palette()] when
 #'   generating palettes on-the-fly, or to [ggplot2::discrete_scale()].
 #' @param aesthetics Character string or vector of aesthetic names to apply
-
-#'   the scale to. Defaults to `"colour"` for `scale_color_huerd()` and
-#'
-#'   `"fill"` for `scale_fill_huerd()`.
+#'   the scale to. Defaults to `"colour"` for `scale_color_huerd()`
+#'   and `"fill"` for `scale_fill_huerd()`.
 #' @param na.value Color to use for missing values. Defaults to `"grey50"`.
 #'
 #' @return A ggplot2 scale object.
@@ -66,15 +64,15 @@
 #' @details
 #' There are two ways to use these scales:
 #'
-#' 1
-#' **Pre-generated palette**: Pass a `huerd_palette` object to the `palette`
-#'    argument. This is useful when you want to reuse the same palette across
-#'
-#'    multiple plots or need fine control over generation parameters.
-#'
-#' 2. **On-the-fly generation**: Leave `palette = NULL` and the scale will
-#'    automatically generate an optimized palette based on the number of
-#'    levels in your data. Use `brand_colors` to include specific colors.
+#' \enumerate{
+#' \item \strong{Pre-generated palette}: Pass a `huerd_palette` object to the
+#'   `palette` argument. This is useful when you want to reuse the same
+#'   palette across multiple plots or need fine control over generation
+#'   parameters.
+#' \item \strong{On-the-fly generation}: Leave `palette = NULL` and the scale will
+#'   automatically generate an optimized palette based on the number of
+#'   levels in your data. Use `brand_colors` to include specific colors.
+#' }
 #'
 #' @examples
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
@@ -112,56 +110,12 @@ scale_color_huerd <- function(
   aesthetics = "colour",
   na.value = "grey50"
 ) {
-  if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    cli::cli_abort(c(
-      "Package {.pkg ggplot2} is required for scale functions.",
-      "i" = "Install it with {.code install.packages(\"ggplot2\")}"
-    ))
-  }
-
-  # Separate ggplot2 scale args from generate_palette args
-  scale_args <- list(...)
-  generate_args <- list()
-
-  # Known discrete_scale arguments
-
-  scale_arg_names <- c(
-    "name",
-    "breaks",
-    "labels",
-    "limits",
-    "expand",
-    "na.translate",
-    "drop",
-    "guide",
-    "position"
-  )
-
-  for (arg_name in names(scale_args)) {
-    if (arg_name %in% scale_arg_names) {
-      # Keep in scale_args
-    } else {
-      generate_args[[arg_name]] <- scale_args[[arg_name]]
-      scale_args[[arg_name]] <- NULL
-    }
-  }
-  scale_args <- scale_args[!vapply(scale_args, is.null, logical(1))]
-
-  pal_fun <- do.call(
-    .huerd_pal,
-    c(list(palette = palette, brand_colors = brand_colors), generate_args)
-  )
-
-  do.call(
-    ggplot2::discrete_scale,
-    c(
-      list(
-        aesthetics = aesthetics,
-        palette = pal_fun,
-        na.value = na.value
-      ),
-      scale_args
-    )
+  build_huerd_scale(
+    aesthetics = aesthetics,
+    na.value = na.value,
+    palette = palette,
+    brand_colors = brand_colors,
+    ...
   )
 }
 
@@ -180,6 +134,32 @@ scale_fill_huerd <- function(
   aesthetics = "fill",
   na.value = "grey50"
 ) {
+  build_huerd_scale(
+    aesthetics = aesthetics,
+    na.value = na.value,
+    palette = palette,
+    brand_colors = brand_colors,
+    ...
+  )
+}
+
+
+# Internal helper to build huerd scales
+#
+# @param aesthetics Character string or vector of aesthetic names.
+# @param na.value Color to use for missing values.
+# @param palette A huerd_palette object or NULL.
+# @param brand_colors Character vector of brand colors.
+# @param ... Additional arguments for generate_palette or discrete_scale.
+# @return A ggplot2 scale object.
+# @noRd
+build_huerd_scale <- function(
+  aesthetics,
+  na.value,
+  palette = NULL,
+  brand_colors = NULL,
+  ...
+) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     cli::cli_abort(c(
       "Package {.pkg ggplot2} is required for scale functions.",
@@ -189,8 +169,8 @@ scale_fill_huerd <- function(
 
   # Separate ggplot2 scale args from generate_palette args
   scale_args <- list(...)
-  generate_args <- list()
 
+  # Known discrete_scale arguments
   scale_arg_names <- c(
     "name",
     "breaks",
@@ -203,14 +183,10 @@ scale_fill_huerd <- function(
     "position"
   )
 
-  for (arg_name in names(scale_args)) {
-    if (arg_name %in% scale_arg_names) {
-      # Keep in scale_args
-    } else {
-      generate_args[[arg_name]] <- scale_args[[arg_name]]
-      scale_args[[arg_name]] <- NULL
-    }
-  }
+  # Move non-scale args to generate_args and remove from scale_args
+  non_scale_names <- setdiff(names(scale_args), scale_arg_names)
+  generate_args <- scale_args[non_scale_names]
+  scale_args[non_scale_names] <- NULL
   scale_args <- scale_args[!vapply(scale_args, is.null, logical(1))]
 
   pal_fun <- do.call(

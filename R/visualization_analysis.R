@@ -529,7 +529,12 @@ create_comparative_palettes <- function(
   grobs <- list()
 
   for (i in seq_along(distance_data)) {
-    distance_data[[i]] <- distance_data[[i]][distance_data[[i]] != 0]
+    filtered <- distance_data[[i]][distance_data[[i]] != 0]
+    if (length(filtered) == 0) {
+      distance_data[[i]] <- 0
+    } else {
+      distance_data[[i]] <- filtered
+    }
   }
 
   n_palettes <- length(distance_data)
