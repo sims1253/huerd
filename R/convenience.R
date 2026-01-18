@@ -459,7 +459,7 @@ plot.huerd_palette <- function(x, type = c("swatches", "analysis"), ...) {
     return(invisible(x))
   }
 
-  # Create a simple swatch display using grid
+  # Create a simple swatch display using base graphics
   old_par <- graphics::par(mar = c(1, 1, 2, 1))
   on.exit(graphics::par(old_par))
 

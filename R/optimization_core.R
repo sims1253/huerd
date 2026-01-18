@@ -615,6 +615,38 @@ optimize_colors_nlopt_neldermead <- function(
     optimization_states <- list()
   }
 
+  # Objective function to be minimized by nloptr (pure minimax)
+  eval_f <- function(free_params_vec) {
+    eval_f_env$iter <- eval_f_env$iter + 1
+    current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
+
+    # Pure minimax objective: maximize minimum perceptual distance
+    temp_all_colors_oklab <- initial_colors_oklab
+    temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
+    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
+
+    # Capture state if tracking enabled
+    if (track_states && eval_f_env$iter %% save_every == 0) {
+      temp_all_colors_oklab <- initial_colors_oklab
+      temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
+
+      current_state <- list(
+        iteration = eval_f_env$iter,
+        colors_oklab = temp_all_colors_oklab,
+        objective_value = if (is.finite(objective_value)) {
+          objective_value
+        } else {
+          1e10
+        },
+        timestamp = Sys.time()
+      )
+      optimization_states[[length(optimization_states) + 1]] <<- current_state
+    }
+
+    return(if (is.finite(objective_value)) objective_value else 1e10) # Fallback for non-finite objectives
+  }
+
+
   # Define bounds for free colors (OKLAB space)
   # Using 0.001/0.999 to avoid numerical issues at exact boundaries
   lower_bounds <- rep(c(0.001, -0.4, -0.4), n_free_colors)

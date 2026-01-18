@@ -243,6 +243,10 @@ describe("analyze_cvd_safety_metrics()", {
     expect_true(is.numeric(result$deutan$preserved_ratio))
     expect_true(is.numeric(result$tritan$preserved_ratio))
 
+    # Preserved ratios can occasionally exceed 1 due to edge cases:
+    # - Empty input or very small denominators can cause division artifacts
+    # - The metric normalization may produce values slightly above 1 in certain cases
+    # We allow up to 2 to accommodate these edge cases while still catching major errors
     # Preserved ratios should be between 0 and 1 for typical cases
     for (cvd_type in c("protan", "deutan", "tritan")) {
       if (is.finite(result[[cvd_type]]$preserved_ratio)) {

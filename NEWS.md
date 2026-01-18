@@ -1,12 +1,14 @@
 # huerd 0.6.0
 
 ## Bug Fixes
+
 - Fixed hex color validation regex in `evaluate_palette()` to properly reject literal "NA" strings while allowing actual NA values
 - Fixed flaky test in `test-optimization-core.R` for nlopt_neldermead optimizer performance expectations
 - Fixed `reproduce_palette()` to properly restore RNG state using `withr::with_preserve_seed()` instead of direct `.Random.seed` manipulation
 - Fixed `validate_oklab_matrix()` test errors by properly initializing validation_result structure
 
 ## Code Quality Improvements
+
 - Added comprehensive documentation to internal helper functions with @param descriptions
 - Improved error handling and validation in `export_palette()` for different export formats (JSON, CSV, CSS, Sass)
 - Enhanced L-BFGS optimizer state consistency by adding `colors_oklab` field and defensive clamping
@@ -14,6 +16,7 @@
 - Fixed CVD analysis tests to handle list structure return from `simulate_palette_cvd()`
 
 ## New Features
+
 - Added `quick_palette()` for one-line palette generation
 - Added `brand_palette()` for brand color integration
 - Added `export_palette()` with support for JSON, CSV, CSS, and Sass formats
@@ -22,6 +25,7 @@
 - Added ggplot2 integration: `scale_color_huerd()`, `scale_fill_huerd()`, `scale_colour_huerd()`
 
 ## Infrastructure
+
 - Added `withr` to Suggests for proper RNG state management
 - Updated .gitignore with .venv/ and pkgdown/ patterns
 - Updated .Rbuildignore with corrected .venv exclusion pattern
@@ -36,10 +40,12 @@
 This release focuses on code quality, maintainability, and consistency improvements identified through comprehensive code review.
 
 ### User Messaging
+
 - Replaced `cat()` calls with semantic `cli` messaging functions (`cli_alert_info()`, `cli_alert_warning()`, `cli_alert_success()`, `cli_inform()`) for better user experience
 - Added `cli` to package Imports
 
 ### Type Safety & Performance
+
 - Replaced `sapply()` with `vapply()` for type-stable return values
 - Replaced `is.na()` with `anyNA()` for more efficient NA detection
 - Fixed style issues: `=` → `<-` for assignment, `1:n` → `seq_len(n)` for safer indexing, `T`/`F` → `TRUE`/`FALSE`
@@ -52,10 +58,12 @@ This release focuses on code quality, maintainability, and consistency improveme
 - Removed dead/commented-out code
 
 ### API Consistency
+
 - Added `...` parameter to exported functions for future extensibility
 - Fixed `simulate_palette_cvd()` to always return a named list for consistent API behavior
 
 ## Bug Fixes
+
 - Corrected gradient formulas in smooth optimization objectives (`gradient_smooth_repulsion()` and `gradient_smooth_logsumexp()`)
 - Added input validation to gradient functions
 - Added numerical gradient verification tests to ensure correctness
@@ -65,6 +73,7 @@ This release focuses on code quality, maintainability, and consistency improveme
 # huerd 0.5.2 (2025-07-21)
 
 ## Bug Fixes
+
 - Corrected distance matrix calculation in smooth optimization objectives where diagonal masking affected only element [1,1] rather than the full diagonal
 - Eliminated redundant distance calculations by using `dist()` output directly instead of symmetric matrix conversion
 - Applied log-sum-exp numerical stability technique for robust computation under extreme parameter values
@@ -77,25 +86,30 @@ This release focuses on code quality, maintainability, and consistency improveme
 ## New Features
 
 ### Smooth Optimization Support
+
 - Added L-BFGS optimizer for gradient-based optimization
 - Implemented two smooth objective functions: `smooth_repulsion` and `smooth_logsumexp`
 - Added analytical gradient computation for faster convergence
 - Speed improvements of 5-20x for larger palettes (8+ colors)
 
 ### Multi-Objective Framework Updates
+
 - Extended framework to support smooth and discrete objectives
 - Support for weighted combinations of smooth objectives
 
 ## API Changes
+
 - Added `optimizer = "nlopt_lbfgs"` option for L-BFGS optimization
 - Added `weights = c(smooth_repulsion = 1)` and `weights = c(smooth_logsumexp = 1)` for smooth objectives
 
 ## Bug Fixes
+
 - Fixed critical bug where L-BFGS optimizer always used `smooth_repulsion` objective regardless of `weights` parameter
 - Fixed crash in `evaluate_palette_quality()` when called directly with hex colors ("argument is of length zero" error)
 - Both smooth objectives (`smooth_repulsion` and `smooth_logsumexp`) now work correctly and produce different optimization results
 
 ## Internal Changes
+
 - Added analytical gradient functions for smooth objectives
 - Extended multi-objective framework to handle smooth and discrete objectives
 - Improved input validation in `evaluate_palette_quality()` function
