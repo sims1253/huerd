@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">huerd</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -188,10 +188,11 @@ package.</p>
 <span><span class="va">opt_details</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">palette</span>, <span class="st">"optimization_details"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">opt_details</span><span class="op">)</span></span>
 <span><span class="co">#&gt; List of 4</span></span>
-<span><span class="co">#&gt;  $ iterations           : num 755</span></span>
+<span><span class="co">#&gt;  $ iterations           : int 755</span></span>
 <span><span class="co">#&gt;  $ status_message       : chr "NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached."</span></span>
-<span><span class="co">#&gt;  $ nloptr_status        : int 4</span></span>
+<span><span class="co">#&gt;  $ nloptr_status        : num 4</span></span>
 <span><span class="co">#&gt;  $ final_objective_value: num -0.127</span></span>
+<span><span class="co">#&gt;  - attr(*, "class")= chr [1:2] "huerd_optimization_details" "list"</span></span>
 <span></span>
 <span><span class="co"># Access quality metrics</span></span>
 <span><span class="va">metrics</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">palette</span>, <span class="st">"metrics"</span><span class="op">)</span></span>
@@ -423,7 +424,7 @@ user-provided ones:</p>
 <span>  <span class="va">fast</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_palette.html">generate_palette</a></span><span class="op">(</span><span class="fl">8</span>, max_iterations <span class="op">=</span> <span class="fl">100</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.607   0.000   0.608</span></span>
+<span><span class="co">#&gt;   0.609   0.000   0.609</span></span>
 <span></span>
 <span><span class="co"># Default generation</span></span>
 <span><span class="co"># Expected runtime: ~0.5-2.0 seconds (balanced iteration count for good quality)</span></span>
@@ -431,7 +432,7 @@ user-provided ones:</p>
 <span>  <span class="va">default</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_palette.html">generate_palette</a></span><span class="op">(</span><span class="fl">8</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.599   0.000   1.600</span></span>
+<span><span class="co">#&gt;   1.603   0.000   1.602</span></span>
 <span></span>
 <span><span class="co"># High quality generation</span></span>
 <span><span class="co"># Expected runtime: ~2.0-8.0 seconds (high iterations for maximum quality)</span></span>
@@ -439,7 +440,7 @@ user-provided ones:</p>
 <span>  <span class="va">quality</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_palette.html">generate_palette</a></span><span class="op">(</span><span class="fl">8</span>, max_iterations <span class="op">=</span> <span class="fl">3000</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.097   0.000   1.097</span></span></code></pre></div>
+<span><span class="co">#&gt;   1.107   0.000   1.108</span></span></code></pre></div>
 <p>For performance-critical applications:</p>
 <ol style="list-style-type: decimal">
 <li>

@@ -197,14 +197,16 @@ sann_palette <- generate_palette(
   progress = FALSE
 )
 
-# Using DIRECT algorithm (deterministic global, best for scientific reproducibility)
+# Using DIRECT algorithm (deterministic global, best for scientific
+# reproducibility)
 direct_palette <- generate_palette(
   n = 4,
   optimizer = "nlopt_direct",
   progress = FALSE
 )
 
-# Using Nelder-Mead algorithm (derivative-free local, good alternative to COBYLA)
+# Using Nelder-Mead algorithm (derivative-free local, good alternative
+# to COBYLA)
 neldermead_palette <- generate_palette(
   n = 4,
   optimizer = "nlopt_neldermead",

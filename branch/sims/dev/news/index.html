@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">huerd</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,25 @@
       <small>Source: <a href="https://github.com/sims1253/huerd/blob/sims/dev/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.6.1" id="huerd-061">huerd 0.6.1<a class="anchor" aria-label="anchor" href="#huerd-061"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-0-6-1">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-6-1"></a></h3>
+<ul><li>
+<code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> now returns <code>invisible(NULL)</code> without warning when fewer than two colors are supplied.</li>
+<li>
+<code><a href="../reference/simulate_palette_cvd.html">simulate_palette_cvd()</a></code> returns empty results silently when input contains no valid colors.</li>
+<li>
+<code>plot_cvd_comparison()</code> now preserves the fallback border color when color conversion fails.</li>
+<li>Optimizers validate inputs and return structured results instead of failing on invalid inputs (<code>optimize_colors_constrained()</code>, <code>optimize_colors_sann()</code>).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="internal-changes-0-6-1">Internal Changes<a class="anchor" aria-label="anchor" href="#internal-changes-0-6-1"></a></h3>
+<ul><li>Improved robustness in <code>calculate_perceptual_distances()</code> for NULL/empty/NA inputs.</li>
+<li>Strengthened initialization parameter validation for aesthetic initialization bounds and influence settings.</li>
+<li>Expanded <code>.Rbuildignore</code> to exclude additional development artifacts.</li>
+</ul><hr></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0" id="huerd-060">huerd 0.6.0<a class="anchor" aria-label="anchor" href="#huerd-060"></a></h2>
 <div class="section level3">

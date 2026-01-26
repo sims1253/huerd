@@ -51,7 +51,7 @@ quick_palette(
 
   Character string or numeric vector specifying lightness constraints:
 
-  - `"any"`: No lightness constraints (full range)
+  - `"any"`: Balanced range (L: 0.2-0.9)
 
   - `"light"`: Prefer lighter colors (L: 0.5-0.9)
 

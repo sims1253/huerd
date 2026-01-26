@@ -111,10 +111,11 @@ palette <- generate_palette(
 opt_details <- attr(palette, "optimization_details")
 str(opt_details)
 #> List of 4
-#>  $ iterations           : num 755
+#>  $ iterations           : int 755
 #>  $ status_message       : chr "NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached."
-#>  $ nloptr_status        : int 4
+#>  $ nloptr_status        : num 4
 #>  $ final_objective_value: num -0.127
+#>  - attr(*, "class")= chr [1:2] "huerd_optimization_details" "list"
 
 # Access quality metrics
 metrics <- attr(palette, "metrics")
@@ -354,7 +355,7 @@ system.time({
   fast <- generate_palette(8, max_iterations = 100, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   0.607   0.000   0.608
+#>   0.609   0.000   0.609
 
 # Default generation
 # Expected runtime: ~0.5-2.0 seconds (balanced iteration count for good quality)
@@ -362,7 +363,7 @@ system.time({
   default <- generate_palette(8, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   1.599   0.000   1.600
+#>   1.603   0.000   1.602
 
 # High quality generation
 # Expected runtime: ~2.0-8.0 seconds (high iterations for maximum quality)
@@ -370,7 +371,7 @@ system.time({
   quality <- generate_palette(8, max_iterations = 3000, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   1.097   0.000   1.097
+#>   1.107   0.000   1.108
 ```
 
 For performance-critical applications:

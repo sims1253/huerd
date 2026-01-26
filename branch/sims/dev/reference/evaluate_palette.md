@@ -56,6 +56,7 @@ print(metrics) # Uses custom print method
 #> * Chroma (C)       : range=[0.051, 0.273], mean=0.157
 #> * Hue (degrees)    : circular_variance=0.753
 
-# The performance_ratio compares the achieved min distance to an estimated maximum
+# The performance_ratio compares the achieved min distance to an
+# estimated maximum
 # metrics$distances$performance_ratio
 ```
