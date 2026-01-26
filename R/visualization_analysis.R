@@ -5,13 +5,18 @@
 
 #' Comprehensive Palette Analysis Dashboard
 #'
-#' Creates a scicomap-inspired comprehensive diagnostic dashboard for color palettes
-#' using the modern grid graphics system for robust cross-platform compatibility.
-#' This function generates six visualization panels to help assess palette quality,
-#' including perceptual distance analysis, CVD simulation, OKLAB space distribution,
+#' Creates a scicomap-inspired comprehensive diagnostic dashboard for
+#' color palettes
+#' using the modern grid graphics system for robust cross-platform
+#' compatibility.
+#' This function generates six visualization panels to help assess palette
+#' quality,
+#' including perceptual distance analysis, CVD simulation, OKLAB space
+#' distribution,
 #' and performance comparison against established scientific palettes.
 #'
-#' @param colors A character vector of hex colors or a matrix of colors in OKLAB space.
+#' @param colors A character vector of hex colors or a matrix of colors in
+#'   OKLAB space.
 #' @param force_font_scale Allows to force a specific font scale
 #' @param ... Additional arguments reserved for future use.
 #' @return Invisibly returns the evaluation result from evaluate_palette.
@@ -28,8 +33,7 @@ plot_palette_analysis <- function(
   ...
 ) {
   if (length(colors) < 2) {
-    warning("Need at least two colors for a palette.")
-    return()
+    return(invisible(NULL))
   }
 
   evaluation <- evaluate_palette(colors)
@@ -48,15 +52,11 @@ plot_palette_analysis <- function(
 
   current_dist_matrix <- calculate_perceptual_distances(current_oklab)
 
-  # Calculate font scaling based on device dimensions
-  current_vp <- grid::current.viewport()
-
   if (!is.null(force_font_scale)) {
     # If a scale is forced, use it directly.
     font_scale <- force_font_scale
   } else {
     # Otherwise, use the automatic detection for interactive plots.
-    current_vp <- grid::current.viewport()
     dev_width <- as.numeric(grid::convertWidth(grid::unit(1, "npc"), "inches"))
     dev_height <- as.numeric(grid::convertHeight(
       grid::unit(1, "npc"),
@@ -69,7 +69,6 @@ plot_palette_analysis <- function(
     width_scale <- dev_width / ref_width
     height_scale <- dev_height / ref_height
     font_scale <- pmin(width_scale, height_scale, 1.5)
-    #font_scale <- pmax(font_scale, 0.5)
   }
 
   # Create all subplot grobs with scaled fonts
@@ -89,9 +88,9 @@ plot_palette_analysis <- function(
     "Tritan" = calculate_perceptual_distances(.hex_to_oklab(colorspace::tritan(
       hex_colors
     ))),
-    "Greyscale" = calculate_perceptual_distances(.hex_to_oklab(colorspace::desaturate(
-      hex_colors
-    )))
+    "Greyscale" = calculate_perceptual_distances(
+      .hex_to_oklab(colorspace::desaturate(hex_colors))
+    )
   )
 
   grob5 <- create_comparative_palettes(
@@ -144,9 +143,6 @@ create_color_swatches <- function(hex_colors, evaluation, font_scale = 0.8) {
 
   rgp_colors <- farver::decode_colour(hex_colors)
   oklab_colors <- farver::convert_colour(rgp_colors, from = "rgb", to = "oklab")
-
-  # Create a viewport for this subplot
-  vp <- grid::viewport(name = "swatches")
 
   # Create grobs for the color swatches
   grobs <- list()
@@ -252,15 +248,9 @@ create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
 
   # Normalize distances for color mapping
   max_dist <- max(dist_matrix, na.rm = TRUE)
-  # min_dist <- min(dist_matrix[dist_matrix > 0], na.rm = TRUE)
   min_dist <- .MIN_DISTANCE_THRESHOLD
 
-  # TODO use the .MIN_DISTANCE_THRESHOLD threshold for meaningful difference as a lower bound and something reasonable as upper bound.
-  # .MIN_DISTANCE_THRESHOLD # Reasonable multiple of the OKLAB JND of ~0.02
-  # And same for the max dist. The scale should be fixed to be able to compare palettes.
-
-  # TODO automatically center the matrix
-
+  # TODO: Use fixed scale to compare palettes more effectively
   for (i in seq_len(n)) {
     for (j in seq_len(n)) {
       x_pos <- 0.1 + (j - 0.5) * cell_size
@@ -361,9 +351,6 @@ create_color_space <- function(hex_colors, font_scale = 0.8) {
   plot_top <- 0.85
 
   # Data ranges with some padding
-  #a_range <- range(oklab_colors[, 2], na.rm = TRUE)
-  #b_range <- range(oklab_colors[, 3], na.rm = TRUE)
-
   a_range <- c(-0.35, 0.35)
   b_range <- c(-0.35, 0.35)
 
@@ -615,7 +602,6 @@ create_comparative_palettes <- function(
     scaled_stats <- vapply(stats, scale_y, numeric(1))
 
     # Colors for highlighting
-    is_input_palette <- palette_nm == "huerd"
     box_fill <- "#B0B0B0"
     median_col <- "black"
 
@@ -684,5 +670,5 @@ get_ref_palette_distances <- function(palette_name, n) {
     to = "oklab"
   )
 
-  return(calculate_perceptual_distances(ref_oklab))
+  calculate_perceptual_distances(ref_oklab)
 }

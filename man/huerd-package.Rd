@@ -10,7 +10,8 @@ The huerd package provides tools for generating perceptually distinct color
 palettes with constraints. The main feature is the ability to specify fixed
 colors that must be included in the final palette unchanged. Generated
 colors are optimized for distinctness and CVD safety, and can optionally
-adhere to the aesthetic "vibe" (Lightness and Chroma profile) of the fixed colors.
+adhere to the aesthetic "vibe" (Lightness and Chroma profile) of the
+fixed colors.
 }
 \section{Main Functions}{
 
@@ -24,7 +25,8 @@ adhere to the aesthetic "vibe" (Lightness and Chroma profile) of the fixed color
 
 \section{Color Spaces}{
 
-The package uses the OK LAB color space by default for its perceptual uniformity.
+The package uses the OK LAB color space by default for its perceptual
+uniformity.
 Euclidean distance in OK LAB corresponds well to perceived color differences.
 A Just Noticeable Difference (JND) in OK LAB is approximately 0.02.
 }

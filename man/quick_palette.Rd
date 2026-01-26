@@ -33,7 +33,7 @@ considers CVD in its metrics.}
 \item{lightness}{Character string or numeric vector specifying lightness
 constraints:
 \itemize{
-\item \code{"any"}: No lightness constraints (full range)
+\item \code{"any"}: Balanced range (L: 0.2-0.9)
 \item \code{"light"}: Prefer lighter colors (L: 0.5-0.9)
 \item \code{"dark"}: Prefer darker colors (L: 0.2-0.6)
 \item \code{"mid"}: Prefer mid-range lightness (L: 0.35-0.75)

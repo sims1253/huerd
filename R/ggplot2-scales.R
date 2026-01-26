@@ -69,9 +69,10 @@
 #'   `palette` argument. This is useful when you want to reuse the same
 #'   palette across multiple plots or need fine control over generation
 #'   parameters.
-#' \item \strong{On-the-fly generation}: Leave `palette = NULL` and the scale will
-#'   automatically generate an optimized palette based on the number of
-#'   levels in your data. Use `brand_colors` to include specific colors.
+#' \item \strong{On-the-fly generation}: Leave `palette = NULL` and the
+#'   scale will automatically generate an optimized palette based on the
+#'   number of levels in your data. Use `brand_colors` to include specific
+#'   colors.
 #' }
 #'
 #' @examples
@@ -108,7 +109,7 @@ scale_color_huerd <- function(
   brand_colors = NULL,
   ...,
   aesthetics = "colour",
-  na.value = "grey50"
+  na.value = "grey50" # nolint: object_name_linter (ggplot2 convention)
 ) {
   build_huerd_scale(
     aesthetics = aesthetics,
@@ -132,7 +133,7 @@ scale_fill_huerd <- function(
   brand_colors = NULL,
   ...,
   aesthetics = "fill",
-  na.value = "grey50"
+  na.value = "grey50" # nolint: object_name_linter (ggplot2 convention)
 ) {
   build_huerd_scale(
     aesthetics = aesthetics,
@@ -155,7 +156,7 @@ scale_fill_huerd <- function(
 # @noRd
 build_huerd_scale <- function(
   aesthetics,
-  na.value,
+  na.value, # nolint: object_name_linter (ggplot2 convention)
   palette = NULL,
   brand_colors = NULL,
   ...

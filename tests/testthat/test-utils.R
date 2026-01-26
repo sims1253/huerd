@@ -268,16 +268,16 @@ describe(".hex_to_oklab() - Invalid hex formats", {
 
   it("handles 3-character hex format gracefully", {
     # farver handles 3-character hex by expanding it
-    expect_no_error(result <- .hex_to_oklab("#FFF"))
+    result <- .hex_to_oklab("#FFF")
     expect_true(is.matrix(result))
     expect_equal(ncol(result), 3)
   })
 
   it("handles NA values gracefully", {
     # farver handles NA values - returns matrix with NA
-    expect_no_error(result <- .hex_to_oklab(NA_character_))
+    result <- .hex_to_oklab(NA_character_)
     expect_true(is.matrix(result))
-    expect_true(any(is.na(result)))
+    expect_true(anyNA(result))
   })
 
   it("rejects vector with invalid colors mixed with valid ones", {
@@ -295,14 +295,14 @@ describe(".hex_to_oklab() - Invalid hex formats", {
 
 describe(".hex_to_oklab() - Edge cases", {
   it("handles all zeros (#000000)", {
-    expect_no_error(result <- .hex_to_oklab("#000000"))
+    result <- .hex_to_oklab("#000000")
     expect_true(is.matrix(result))
     expect_equal(ncol(result), 3)
     expect_true(all(is.finite(result)))
   })
 
   it("handles all Fs (#FFFFFF)", {
-    expect_no_error(result <- .hex_to_oklab("#FFFFFF"))
+    result <- .hex_to_oklab("#FFFFFF")
     expect_true(is.matrix(result))
     expect_equal(ncol(result), 3)
     expect_true(all(is.finite(result)))
@@ -322,7 +322,7 @@ describe(".oklab_to_hex() - Invalid matrices", {
       nrow = 2,
       byrow = TRUE
     )
-    expect_no_error(result <- .oklab_to_hex(invalid_matrix))
+    result <- .oklab_to_hex(invalid_matrix)
     expect_true(is.character(result))
     expect_equal(length(result), 2)
   })
@@ -330,7 +330,7 @@ describe(".oklab_to_hex() - Invalid matrices", {
   it("handles matrix with 0 rows gracefully", {
     # 0x3 matrix - farver handles empty matrices gracefully
     empty_matrix <- matrix(numeric(0), nrow = 0, ncol = 3)
-    expect_no_error(result <- .oklab_to_hex(empty_matrix))
+    result <- .oklab_to_hex(empty_matrix)
     expect_true(is.character(result))
     expect_equal(length(result), 0)
   })
@@ -343,35 +343,35 @@ describe(".oklab_to_hex() - Invalid matrices", {
   it("handles matrix with NA values gracefully", {
     na_matrix <- matrix(c(0.6, NA, -0.1), nrow = 1)
     # farver handles NA values - no error thrown but result may contain NA
-    expect_no_error(result <- .oklab_to_hex(na_matrix))
+    result <- .oklab_to_hex(na_matrix)
     expect_true(is.character(result))
   })
 
   it("handles matrix with Inf values gracefully", {
     inf_matrix <- matrix(c(Inf, 0.2, -0.1), nrow = 1)
     # farver handles Inf values - no error thrown
-    expect_no_error(result <- .oklab_to_hex(inf_matrix))
+    result <- .oklab_to_hex(inf_matrix)
     expect_true(is.character(result))
   })
 
   it("handles matrix with -Inf values gracefully", {
     neg_inf_matrix <- matrix(c(-Inf, 0.2, -0.1), nrow = 1)
     # farver handles -Inf values - no error thrown
-    expect_no_error(result <- .oklab_to_hex(neg_inf_matrix))
+    result <- .oklab_to_hex(neg_inf_matrix)
     expect_true(is.character(result))
   })
 
   it("handles matrix with NaN values gracefully", {
     nan_matrix <- matrix(c(NaN, 0.2, -0.1), nrow = 1)
     # farver handles NaN values - no error thrown
-    expect_no_error(result <- .oklab_to_hex(nan_matrix))
+    result <- .oklab_to_hex(nan_matrix)
     expect_true(is.character(result))
   })
 
   it("handles data frame instead of matrix gracefully", {
     df_matrix <- data.frame(L = 0.6, a = 0.2, b = -0.1)
     # farver converts data frames to matrices - no error thrown
-    expect_no_error(result <- .oklab_to_hex(df_matrix))
+    result <- .oklab_to_hex(df_matrix)
     expect_true(is.character(result))
   })
 
@@ -388,7 +388,7 @@ describe(".oklab_to_hex() - Invalid matrices", {
   it("handles matrix with all zeros", {
     zero_matrix <- matrix(c(0, 0, 0), nrow = 1)
     # farver handles zeros - no error thrown, produces valid hex
-    expect_no_error(result <- .oklab_to_hex(zero_matrix))
+    result <- .oklab_to_hex(zero_matrix)
     expect_true(is.character(result))
     expect_true(grepl("^#[0-9A-Fa-f]{6}$", result))
   })
@@ -397,7 +397,7 @@ describe(".oklab_to_hex() - Invalid matrices", {
     # OKLAB L should be roughly 0-1, a and b roughly -0.5 to 0.5
     # farver handles out-of-range values gracefully
     out_of_range <- matrix(c(2.0, 0.2, -0.1), nrow = 1)
-    expect_no_error(result <- .oklab_to_hex(out_of_range))
+    result <- .oklab_to_hex(out_of_range)
     expect_true(is.character(result))
     expect_true(grepl("^#[0-9A-Fa-f]{6}$", result))
   })
@@ -406,14 +406,14 @@ describe(".oklab_to_hex() - Invalid matrices", {
 describe(".oklab_to_hex() - Edge cases", {
   it("handles typical OKLAB values", {
     oklab_matrix <- matrix(c(0.6, 0.2, -0.1), nrow = 1)
-    expect_no_error(result <- .oklab_to_hex(oklab_matrix))
+    result <- .oklab_to_hex(oklab_matrix)
     expect_true(is.character(result))
     expect_equal(length(result), 1)
   })
 
   it("handles zero chroma (achromatic colors)", {
     achromatic <- matrix(c(0.5, 0, 0), nrow = 1)
-    expect_no_error(result <- .oklab_to_hex(achromatic))
+    result <- .oklab_to_hex(achromatic)
     expect_true(is.character(result))
     expect_true(grepl("^#[0-9A-Fa-f]{6}$", result))
   })

@@ -1,7 +1,9 @@
 #' Smooth Differentiable Objective Function for Color Optimization
 #'
-#' Uses inverse square sum as a differentiable proxy for max-min distance optimization.
-#' This function heavily penalizes small distances while remaining smooth and differentiable.
+#' Uses inverse square sum as a differentiable proxy for max-min distance
+#' optimization.
+#' This function heavily penalizes small distances while remaining smooth
+#' and differentiable.
 #'
 #' @param colors_oklab Matrix of colors in OKLAB space (n x 3)
 #' @param epsilon Small constant to prevent division by zero (default: 1e-8)
@@ -26,9 +28,7 @@ objective_smooth_repulsion <- function(colors_oklab, epsilon = 1e-8) {
   distances <- dist(colors_oklab)
 
   # Calculate inverse square sum
-  objective_value <- sum(1 / (distances^2 + epsilon))
-
-  return(objective_value)
+  sum(1 / (distances^2 + epsilon))
 }
 
 #' Log-Sum-Exp Smooth Objective Function for Color Optimization
@@ -37,7 +37,8 @@ objective_smooth_repulsion <- function(colors_oklab, epsilon = 1e-8) {
 #' distance optimization. Provides an alternative optimization landscape.
 #'
 #' @param colors_oklab Matrix of colors in OKLAB space (n x 3)
-#' @param k Temperature parameter controlling approximation quality (default: 10)
+#' @param k Temperature parameter controlling approximation quality
+#'   (default: 10)
 #' @return Single numeric value representing the objective score
 #' @details
 #' The function computes: log(sum(exp(-k * distance))) / k where distance
@@ -64,9 +65,7 @@ objective_smooth_logsumexp <- function(colors_oklab, k = 10) {
 
   # LSE trick: log(sum(exp(x))) = max(x) + log(sum(exp(x - max(x))))
   exp_values <- exp(neg_k_distances - max_val)
-  objective_value <- (max_val + log(sum(exp_values))) / k
-
-  return(objective_value)
+  (max_val + log(sum(exp_values))) / k
 }
 
 #' Analytical Gradient for Smooth Repulsion Objective
@@ -115,7 +114,7 @@ gradient_smooth_repulsion <- function(colors_oklab, epsilon = 1e-8) {
     }
   }
 
-  return(gradient)
+  gradient
 }
 
 #' Analytical Gradient for Log-Sum-Exp Objective
@@ -152,7 +151,8 @@ gradient_smooth_logsumexp <- function(colors_oklab, k = 10, epsilon = 1e-8) {
   # Apply log-sum-exp trick for numerical stability
   max_val <- max(neg_k_distances[neg_k_distances != -Inf])
   exp_values <- exp(neg_k_distances - max_val)
-  # Note: The full matrix counts each pair twice, but the objective uses unique pairs.
+  # Note: The full matrix counts each pair twice, but the objective uses
+  # unique pairs.
   # We divide by 2 to normalize weights correctly with the objective function.
   sum_exp <- sum(exp_values) / 2
 
@@ -174,5 +174,5 @@ gradient_smooth_logsumexp <- function(colors_oklab, k = 10, epsilon = 1e-8) {
     }
   }
 
-  return(gradient)
+  gradient
 }

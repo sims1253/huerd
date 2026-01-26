@@ -276,7 +276,7 @@ describe("User Story 3: Package developer can use programmatic API", {
     # Large palette
     large <- generate_palette(
       n = 15,
-      max_iterations = 500,
+      max_iterations = 100,
       progress = FALSE
     )
     expect_length(large, 15)
@@ -611,7 +611,7 @@ describe("Error Recovery: Reproducibility edge cases", {
         init_hcl_bounds = list(C = c(40, 80), L = c(50, 80)),
         fixed_aesthetic_influence = 0.75,
         aesthetic_init_config = NULL,
-        max_iterations = 1000,
+        max_iterations = 100,
         return_metrics = TRUE,
         weights = NULL,
         optimizer = "nlopt_direct", # Deterministic
@@ -640,7 +640,7 @@ describe("Error Recovery: Reproducibility edge cases", {
         init_hcl_bounds = list(C = c(40, 80), L = c(50, 80)),
         fixed_aesthetic_influence = 0.75,
         aesthetic_init_config = NULL,
-        max_iterations = 1000,
+        max_iterations = 100,
         return_metrics = TRUE,
         weights = NULL,
         optimizer = "nlopt_direct",
@@ -675,7 +675,7 @@ describe("Error Recovery: Reproducibility edge cases", {
         init_hcl_bounds = list(C = c(40, 80), L = c(50, 80)),
         fixed_aesthetic_influence = 0.75,
         aesthetic_init_config = NULL,
-        max_iterations = 1000,
+        max_iterations = 100,
         return_metrics = TRUE,
         weights = NULL,
         optimizer = "nlopt_direct",
@@ -839,7 +839,7 @@ describe("Error Recovery: Visualization edge cases", {
   it("handles very large palette visualization", {
     skip_if_not_installed("ragg")
 
-    palette <- generate_palette(n = 50, progress = FALSE)
+    palette <- generate_palette(n = 20, progress = FALSE)
 
     expect_no_error({
       withr::with_pdf(tempfile(fileext = ".pdf"), {

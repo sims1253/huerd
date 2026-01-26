@@ -1,7 +1,8 @@
 #' Smart Input Validation for Color Inputs
 #'
 #' @param colors Input colors (hex, OKLAB matrix, etc.)
-#' @param context Context for validation ("generation", "evaluation", "simulation")
+#' @param context Context for validation ("generation", "evaluation",
+#'   "simulation")
 #' @param strict_mode Whether to use strict validation
 #' @noRd
 validate_color_input_smart <- function(
@@ -45,7 +46,8 @@ validate_color_input_smart <- function(
     if (context == "generation" && length(colors) == 0) {
       validation_result$errors <- c(
         validation_result$errors,
-        "Cannot generate palette: no base colors provided and n_colors not specified"
+        "Cannot generate palette: no base colors provided and n_colors ",
+        "not specified"
       )
     }
 
@@ -68,7 +70,7 @@ validate_color_input_smart <- function(
     stop(paste(validation_result$errors, collapse = "; "), call. = FALSE)
   }
 
-  return(validation_result)
+  validation_result
 }
 
 #' Validate hex color inputs
@@ -76,7 +78,7 @@ validate_color_input_smart <- function(
 validate_hex_colors <- function(colors, validation_result, strict_mode) {
   if (length(colors) == 0) {
     validation_result$processed_colors <- character(0)
-    return(validation_result)
+    validation_result
   }
 
   # Check for valid hex format
@@ -145,7 +147,7 @@ validate_hex_colors <- function(colors, validation_result, strict_mode) {
     )
   }
 
-  return(validation_result)
+  validation_result
 }
 
 #' Validate OKLAB matrix inputs
@@ -158,7 +160,7 @@ validate_oklab_matrix <- function(colors, validation_result, strict_mode) {
       validation_result$errors,
       "OKLAB matrix must have exactly 3 columns (L, a, b)"
     )
-    return(validation_result)
+    validation_result
   }
 
   # Check for numeric values
@@ -168,7 +170,7 @@ validate_oklab_matrix <- function(colors, validation_result, strict_mode) {
       validation_result$errors,
       "OKLAB matrix must contain numeric values"
     )
-    return(validation_result)
+    validation_result
   }
 
   # Check for missing values
@@ -209,5 +211,5 @@ validate_oklab_matrix <- function(colors, validation_result, strict_mode) {
   }
 
   validation_result$processed_colors <- colors
-  return(validation_result)
+  validation_result
 }

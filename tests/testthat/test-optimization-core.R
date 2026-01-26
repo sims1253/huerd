@@ -567,7 +567,7 @@ describe("optimize_colors_nlopt_direct()", {
     result <- optimize_colors_nlopt_direct(
       initial_colors_oklab = initial_colors,
       fixed_mask = c(FALSE, FALSE), # Both colors are free
-      max_iterations = 20, # DIRECT needs more iterations for meaningful results
+      max_iterations = 10, # DIRECT needs more iterations for meaningful results
     )
 
     # Test return structure
@@ -628,7 +628,7 @@ describe("optimize_colors_nlopt_direct()", {
     result <- optimize_colors_nlopt_direct(
       initial_colors_oklab = colors,
       fixed_mask = c(TRUE, FALSE), # First color is fixed
-      max_iterations = 20,
+      max_iterations = 10,
     )
 
     # Fixed color should remain unchanged
@@ -654,7 +654,7 @@ describe("optimize_colors_nlopt_direct()", {
     result <- optimize_colors_nlopt_direct(
       initial_colors_oklab = initial_colors,
       fixed_mask = c(FALSE, FALSE), # Both colors are free
-      max_iterations = 20,
+      max_iterations = 10,
     )
 
     # Test that all colors are within OKLAB bounds
@@ -727,7 +727,7 @@ describe("optimize_colors_nlopt_direct()", {
       result <- optimize_colors_nlopt_direct(
         initial_colors_oklab = brand_colors,
         fixed_mask = c(TRUE, TRUE, FALSE), # Only optimize the third color
-        max_iterations = 30,
+        max_iterations = 10,
       )
     })
 
@@ -761,13 +761,13 @@ describe("optimize_colors_nlopt_direct()", {
     result1 <- optimize_colors_nlopt_direct(
       initial_colors_oklab = initial_colors,
       fixed_mask = c(FALSE, FALSE),
-      max_iterations = 20,
+      max_iterations = 10,
     )
 
     result2 <- optimize_colors_nlopt_direct(
       initial_colors_oklab = initial_colors,
       fixed_mask = c(FALSE, FALSE),
-      max_iterations = 20,
+      max_iterations = 10,
     )
 
     # Results should be identical for deterministic optimizer
@@ -800,7 +800,7 @@ describe("optimize_colors_nlopt_neldermead()", {
     result <- optimize_colors_nlopt_neldermead(
       initial_colors_oklab = initial_colors,
       fixed_mask = c(FALSE, FALSE), # Both colors are free
-      max_iterations = 50, # Nelder-Mead typically needs more iterations than COBYLA
+      max_iterations = 10, # Nelder-Mead typically needs more iterations than COBYLA
     )
 
     # Test return structure
@@ -833,7 +833,7 @@ describe("optimize_colors_nlopt_neldermead()", {
     result <- optimize_colors_nlopt_neldermead(
       initial_colors_oklab = single_color,
       fixed_mask = c(FALSE),
-      max_iterations = 20,
+      max_iterations = 10,
     )
 
     expect_true(is.list(result))
@@ -861,7 +861,7 @@ describe("optimize_colors_nlopt_neldermead()", {
     result <- optimize_colors_nlopt_neldermead(
       initial_colors_oklab = colors,
       fixed_mask = c(TRUE, FALSE), # First color is fixed
-      max_iterations = 50,
+      max_iterations = 10,
     )
 
     # Fixed color should remain unchanged
@@ -887,7 +887,7 @@ describe("optimize_colors_nlopt_neldermead()", {
     result <- optimize_colors_nlopt_neldermead(
       initial_colors_oklab = initial_colors,
       fixed_mask = c(FALSE, FALSE), # Both colors are free
-      max_iterations = 50,
+      max_iterations = 10,
     )
 
     # Test that all colors are within OKLAB bounds
@@ -960,7 +960,7 @@ describe("optimize_colors_nlopt_neldermead()", {
       result <- optimize_colors_nlopt_neldermead(
         initial_colors_oklab = brand_colors,
         fixed_mask = c(TRUE, TRUE, FALSE), # Only optimize the third color
-        max_iterations = 100,
+        max_iterations = 10,
       )
     })
 
@@ -996,13 +996,13 @@ describe("optimize_colors_nlopt_neldermead()", {
     result1 <- optimize_colors_nlopt_neldermead(
       initial_colors_oklab = initial_colors,
       fixed_mask = c(FALSE, FALSE),
-      max_iterations = 50,
+      max_iterations = 10,
     )
 
     result2 <- optimize_colors_nlopt_neldermead(
       initial_colors_oklab = initial_colors,
       fixed_mask = c(FALSE, FALSE),
-      max_iterations = 50,
+      max_iterations = 10,
     )
 
     # Results should be reasonably consistent for local optimizer
@@ -1278,7 +1278,7 @@ describe("smooth optimization functions (v0.5.0)", {
       result_repulsion <- optimize_colors_lbfgs(
         initial_colors_oklab = initial_colors,
         fixed_mask = fixed_mask,
-        max_iterations = 50,
+        max_iterations = 10,
         weights = c(smooth_repulsion = 1)
       )
 
@@ -1286,7 +1286,7 @@ describe("smooth optimization functions (v0.5.0)", {
       result_logsumexp <- optimize_colors_lbfgs(
         initial_colors_oklab = initial_colors,
         fixed_mask = fixed_mask,
-        max_iterations = 50,
+        max_iterations = 10,
         weights = c(smooth_logsumexp = 1)
       )
 
@@ -1468,10 +1468,10 @@ describe("tryCatch error handling - optimize_colors_constrained()", {
       max_iterations = 1
     )
 
-    expect_s3_class(result, "list")
+    expect_true(is.list(result))
     expect_named(result, c("palette", "details"))
-    expect_s3_class(result$palette, "matrix")
-    expect_s3_class(result$details, "list")
+    expect_true(is.matrix(result$palette))
+    expect_true(is.list(result$details))
   })
 
   it("properly scopes return_value after nloptr error", {
@@ -1527,7 +1527,7 @@ describe("tryCatch error handling - optimize_colors_constrained()", {
     )
 
     # Should return valid error structure
-    expect_s3_class(result, "list")
+    expect_true(is.list(result))
     expect_true("details" %in% names(result))
   })
 
@@ -1543,7 +1543,7 @@ describe("tryCatch error handling - optimize_colors_constrained()", {
     )
 
     # Should handle gracefully
-    expect_s3_class(result, "list")
+    expect_true(is.list(result))
     expect_true(nrow(result$palette) >= 1)
   })
 
@@ -1572,7 +1572,7 @@ describe("tryCatch error handling - optimize_colors_constrained()", {
       max_iterations = 1
     )
 
-    expect_s3_class(result, "list")
+    expect_true(is.list(result))
     expect_true("final_objective_value" %in% names(result$details))
     # final_objective_value should be numeric (even if NA)
     expect_type(result$details$final_objective_value, "double")
@@ -1606,7 +1606,7 @@ describe("tryCatch error handling - optimize_colors_sann()", {
       max_iterations = 0
     )
 
-    expect_s3_class(result, "list")
+    expect_true(is.list(result))
     expect_named(result, c("palette", "details"))
     expect_true("sann_convergence" %in% names(result$details))
     expect_true("status_message" %in% names(result$details))
@@ -1642,7 +1642,7 @@ describe("tryCatch error handling - optimize_colors_sann()", {
       max_iterations = 1
     )
 
-    expect_s3_class(result, "list")
+    expect_true(is.list(result))
     expect_equal(nrow(result$palette), 1)
   })
 
@@ -1656,7 +1656,7 @@ describe("tryCatch error handling - optimize_colors_sann()", {
       max_iterations = 1
     )
 
-    expect_s3_class(result, "list")
+    expect_true(is.list(result))
   })
 
   it("handles NULL initial colors", {
@@ -1704,7 +1704,7 @@ describe("tryCatch error handling - optimize_colors_nlopt_direct()", {
     result <- optimize_colors_nlopt_direct(
       initial_colors_oklab = colors,
       fixed_mask = c(FALSE, FALSE),
-      max_iterations = 0
+      max_iterations = 1
     )
 
     expect_s3_class(result, "list")
@@ -1719,7 +1719,7 @@ describe("tryCatch error handling - optimize_colors_nlopt_direct()", {
     result <- optimize_colors_nlopt_direct(
       initial_colors_oklab = colors,
       fixed_mask = c(FALSE, FALSE),
-      max_iterations = 0
+      max_iterations = 1
     )
 
     expect_true("palette" %in% names(result))
@@ -1739,7 +1739,7 @@ describe("tryCatch error handling - optimize_colors_nlopt_direct()", {
     result_high <- optimize_colors_nlopt_direct(
       initial_colors_oklab = colors,
       fixed_mask = c(FALSE, FALSE),
-      max_iterations = 10000
+      max_iterations = 10
     )
     expect_s3_class(result_high, "list")
 

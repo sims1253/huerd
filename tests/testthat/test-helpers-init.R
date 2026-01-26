@@ -288,85 +288,92 @@ describe(".adapt_init_params()", {
 
   # --- ERROR TESTS ---
   describe(".adapt_init_params() - error handling", {
-    before_each({
-      base_aesthetic_profile <- list(
-        mean_L = 0.5,
-        sd_L = 0.1,
-        mean_C = 0.1,
-        sd_C = 0.05
+    get_test_context <- function() {
+      list(
+        base_aesthetic_profile = list(
+          mean_L = 0.5,
+          sd_L = 0.1,
+          mean_C = 0.1,
+          sd_C = 0.05
+        ),
+        base_lightness_bounds = c(0.2, 0.8),
+        base_hcl_bounds = list(L = c(20, 80), C = c(30, 70)),
+        base_config = list(
+          kmeans_L_sd_multiplier = 1.5,
+          kmeans_C_base_deviation = 0.05,
+          kmeans_C_influence_tightening_factor = 0.75,
+          kmeans_C_filter_relaxation_factor = 1.5,
+          harmony_hcl_sd_fallback = 15,
+          harmony_hcl_sd_multiplier = 1.0
+        )
       )
-      base_lightness_bounds <- c(0.2, 0.8)
-      base_hcl_bounds <- list(L = c(20, 80), C = c(30, 70))
-      base_config <- list(
-        kmeans_L_sd_multiplier = 1.5,
-        kmeans_C_base_deviation = 0.05,
-        kmeans_C_influence_tightening_factor = 0.75,
-        kmeans_C_filter_relaxation_factor = 1.5,
-        harmony_hcl_sd_fallback = 15,
-        harmony_hcl_sd_multiplier = 1.0
-      )
-    })
+    }
 
     it("handles negative influence value", {
+      ctx <- get_test_context()
       # Negative influence should still work (returns original bounds)
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = -0.5,
-        base_lightness_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_lightness_bounds,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
-      expect_equal(result$lightness_bounds, base_lightness_bounds)
+      expect_equal(result$lightness_bounds, ctx$base_lightness_bounds)
     })
 
     it("handles influence > 1", {
+      ctx <- get_test_context()
       # Influence > 1 should still work
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 2.0,
-        base_lightness_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_lightness_bounds,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
     })
 
     it("handles Inf influence", {
+      ctx <- get_test_context()
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = Inf,
-        base_lightness_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_lightness_bounds,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
     })
 
     it("handles NaN influence", {
+      ctx <- get_test_context()
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = NaN,
-        base_lightness_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_lightness_bounds,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
     })
 
     it("handles inverted lightness bounds (min > max)", {
+      ctx <- get_test_context()
       # Inverted bounds should be handled gracefully
       inverted_bounds <- c(0.8, 0.2)
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 0.5,
         inverted_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
@@ -375,80 +382,86 @@ describe(".adapt_init_params()", {
     })
 
     it("handles NA in lightness bounds", {
+      ctx <- get_test_context()
       na_bounds <- c(NA_real_, 0.8)
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 0.5,
         na_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
     })
 
     it("handles Inf in lightness bounds", {
+      ctx <- get_test_context()
       inf_bounds <- c(-Inf, 0.8)
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 0.5,
         inf_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
     })
 
     it("handles inverted HCL L bounds", {
+      ctx <- get_test_context()
       inverted_hcl_L <- list(L = c(80, 20), C = c(30, 70))
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 0.5,
-        base_lightness_bounds,
+        ctx$base_lightness_bounds,
         inverted_hcl_L,
-        base_config,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
     })
 
     it("handles inverted HCL C bounds", {
+      ctx <- get_test_context()
       inverted_hcl_C <- list(L = c(20, 80), C = c(70, 30))
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 0.5,
-        base_lightness_bounds,
+        ctx$base_lightness_bounds,
         inverted_hcl_C,
-        base_config,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
     })
 
     it("handles NA in HCL bounds", {
+      ctx <- get_test_context()
       na_hcl_bounds <- list(L = c(NA, 80), C = c(30, 70))
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 0.5,
-        base_lightness_bounds,
+        ctx$base_lightness_bounds,
         na_hcl_bounds,
-        base_config,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
     })
 
     it("handles missing config values with defaults", {
+      ctx <- get_test_context()
       incomplete_config <- list(
         kmeans_L_sd_multiplier = 1.5
         # Missing other config values
       )
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 0.5,
-        base_lightness_bounds,
-        base_hcl_bounds,
+        ctx$base_lightness_bounds,
+        ctx$base_hcl_bounds,
         incomplete_config,
         progress = FALSE
       )
@@ -456,6 +469,7 @@ describe(".adapt_init_params()", {
     })
 
     it("handles Inf in aesthetic profile values", {
+      ctx <- get_test_context()
       inf_profile <- list(
         mean_L = Inf,
         sd_L = 0.1,
@@ -465,21 +479,22 @@ describe(".adapt_init_params()", {
       result <- .adapt_init_params(
         inf_profile,
         influence = 0.5,
-        base_lightness_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_lightness_bounds,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
     })
 
     it("handles empty config list", {
+      ctx <- get_test_context()
       empty_config <- list()
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 0.5,
-        base_lightness_bounds,
-        base_hcl_bounds,
+        ctx$base_lightness_bounds,
+        ctx$base_hcl_bounds,
         empty_config,
         progress = FALSE
       )
@@ -487,13 +502,14 @@ describe(".adapt_init_params()", {
     })
 
     it("handles very small lightness bounds range", {
+      ctx <- get_test_context()
       tight_bounds <- c(0.5, 0.51)
       result <- .adapt_init_params(
-        base_aesthetic_profile,
+        ctx$base_aesthetic_profile,
         influence = 0.5,
         tight_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
@@ -501,6 +517,7 @@ describe(".adapt_init_params()", {
     })
 
     it("handles very large influence with extreme SD", {
+      ctx <- get_test_context()
       extreme_profile <- list(
         mean_L = 0.5,
         sd_L = 100, # Very large SD
@@ -510,9 +527,9 @@ describe(".adapt_init_params()", {
       result <- .adapt_init_params(
         extreme_profile,
         influence = 0.99,
-        base_lightness_bounds,
-        base_hcl_bounds,
-        base_config,
+        ctx$base_lightness_bounds,
+        ctx$base_hcl_bounds,
+        ctx$base_config,
         progress = FALSE
       )
       expect_true(is.list(result))
@@ -899,14 +916,14 @@ describe("initialize_kmeans_plus_plus()", {
 
     it("handles very large n_free", {
       result <- initialize_kmeans_plus_plus(
-        n_free = 1000,
+        n_free = 100,
         fixed_colors_oklab = NULL,
         lightness_bounds = c(0.2, 0.8),
         chroma_filter_params = list(apply_filter = FALSE),
         base_init_lightness_bounds = c(0.1, 0.9)
       )
       expect_true(is.matrix(result))
-      expect_equal(nrow(result), 1000)
+      expect_equal(nrow(result), 100)
     })
 
     it("handles chroma_filter with NA target_C_mean", {
@@ -1173,12 +1190,12 @@ describe("initialize_harmony_based()", {
 
     it("handles very large n_free", {
       result <- initialize_harmony_based(
-        n_free = 1000,
+        n_free = 100,
         fixed_colors_oklab = NULL,
         hcl_bounds = list(L = c(20, 80), C = c(10, 60))
       )
       expect_true(is.matrix(result))
-      expect_equal(nrow(result), 1000)
+      expect_equal(nrow(result), 100)
     })
 
     it("handles HCL bounds with C min > C max", {

@@ -64,9 +64,10 @@ There are two ways to use these scales:
 \code{palette} argument. This is useful when you want to reuse the same
 palette across multiple plots or need fine control over generation
 parameters.
-\item \strong{On-the-fly generation}: Leave \code{palette = NULL} and the scale will
-automatically generate an optimized palette based on the number of
-levels in your data. Use \code{brand_colors} to include specific colors.
+\item \strong{On-the-fly generation}: Leave \code{palette = NULL} and the
+scale will automatically generate an optimized palette based on the
+number of levels in your data. Use \code{brand_colors} to include specific
+colors.
 }
 }
 \examples{

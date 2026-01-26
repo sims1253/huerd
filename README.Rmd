@@ -164,7 +164,7 @@ direct_palette <- generate_palette(6, optimizer = "nlopt_direct", progress = FAL
 neldermead_palette <- generate_palette(6, optimizer = "nlopt_neldermead", progress = FALSE)
 
 # L-BFGS: Gradient-based optimization for smooth objectives (v0.5.0+)
-lbfgs_palette <- generate_palette(6, optimizer = "nlopt_lbfgs", 
+lbfgs_palette <- generate_palette(6, optimizer = "nlopt_lbfgs",
                                   weights = c(smooth_repulsion = 1), progress = FALSE)
 
 cat("COBYLA:", paste(cobyla_palette, collapse = ", "), "\n")

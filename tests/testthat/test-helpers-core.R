@@ -163,7 +163,7 @@ describe(".merge_aesthetic_config()", {
 
   it("merges user config with defaults", {
     # Need to check what's in default config first
-    default_config <- .DEFAULT_AESTHETIC_INIT_CONFIG
+    default_config <- .default_aesthetic_init_config
     user_config <- list(test_param = 999)
 
     result <- .merge_aesthetic_config(user_config)

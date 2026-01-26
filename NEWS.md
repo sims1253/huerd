@@ -1,3 +1,20 @@
+# huerd 0.6.1
+
+## Bug Fixes
+
+- `plot_palette_analysis()` now returns `invisible(NULL)` without warning when fewer than two colors are supplied.
+- `simulate_palette_cvd()` returns empty results silently when input contains no valid colors.
+- `plot_cvd_comparison()` now preserves the fallback border color when color conversion fails.
+- Optimizers validate inputs and return structured results instead of failing on invalid inputs (`optimize_colors_constrained()`, `optimize_colors_sann()`).
+
+## Internal Changes
+
+- Improved robustness in `calculate_perceptual_distances()` for NULL/empty/NA inputs.
+- Strengthened initialization parameter validation for aesthetic initialization bounds and influence settings.
+- Expanded `.Rbuildignore` to exclude additional development artifacts.
+
+---
+
 # huerd 0.6.0
 
 ## Bug Fixes

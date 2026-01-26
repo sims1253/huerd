@@ -3,11 +3,16 @@
 #' Computes the mean and standard deviation of Lightness (L) and Chroma (C)
 #' from a set of fixed colors in OKLAB space.
 #' @param fixed_oklab A matrix of fixed colors in OKLAB space, or NULL.
-#' @return A list with `mean_L`, `sd_L`, `mean_C`, and `sd_C`. Returns `NA` for all
-#'   if input is NULL or has no rows.
+#' @return A list with `mean_L`, `sd_L`, `mean_C`, and `sd_C`. Returns `NA`
+#'   for all if input is NULL or has no rows.
 #' @noRd
 .calculate_aesthetic_profile <- function(fixed_oklab) {
-  if (is.null(fixed_oklab) || nrow(fixed_oklab) < 1) {
+  if (
+    is.null(fixed_oklab) ||
+      !is.matrix(fixed_oklab) ||
+      nrow(fixed_oklab) < 1 ||
+      ncol(fixed_oklab) != 3
+  ) {
     return(list(
       mean_L = NA_real_,
       sd_L = NA_real_,
@@ -16,6 +21,7 @@
     ))
   }
 
+  # nolint start: object_name_linter (L/C are standard color science notation)
   fixed_L <- fixed_oklab[, 1]
   fixed_C <- sqrt(fixed_oklab[, 2]^2 + fixed_oklab[, 3]^2)
 
@@ -29,6 +35,7 @@
     mean_C = mean(fixed_C, na.rm = TRUE),
     sd_C = sd_C %||% 0.05
   )
+  # nolint end
 }
 
 #' Adapt Initialization Parameters based on Aesthetic Profile
@@ -55,7 +62,47 @@
   adapted_hcl_bounds <- init_hcl_bounds
   kmeans_chroma_filter <- list(apply_filter = FALSE)
 
+  # --- Validate influence parameter ---
+  if (
+    !is.numeric(influence) ||
+      length(influence) != 1 ||
+      !is.finite(influence)
+  ) {
+    influence <- 0
+  }
+
+  # --- Validate init_lightness_bounds ---
+  if (
+    is.null(init_lightness_bounds) ||
+      length(init_lightness_bounds) != 2 ||
+      anyNA(init_lightness_bounds) ||
+      !all(is.finite(init_lightness_bounds))
+  ) {
+    init_lightness_bounds <- c(0.01, 0.99)
+  }
+  if (init_lightness_bounds[1] >= init_lightness_bounds[2]) {
+    init_lightness_bounds <- c(0.01, 0.99)
+  }
+
+  # --- Validate init_hcl_bounds ---
+  if (
+    missing(init_hcl_bounds) ||
+      is.null(init_hcl_bounds$L) ||
+      is.null(init_hcl_bounds$C) ||
+      length(init_hcl_bounds$L) != 2 ||
+      length(init_hcl_bounds$C) != 2 ||
+      anyNA(init_hcl_bounds$L) ||
+      anyNA(init_hcl_bounds$C) ||
+      !all(is.finite(init_hcl_bounds$L)) ||
+      !all(is.finite(init_hcl_bounds$C)) ||
+      init_hcl_bounds$L[1] >= init_hcl_bounds$L[2] ||
+      init_hcl_bounds$C[1] >= init_hcl_bounds$C[2]
+  ) {
+    init_hcl_bounds <- list(L = c(5, 95), C = c(10, 120))
+  }
+
   if (influence > 0 && is.finite(aesthetic_profile$mean_L)) {
+    # nolint start: object_name_linter (L/C are standard color science notation)
     if (progress) {
       cli::cli_alert_info(
         "Adapting initialization from fixed colors' aesthetics..."
@@ -65,46 +112,47 @@
     # --- Adapt k-means++ OKLAB L-bounds using mean +/- (sd * multiplier) ---
     l_window_half <- (aesthetic_profile$sd_L %||% 0.1) *
       config$kmeans_L_sd_multiplier
-    derived_L_min <- max(0.01, aesthetic_profile$mean_L - l_window_half)
-    derived_L_max <- min(0.99, aesthetic_profile$mean_L + l_window_half)
-    if (derived_L_min >= derived_L_max) {
-      derived_L_min <- init_lightness_bounds[1]
-      derived_L_max <- init_lightness_bounds[2]
+    derived_l_min <- max(0.01, aesthetic_profile$mean_L - l_window_half)
+    derived_l_max <- min(0.99, aesthetic_profile$mean_L + l_window_half)
+    if (derived_l_min >= derived_l_max) {
+      derived_l_min <- init_lightness_bounds[1]
+      derived_l_max <- init_lightness_bounds[2]
     }
 
-    final_L_min <- (1 - influence) *
+    final_l_min <- (1 - influence) *
       init_lightness_bounds[1] +
-      influence * derived_L_min
-    final_L_max <- (1 - influence) *
+      influence * derived_l_min
+    final_l_max <- (1 - influence) *
       init_lightness_bounds[2] +
-      influence * derived_L_max
+      influence * derived_l_max
     adapted_lightness_bounds <- c(
-      max(0.01, final_L_min),
-      min(0.99, final_L_max)
+      max(0.01, final_l_min),
+      min(0.99, final_l_max)
     )
     if (adapted_lightness_bounds[1] >= adapted_lightness_bounds[2]) {
       adapted_lightness_bounds <- init_lightness_bounds
     }
 
     # --- Adapt k-means++ OKLAB C-filter using mean and sd ---
-    max_C_dev_from_mean <- (aesthetic_profile$sd_C %||% 0.05) +
+    max_c_dev_from_mean <- (aesthetic_profile$sd_C %||% 0.05) +
       config$kmeans_C_base_deviation
     # `influence` makes the allowed deviation smaller
-    max_C_dev_final <- max_C_dev_from_mean *
+    max_c_dev_final <- max_c_dev_from_mean *
       (1 - config$kmeans_C_influence_tightening_factor * influence)
 
     kmeans_chroma_filter <- list(
       apply_filter = TRUE,
       target_C_mean = aesthetic_profile$mean_C,
-      max_C_deviation = max(0.01, max_C_dev_final), # Ensure some minimal deviation is allowed
+      max_C_deviation = max(0.01, max_c_dev_final), # Ensure some minimal
+      # deviation is allowed
       relaxation_factor = config$kmeans_C_filter_relaxation_factor
     )
 
     # --- Adapt harmony HCL L/C bounds ---
     # Convert fixed OKLAB profile to HCL for harmony init adaptation
-    # This requires converting mean L/C, which is a simplification. A more accurate way
-    # is to convert the original fixed colors to HCL space and get mean/sd there.
-    # We will do that for robustness.
+    # This requires converting mean L/C, which is a simplification.
+    # A more accurate way is to convert the original fixed colors to
+    # HCL space and get mean/sd there. We will do that for robustness.
     fixed_oklab_for_hcl <- cbind(
       L = aesthetic_profile$mean_L,
       a = aesthetic_profile$mean_C, # Simplification: treat mean C as `a` coord
@@ -121,6 +169,8 @@
       to = "hcl"
     )
 
+    # nolint end (for first block)
+    # nolint start: object_name_linter (L/C are standard HCL notation)
     mean_L_fixed_hcl <- temp_hcl_fixed[, "l"]
     sd_L_fixed_hcl <- config$harmony_hcl_sd_fallback *
       config$harmony_hcl_sd_multiplier
@@ -173,6 +223,7 @@
     }
 
     adapted_hcl_bounds <- list(L = current_L_hcl, C = current_C_hcl)
+    # nolint end
   }
 
   list(
@@ -189,7 +240,8 @@
 #' @param fixed_colors_oklab OKLAB matrix of fixed colors.
 #' @param method "k-means++" or "harmony".
 #' @param adapted_init_params List of adapted bounds from `.adapt_init_params`.
-#' @param base_init_lightness_bounds Original user-provided L-bounds for fallback.
+#' @param base_init_lightness_bounds Original user-provided L-bounds for
+#'   fallback.
 #' @return A matrix of initialized free colors in OKLAB space.
 #' @noRd
 initialize_colors <- function(
@@ -199,7 +251,22 @@ initialize_colors <- function(
   adapted_init_params,
   base_init_lightness_bounds
 ) {
-  if (n_free == 0) {
+  # Validate n_free
+  if (!is.numeric(n_free) || length(n_free) != 1) {
+    return(matrix(
+      numeric(0),
+      ncol = 3,
+      dimnames = list(NULL, c("L", "a", "b"))
+    ))
+  }
+  if (is.na(n_free) || !is.finite(n_free)) {
+    return(matrix(
+      numeric(0),
+      ncol = 3,
+      dimnames = list(NULL, c("L", "a", "b"))
+    ))
+  }
+  if (n_free < 0) {
     return(matrix(
       numeric(0),
       ncol = 3,
@@ -207,20 +274,40 @@ initialize_colors <- function(
     ))
   }
 
-  if (method == "k-means++") {
-    return(initialize_kmeans_plus_plus(
+  if (n_free == 0) {
+    matrix(
+      numeric(0),
+      ncol = 3,
+      dimnames = list(NULL, c("L", "a", "b"))
+    )
+  } else if (method == "k-means++") {
+    chroma_filter_params <- adapted_init_params$kmeans_chroma_filter_params
+    if (is.null(chroma_filter_params) || !is.list(chroma_filter_params)) {
+      chroma_filter_params <- list(apply_filter = FALSE)
+    }
+    if (
+      !is.logical(chroma_filter_params$apply_filter) ||
+        length(chroma_filter_params$apply_filter) != 1 ||
+        is.na(chroma_filter_params$apply_filter)
+    ) {
+      chroma_filter_params$apply_filter <- FALSE
+    }
+    initialize_kmeans_plus_plus(
       n_free,
       fixed_colors_oklab,
       adapted_init_params$lightness_bounds,
-      adapted_init_params$kmeans_chroma_filter_params,
+      chroma_filter_params,
       base_init_lightness_bounds
-    ))
+    )
   } else if (method == "harmony") {
-    return(initialize_harmony_based(
+    initialize_harmony_based(
       n_free,
       fixed_colors_oklab,
       adapted_init_params$hcl_bounds
-    ))
+    )
+  } else {
+    # Unknown method
+    matrix(numeric(0), ncol = 3, dimnames = list(NULL, c("L", "a", "b")))
   }
 }
 
@@ -233,8 +320,90 @@ initialize_kmeans_plus_plus <- function(
   chroma_filter_params,
   base_init_lightness_bounds
 ) {
+  # Validate n_free
+  if (!is.numeric(n_free) || length(n_free) != 1 || n_free < 0) {
+    return(matrix(
+      numeric(0),
+      ncol = 3,
+      dimnames = list(NULL, c("L", "a", "b"))
+    ))
+  }
+  if (is.na(n_free) || !is.finite(n_free)) {
+    return(matrix(
+      numeric(0),
+      ncol = 3,
+      dimnames = list(NULL, c("L", "a", "b"))
+    ))
+  }
+
+  # Validate lightness_bounds
+  if (is.null(lightness_bounds) || length(lightness_bounds) != 2) {
+    lightness_bounds <- base_init_lightness_bounds
+  }
+  if (anyNA(lightness_bounds) || !all(is.finite(lightness_bounds))) {
+    lightness_bounds <- base_init_lightness_bounds
+  }
+  # Check for inverted bounds
+  if (lightness_bounds[1] >= lightness_bounds[2]) {
+    lightness_bounds <- base_init_lightness_bounds
+  }
+
+  # Validate and sanitize chroma_filter_params
+  if (is.null(chroma_filter_params) || !is.list(chroma_filter_params)) {
+    chroma_filter_params <- list(apply_filter = FALSE)
+  }
+  if (
+    !is.logical(chroma_filter_params$apply_filter) ||
+      length(chroma_filter_params$apply_filter) != 1 ||
+      is.na(chroma_filter_params$apply_filter)
+  ) {
+    chroma_filter_params$apply_filter <- FALSE
+  }
+
+  # Validate chroma filter fields after apply_filter normalization
+  if (isTRUE(chroma_filter_params$apply_filter)) {
+    target_valid <- is.numeric(chroma_filter_params$target_C_mean) &&
+      length(chroma_filter_params$target_C_mean) == 1 &&
+      is.finite(chroma_filter_params$target_C_mean)
+    max_dev_valid <- is.numeric(chroma_filter_params$max_C_deviation) &&
+      length(chroma_filter_params$max_C_deviation) == 1 &&
+      is.finite(chroma_filter_params$max_C_deviation)
+    if (!target_valid || !max_dev_valid) {
+      chroma_filter_params$apply_filter <- FALSE
+    }
+  }
+  # Sanitize relaxation_factor
+  if (
+    !is.numeric(chroma_filter_params$relaxation_factor) ||
+      length(chroma_filter_params$relaxation_factor) != 1 ||
+      !is.finite(chroma_filter_params$relaxation_factor)
+  ) {
+    chroma_filter_params$relaxation_factor <- 1
+  }
+
+  # Sanitize fixed_colors_oklab
+  if (
+    !is.matrix(fixed_colors_oklab) ||
+      ncol(fixed_colors_oklab) != 3 ||
+      nrow(fixed_colors_oklab) == 0 ||
+      anyNA(fixed_colors_oklab) ||
+      !all(is.finite(fixed_colors_oklab))
+  ) {
+    fixed_colors_oklab <- NULL
+  }
+
+  # n_free == 0: return empty matrix
+  if (n_free == 0) {
+    return(matrix(
+      numeric(0),
+      ncol = 3,
+      dimnames = list(NULL, c("L", "a", "b"))
+    ))
+  }
+
   oklab_ab_gen_bounds <- list(a = c(-0.4, 0.4), b = c(-0.4, 0.4))
-  # Calculate initial candidate pool size: base pool size or proportional to free colors
+  # Calculate initial candidate pool size: base pool size or proportional to
+  # free colors
   candidate_multiplier <- 200
   n_candidates_initial_pool <- max(
     .CANDIDATE_POOL_BASE,
@@ -265,7 +434,8 @@ initialize_kmeans_plus_plus <- function(
   valid_gamut <- !is.na(hex_candidates)
   candidates <- candidates[valid_gamut, , drop = FALSE]
 
-  # Check if we need more candidates: require at least 5x free colors and 100 minimum
+  # Check if we need more candidates: require at least 5x free colors
+  # and 100 minimum
   candidate_density_factor <- 5
   min_candidate_threshold <- 100
   if (
@@ -273,7 +443,8 @@ initialize_kmeans_plus_plus <- function(
       nrow(candidates) < min_candidate_threshold
   ) {
     cli::cli_alert_info(
-      "Gamut filter reduced candidates. Broadening L-bounds for candidate generation using base init_lightness_bounds."
+      "Gamut filter reduced candidates. Broadening L-bounds for ",
+      "candidate generation using base init_lightness_bounds."
     )
     broader_l_bounds <- base_init_lightness_bounds
     candidates_fallback <- generate_candidates(
@@ -304,6 +475,7 @@ initialize_kmeans_plus_plus <- function(
   }
 
   if (chroma_filter_params$apply_filter && nrow(candidates) > 0) {
+    # nolint start: object_name_linter (C is standard color science notation)
     cand_C <- sqrt(candidates[, 2]^2 + candidates[, 3]^2)
     target_C <- chroma_filter_params$target_C_mean
     max_dev <- chroma_filter_params$max_C_deviation
@@ -320,11 +492,13 @@ initialize_kmeans_plus_plus <- function(
       valid_chroma <- abs(cand_C - target_C) <= max_dev_relaxed
     }
     candidates <- candidates[valid_chroma, , drop = FALSE]
+    # nolint end
   }
 
   if (nrow(candidates) == 0 && n_free > 0) {
     cli::cli_alert_warning(
-      "No valid candidate colors found after all filters. Returning empty set."
+      "No valid candidate colors found after all filters. ",
+      "Returning empty set."
     )
     return(matrix(
       numeric(0),
@@ -372,12 +546,70 @@ initialize_kmeans_plus_plus <- function(
     candidates <- candidates[-next_idx, , drop = FALSE]
   }
 
-  return(newly_selected_centers)
+  newly_selected_centers
 }
 
 #' Initialize Using Color Harmony Principles
 #' @noRd
 initialize_harmony_based <- function(n_free, fixed_colors_oklab, hcl_bounds) {
+  # Validate n_free
+  if (
+    !is.numeric(n_free) ||
+      length(n_free) != 1 ||
+      is.na(n_free) ||
+      !is.finite(n_free) ||
+      n_free < 0
+  ) {
+    return(matrix(
+      numeric(0),
+      ncol = 3,
+      dimnames = list(NULL, c("L", "a", "b"))
+    ))
+  }
+  if (n_free == 0) {
+    return(matrix(
+      numeric(0),
+      ncol = 3,
+      dimnames = list(NULL, c("L", "a", "b"))
+    ))
+  }
+
+  # Sanitize hcl_bounds
+  if (
+    missing(hcl_bounds) ||
+      is.null(hcl_bounds) ||
+      is.null(hcl_bounds$L) ||
+      is.null(hcl_bounds$C) ||
+      length(hcl_bounds$L) != 2 ||
+      length(hcl_bounds$C) != 2 ||
+      anyNA(hcl_bounds$L) ||
+      anyNA(hcl_bounds$C) ||
+      !all(is.finite(hcl_bounds$L)) ||
+      !all(is.finite(hcl_bounds$C))
+  ) {
+    hcl_bounds <- list(L = c(20, 80), C = c(10, 60))
+  }
+  # Ensure L bounds are ordered (min <= max)
+  if (hcl_bounds$L[1] > hcl_bounds$L[2]) {
+    hcl_bounds$L <- sort(hcl_bounds$L)
+  }
+  # Ensure C bounds are ordered (min <= max)
+  if (hcl_bounds$C[1] > hcl_bounds$C[2]) {
+    hcl_bounds$C <- sort(hcl_bounds$C)
+  }
+
+  # Sanitize fixed_colors_oklab
+  if (
+    !is.null(fixed_colors_oklab) &&
+      (!is.matrix(fixed_colors_oklab) ||
+        ncol(fixed_colors_oklab) != 3 ||
+        nrow(fixed_colors_oklab) == 0 ||
+        anyNA(fixed_colors_oklab) ||
+        !all(is.finite(fixed_colors_oklab)))
+  ) {
+    fixed_colors_oklab <- NULL
+  }
+
   if (is.null(fixed_colors_oklab) || nrow(fixed_colors_oklab) == 0) {
     hcl_colors_init <- cbind(
       h = seq(0, 359, length.out = n_free + 1)[seq_len(n_free)],
@@ -457,5 +689,5 @@ initialize_harmony_based <- function(n_free, fixed_colors_oklab, hcl_bounds) {
     to = "oklab"
   )
   colnames(oklab_colors_new) <- c("L", "a", "b")
-  return(oklab_colors_new)
+  oklab_colors_new
 }

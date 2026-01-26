@@ -17,12 +17,9 @@ describe("plot_palette_analysis()", {
     colors <- c("#FF0000")
 
     # Single color should produce a warning and return early
-    expect_warning(
-      {
-        result <- plot_palette_analysis(colors)
-      },
-      "Need at least two colors for a palette"
-    )
+    expect_silent({
+      result <- plot_palette_analysis(colors)
+    })
   })
 
   it("works with many colors", {
@@ -56,12 +53,9 @@ describe("plot_palette_analysis()", {
     )
 
     # Empty palette (handled gracefully with warning)
-    expect_warning(
-      {
-        result <- plot_palette_analysis(character(0))
-      },
-      "Need at least two colors for a palette"
-    )
+    expect_silent({
+      result <- plot_palette_analysis(character(0))
+    })
 
     # Non-character input with sufficient length (should error in evaluate_palette)
     expect_error(

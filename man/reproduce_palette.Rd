@@ -10,7 +10,9 @@ reproduce_palette(palette, progress = NULL, ...)
 \item{palette}{A huerd_palette object (result from \code{generate_palette()})
 containing generation metadata.}
 
-\item{progress}{Logical. Show progress messages. Default is NULL; if NULL, the behavior falls back to \code{interactive()}.}
+\item{progress}{Logical. Show progress messages. Default is
+\code{interactive()}. If NULL, uses the progress setting from the
+original generation.}
 
 \item{...}{Additional arguments reserved for future use.}
 }
@@ -19,23 +21,24 @@ A character vector of hex colors with class \code{huerd_palette},
 identical to the input palette when reproduction is successful.
 }
 \description{
-Recreates an identical color palette from a previously generated huerd_palette
-object using stored generation metadata.
+Recreates an identical color palette from a previously generated
+huerd_palette object using stored generation metadata.
 }
 \details{
-This function reads the generation metadata stored in the \code{generation_metadata}
-attribute of a huerd_palette object and re-runs \code{generate_palette()} with
-the exact same parameters.
+This function reads the generation metadata stored in the
+\code{generation_metadata} attribute of a huerd_palette object and
+re-runs \code{generate_palette()} with the exact same parameters.
 
 Reproducibility depends on the optimizer used:
 \itemize{
 \item \strong{Deterministic optimizers} ("nlopt_direct", "nloptr_cobyla",
 "nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
-regardless of the random seed, as these algorithms produce the same results
-for the same inputs.
-\item \strong{Stochastic optimizers} ("sann"): Reproduction requires restoring
-the random seed captured during the original generation. The seed is scoped
-using \code{withr::with_seed()} to avoid mutating global state.
+regardless of the random seed, as these algorithms produce the same
+results for the same inputs.
+\item \strong{Stochastic optimizers} ("sann"): Reproduction requires
+restoring the random seed captured during the original generation.
+The seed is scoped using \code{withr::with_seed()} to avoid mutating
+global state.
 }
 
 The function validates that the input object contains the necessary metadata

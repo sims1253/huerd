@@ -17,5 +17,9 @@
 ^\.venv
 ^\.serena$
 ^\.tldr$
+^\.tldrignore$
+^R/\.tldr$
+^air\.toml$
+^docs/
 ^\.claude$
 ^\.Rcheck$

@@ -1,11 +1,12 @@
 #' Simulate Palette Under Color Vision Deficiency
 #'
 #' Shows how a color palette appears to individuals with different types
-#' of color vision deficiency using physiologically accurate models from `farver`.
+#' of color vision deficiency using physiologically accurate models from
+#' `farver`.
 #'
 #' @param colors Character vector of hex colors.
-#' @param cvd_type Character. Type of CVD: "protan", "deutan", "tritan", or "all".
-#'   Default is "all".
+#' @param cvd_type Character. Type of CVD: "protan", "deutan", "tritan",
+#'   or "all". Default is "all".
 #' @param severity Numeric. Severity of CVD from 0 (none) to 1 (complete).
 #'   Default is 1.0.
 #' @param plot Logical. Whether to plot a comparison using base R graphics.
@@ -13,9 +14,10 @@
 #' @param ... Additional arguments reserved for future use.
 #'
 #' @return A list with simulated palettes. If `cvd_type` is "all", the list
-#'   contains elements `original`, `protan`, `deutan`, and `tritan`. For a single
-#'   CVD type, the list contains a single element named after that type (e.g.,
-#'   `protan`). The output object also inherits from `huerd_simulation_result`.
+#'   contains elements `original`, `protan`, `deutan`, and `tritan`. For a
+#'   single CVD type, the list contains a single element named after that
+#'   type (e.g., `protan`). The output object also inherits from
+#'   `huerd_simulation_result`.
 #'
 #' @examples
 #' palette_ex <- generate_palette(6, progress = FALSE)
@@ -53,10 +55,6 @@ simulate_palette_cvd <- function(
   valid_colors <- colors[!is.na(colors)]
 
   if (length(valid_colors) == 0) {
-    warning(
-      "Input 'colors' contains no valid colors. Returning an empty result.",
-      call. = FALSE
-    )
     res <- if (cvd_type_arg == "all") {
       list(original = character(0))
     } else {
@@ -124,12 +122,13 @@ simulate_palette_cvd <- function(
     plot_cvd_comparison(plot_list)
   }
 
-  return(output_results)
+  output_results
 }
 
 #' Plot CVD Comparison (Base R Graphics)
 #'
-#' Internal helper to create a visual comparison of original and simulated palettes.
+#' Internal helper to create a visual comparison of original and
+#' simulated palettes.
 #' @param palette_list A list of palettes to compare.
 #' @noRd
 plot_cvd_comparison <- function(palette_list) {
@@ -176,13 +175,15 @@ plot_cvd_comparison <- function(palette_list) {
 
     if (is.character(current_palette) && length(current_palette) == n_colors) {
       for (j in seq_along(current_palette)) {
-        fill_col <- current_palette[j] %||% "#DDDDDD" # Default to light gray if NA
+        fill_col <- current_palette[j] %||% "#DDDDDD" # Default to light
+        # gray if NA
         border_col <- "grey50"
 
         tryCatch(
           {
             fill_col_rgb_raw <- grDevices::col2rgb(fill_col)
-            # Use sRGB luminance formula for perceived brightness for text contrast
+            # Use sRGB luminance formula for perceived brightness for
+            # text contrast
             srgb_red_weight <- 0.2126
             srgb_green_weight <- 0.7152
             srgb_blue_weight <- 0.0722
@@ -194,7 +195,7 @@ plot_cvd_comparison <- function(palette_list) {
             border_col <- if (luminance_srgb > 0.5) "black" else "white"
           },
           error = function(e) {
-            border_col <- "red"
+            border_col <<- "red"
           }
         )
 
@@ -254,5 +255,5 @@ is_cvd_safe <- function(colors, min_cvd_distance = 0.08, ...) {
   # it means safety cannot be confirmed, so treat as unsafe (0).
   actual_worst_case_min <- metrics$cvd_safety$worst_case_min_distance %||% 0
 
-  return(actual_worst_case_min >= min_cvd_distance)
+  actual_worst_case_min >= min_cvd_distance
 }

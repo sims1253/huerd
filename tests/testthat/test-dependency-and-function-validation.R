@@ -1133,14 +1133,14 @@ describe("Constant and Configuration Validation", {
       )
     })
 
-    it(".DEFAULT_AESTHETIC_INIT_CONFIG is defined", {
+    it(".default_aesthetic_init_config is defined", {
       expect_true(
-        exists(".DEFAULT_AESTHETIC_INIT_CONFIG"),
-        info = ".DEFAULT_AESTHETIC_INIT_CONFIG must be defined"
+        exists(".default_aesthetic_init_config"),
+        info = ".default_aesthetic_init_config must be defined"
       )
       expect_true(
-        is.list(.DEFAULT_AESTHETIC_INIT_CONFIG),
-        info = ".DEFAULT_AESTHETIC_INIT_CONFIG must be a list"
+        is.list(.default_aesthetic_init_config),
+        info = ".default_aesthetic_init_config must be a list"
       )
     })
   })

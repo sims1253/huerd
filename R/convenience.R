@@ -69,7 +69,8 @@ quick_palette <- function(
     valid_presets <- c("any", "light", "dark", "mid")
     if (!lightness %in% valid_presets) {
       cli::cli_abort(c(
-        "{.arg lightness} must be a valid preset or numeric vector of length 2.",
+        "{.arg lightness} must be a valid preset or numeric vector of ",
+        "length 2.",
         "i" = "Valid presets: {.val {valid_presets}}"
       ))
     }
@@ -230,7 +231,8 @@ export_palette <- function(
       cli::cli_abort(c(
         "{.arg names} must be valid CSS/Sass variable names.",
         "i" = "Invalid names: {.val {names[invalid]}}",
-        "x" = "Names must start with a letter or underscore and contain only letters, numbers, underscores, and hyphens."
+        "x" = "Names must start with a letter or underscore and ",
+        "contain only letters, numbers, underscores, and hyphens."
       ))
     }
   }

@@ -99,12 +99,9 @@ describe("simulate_palette_cvd()", {
   })
 
   it("handles empty input", {
-    expect_warning(
-      {
-        result <- simulate_palette_cvd(character(0), cvd_type = "deutan")
-      },
-      "Input 'colors' contains no valid colors"
-    )
+    expect_silent({
+      result <- simulate_palette_cvd(character(0), cvd_type = "deutan")
+    })
 
     expect_true(is.list(result))
     expect_equal(length(result), 1)
@@ -163,24 +160,18 @@ describe("simulate_palette_cvd() - error conditions", {
   it("handles empty colors after filtering", {
     all_na_colors <- c(NA_character_, NA_character_, NA_character_)
 
-    expect_warning(
-      {
-        result1 <- simulate_palette_cvd(all_na_colors, cvd_type = "protan")
-      },
-      "Input 'colors' contains no valid colors"
-    )
+    expect_silent({
+      result1 <- simulate_palette_cvd(all_na_colors, cvd_type = "protan")
+    })
 
     expect_true(is.list(result1))
     expect_equal(length(result1), 1)
     expect_true(inherits(result1, "huerd_simulation_result"))
     expect_equal(attr(result1, "cvd_type"), "protan")
 
-    expect_warning(
-      {
-        result2 <- simulate_palette_cvd(all_na_colors, cvd_type = "all")
-      },
-      "Input 'colors' contains no valid colors"
-    )
+    expect_silent({
+      result2 <- simulate_palette_cvd(all_na_colors, cvd_type = "all")
+    })
 
     expect_true(is.list(result2))
     expect_true(inherits(result2, "huerd_simulation_result"))
