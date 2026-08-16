@@ -8,29 +8,35 @@ simulate_palette_cvd(
   colors,
   cvd_type = c("all", "protan", "deutan", "tritan"),
   severity = 1,
-  plot = FALSE
+  plot = FALSE,
+  ...
 )
 }
 \arguments{
 \item{colors}{Character vector of hex colors.}
 
-\item{cvd_type}{Character. Type of CVD: "protan", "deutan", "tritan", or "all".
-Default is "all".}
+\item{cvd_type}{Character. Type of CVD: "protan", "deutan", "tritan",
+or "all". Default is "all".}
 
 \item{severity}{Numeric. Severity of CVD from 0 (none) to 1 (complete).
 Default is 1.0.}
 
 \item{plot}{Logical. Whether to plot a comparison using base R graphics.
 Default is FALSE.}
+
+\item{...}{Additional arguments reserved for future use.}
 }
 \value{
-If \code{cvd_type} is "all", returns a list with simulated palettes for
-each type (and original). Otherwise returns a character vector of simulated hex colors.
-The output object also inherits from \code{huerd_simulation_result}.
+A list with simulated palettes. If \code{cvd_type} is "all", the list
+contains elements \code{original}, \code{protan}, \code{deutan}, and \code{tritan}. For a
+single CVD type, the list contains a single element named after that
+type (e.g., \code{protan}). The output object also inherits from
+\code{huerd_simulation_result}.
 }
 \description{
 Shows how a color palette appears to individuals with different types
-of color vision deficiency using physiologically accurate models from \code{farver}.
+of color vision deficiency using physiologically accurate models from
+\code{farver}.
 }
 \examples{
 palette_ex <- generate_palette(6, progress = FALSE)

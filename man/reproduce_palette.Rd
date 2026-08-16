@@ -4,51 +4,46 @@
 \alias{reproduce_palette}
 \title{Reproduce Palette from Existing huerd_palette Object}
 \usage{
-reproduce_palette(palette, progress = NULL)
+reproduce_palette(palette, progress = NULL, ...)
 }
 \arguments{
 \item{palette}{A huerd_palette object (result from \code{generate_palette()})
 containing generation metadata.}
 
-\item{progress}{Logical. Show progress messages. Default is \code{interactive()}.
-If NULL, uses the progress setting from the original generation.}
+\item{progress}{Logical. Show progress messages. Default is
+\code{interactive()}. If NULL, uses the progress setting from the
+original generation.}
+
+\item{...}{Additional arguments reserved for future use.}
 }
 \value{
 A character vector of hex colors with class \code{huerd_palette},
 identical to the input palette when reproduction is successful.
 }
 \description{
-Recreates an identical color palette from a previously generated huerd_palette
-object using the stored generation metadata. This function enables perfect
-scientific reproducibility by reusing the exact same parameters and random
-seed that were used in the original generation.
+Recreates an identical color palette from a previously generated
+huerd_palette object using stored generation metadata.
 }
 \details{
-This function reads the generation metadata stored in the \code{generation_metadata}
-attribute of a huerd_palette object and re-runs \code{generate_palette()} with
-the exact same parameters. When a random seed was captured during original
-generation, the reproduction will be identical. For deterministic optimizers
-like "nlopt_direct", reproduction should always be identical regardless of
-random seed.
+This function reads the generation metadata stored in the
+\code{generation_metadata} attribute of a huerd_palette object and
+re-runs \code{generate_palette()} with the exact same parameters.
+
+Reproducibility depends on the optimizer used:
+\itemize{
+\item \strong{Deterministic optimizers} ("nlopt_direct", "nloptr_cobyla",
+"nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
+regardless of the random seed, as these algorithms produce the same
+results for the same inputs.
+\item \strong{Stochastic optimizers} ("sann"): Reproduction requires
+restoring the random seed captured during the original generation.
+The seed is scoped using \code{withr::with_seed()} to avoid mutating
+global state.
+}
 
 The function validates that the input object contains the necessary metadata
-and provides informative error messages if reproduction fails due to missing
-metadata or package version incompatibilities.
-
-For scientific reproducibility, it's recommended to use deterministic
-optimizers like "nlopt_direct" when reproducibility is critical.
+and provides informative error messages if reproduction fails.
 }
-\section{Compatibility}{
-
-\itemize{
-\item Reproduction is most reliable within the same package version
-\item Package version changes may affect reproducibility
-\item Missing or incomplete metadata will prevent reproduction
-\item The function handles backward compatibility with older huerd_palette
-objects that may lack metadata
-}
-}
-
 \examples{
 \dontrun{
 # Create a reproducible palette

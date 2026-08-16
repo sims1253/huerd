@@ -7,7 +7,8 @@
 \method{print}{huerd_palette}(x, ...)
 }
 \arguments{
-\item{x}{An object of class \code{huerd_palette} (a character vector of hex colors).}
+\item{x}{An object of class \code{huerd_palette} (a character vector of hex
+colors).}
 
 \item{...}{Additional arguments (not used).}
 }

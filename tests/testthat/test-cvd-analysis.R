@@ -1,221 +1,206 @@
-test_that("is_cvd_safe handles single color", {
-  color <- "#FF0000"
+# Tests for is_cvd_safe
 
-  result <- is_cvd_safe(color)
+describe("is_cvd_safe()", {
+  it("handles single color", {
+    color <- "#FF0000"
 
-  expect_type(result, "logical")
-  expect_length(result, 1)
+    result <- is_cvd_safe(color)
+
+    expect_type(result, "logical")
+    expect_length(result, 1)
+  })
+
+  it("handles empty input", {
+    result <- is_cvd_safe(character(0))
+
+    expect_type(result, "logical")
+    expect_length(result, 1)
+  })
+
+  it("returns logical value for multiple colors", {
+    colors <- c("#FF0000", "#00FF00", "#0000FF")
+
+    result <- is_cvd_safe(colors)
+
+    expect_type(result, "logical")
+    expect_length(result, 1)
+  })
 })
-
-test_that("is_cvd_safe handles empty input", {
-  result <- is_cvd_safe(character(0))
-
-  expect_type(result, "logical")
-  expect_length(result, 1)
-})
-
-test_that("is_cvd_safe returns logical value for multiple colors", {
-  colors <- c("#FF0000", "#00FF00", "#0000FF")
-
-  result <- is_cvd_safe(colors)
-
-  expect_type(result, "logical")
-  expect_length(result, 1)
-})
-
-# TODO: Investigate if threshold parameter should be supported
-# test_that("is_cvd_safe accepts threshold parameter", {
-#   color <- "#FF0000"
-#
-#   result1 <- is_cvd_safe(color, threshold = 0.1)
-#   result2 <- is_cvd_safe(color, threshold = 0.01)
-#
-#   expect_type(result1, "logical")
-#   expect_type(result2, "logical")
-#   expect_length(result1, 1)
-#   expect_length(result2, 1)
-# })
 
 # Tests for simulate_palette_cvd expected behavior
-test_that("simulate_palette_cvd returns colors for single CVD type", {
-  colors <- c("#FF0000", "#00FF00", "#0000FF")
 
-  result <- simulate_palette_cvd(colors, cvd_type = "deutan")
+describe("simulate_palette_cvd()", {
+  it("returns list for single CVD type", {
+    colors <- c("#FF0000", "#00FF00", "#0000FF")
 
-  expect_true(is.character(result))
-  expect_equal(length(result), 3)
-  expect_true(all(grepl("^#[0-9A-Fa-f]{6}$", result)))
-  expect_true(inherits(result, "huerd_simulation_result"))
-})
+    result <- simulate_palette_cvd(colors, cvd_type = "deutan")
 
-test_that("simulate_palette_cvd handles different CVD types", {
-  colors <- c("#FF0000", "#00FF00")
+    expect_true(is.list(result))
+    expect_true(inherits(result, "huerd_simulation_result"))
+    expect_true("deutan" %in% names(result))
+    expect_true(is.character(result$deutan))
+    expect_equal(length(result$deutan), 3)
+    expect_true(all(grepl("^#[0-9A-Fa-f]{6}$", result$deutan)))
+  })
 
-  deutan_result <- simulate_palette_cvd(colors, cvd_type = "deutan")
-  protan_result <- simulate_palette_cvd(colors, cvd_type = "protan")
-  tritan_result <- simulate_palette_cvd(colors, cvd_type = "tritan")
+  it("handles different CVD types", {
+    colors <- c("#FF0000", "#00FF00")
 
-  expect_true(is.character(deutan_result))
-  expect_true(is.character(protan_result))
-  expect_true(is.character(tritan_result))
-  expect_equal(length(deutan_result), 2)
-  expect_equal(length(protan_result), 2)
-  expect_equal(length(tritan_result), 2)
-})
+    deutan_result <- simulate_palette_cvd(colors, cvd_type = "deutan")
+    protan_result <- simulate_palette_cvd(colors, cvd_type = "protan")
+    tritan_result <- simulate_palette_cvd(colors, cvd_type = "tritan")
 
-test_that("simulate_palette_cvd returns list for all CVD types", {
-  colors <- c("#FF0000", "#00FF00")
+    expect_true(is.list(deutan_result))
+    expect_true(is.list(protan_result))
+    expect_true(is.list(tritan_result))
+    expect_true(is.character(deutan_result$deutan))
+    expect_true(is.character(protan_result$protan))
+    expect_true(is.character(tritan_result$tritan))
+    expect_equal(length(deutan_result$deutan), 2)
+    expect_equal(length(protan_result$protan), 2)
+    expect_equal(length(tritan_result$tritan), 2)
+  })
 
-  result <- simulate_palette_cvd(colors, cvd_type = "all")
+  it("returns list for all CVD types", {
+    colors <- c("#FF0000", "#00FF00")
 
-  expect_true(is.list(result))
-  expect_true(inherits(result, "huerd_simulation_result"))
-  expect_true("original" %in% names(result))
-  expect_true("deutan" %in% names(result))
-  expect_true("protan" %in% names(result))
-  expect_true("tritan" %in% names(result))
-})
+    result <- simulate_palette_cvd(colors, cvd_type = "all")
 
-test_that("simulate_palette_cvd handles severity parameter", {
-  colors <- c("#FF0000")
+    expect_true(is.list(result))
+    expect_true(inherits(result, "huerd_simulation_result"))
+    expect_true("original" %in% names(result))
+    expect_true("deutan" %in% names(result))
+    expect_true("protan" %in% names(result))
+    expect_true("tritan" %in% names(result))
+  })
 
-  mild_result <- simulate_palette_cvd(
-    colors,
-    cvd_type = "deutan",
-    severity = 0.5
-  )
-  complete_result <- simulate_palette_cvd(
-    colors,
-    cvd_type = "deutan",
-    severity = 1.0
-  )
+  it("handles severity parameter", {
+    colors <- c("#FF0000")
 
-  expect_true(is.character(mild_result))
-  expect_true(is.character(complete_result))
-  expect_equal(length(mild_result), 1)
-  expect_equal(length(complete_result), 1)
-  expect_true(inherits(mild_result, "huerd_simulation_result"))
-  expect_true(inherits(complete_result, "huerd_simulation_result"))
-})
+    mild_result <- simulate_palette_cvd(
+      colors,
+      cvd_type = "deutan",
+      severity = 0.5
+    )
+    complete_result <- simulate_palette_cvd(
+      colors,
+      cvd_type = "deutan",
+      severity = 1.0
+    )
 
-test_that("simulate_palette_cvd handles empty input", {
-  expect_warning(
-    {
+    expect_true(is.list(mild_result))
+    expect_true(is.list(complete_result))
+    expect_true(is.character(mild_result$deutan))
+    expect_true(is.character(complete_result$deutan))
+    expect_equal(length(mild_result$deutan), 1)
+    expect_equal(length(complete_result$deutan), 1)
+    expect_true(inherits(mild_result, "huerd_simulation_result"))
+    expect_true(inherits(complete_result, "huerd_simulation_result"))
+  })
+
+  it("handles empty input", {
+    expect_silent({
       result <- simulate_palette_cvd(character(0), cvd_type = "deutan")
-    },
-    "Input 'colors' contains no valid colors"
-  )
+    })
 
-  expect_true(is.character(result))
-  expect_equal(length(result), 0)
-  expect_true(inherits(result, "huerd_simulation_result"))
+    expect_true(is.list(result))
+    expect_equal(length(result), 1)
+    expect_true(inherits(result, "huerd_simulation_result"))
+  })
 })
 
 # Tests for plot_cvd_comparison expected behavior
-test_that("plot_cvd_comparison accepts CVD simulation results", {
-  colors <- c("#FF0000", "#00FF00")
-  sim_results <- simulate_palette_cvd(colors, cvd_type = "all")
 
-  # Should not error when given proper simulation results
-  expect_silent(plot_cvd_comparison(sim_results))
+describe("plot_cvd_comparison()", {
+  it("accepts CVD simulation results", {
+    colors <- c("#FF0000", "#00FF00")
+    sim_results <- simulate_palette_cvd(colors, cvd_type = "all")
+
+    expect_silent(plot_cvd_comparison(sim_results))
+  })
+
+  it("handles single CVD type results", {
+    colors <- c("#FF0000", "#00FF00")
+    deutan_result <- simulate_palette_cvd(colors, cvd_type = "deutan")
+
+    expect_silent(plot_cvd_comparison(list(
+      original = colors,
+      simulated = deutan_result$deutan
+    )))
+  })
+
+  it("handles empty input gracefully", {
+    expect_message(
+      {
+        expect_no_error(plot_cvd_comparison(list(original = character(0))))
+      },
+      "Cannot plot CVD comparison"
+    )
+  })
 })
 
 # ERROR CONDITION TESTS - Testing uncovered error paths in CVD functions
 
-test_that("simulate_palette_cvd handles invalid hex color formats", {
-  # Test invalid hex formats (line 47)
-  invalid_hex_colors <- c("#INVALID", "#ZZZ", "red", "#12345", "#GGGGGG")
+describe("simulate_palette_cvd() - error conditions", {
+  it("handles invalid hex color formats", {
+    invalid_hex_colors <- c("#INVALID", "#ZZZ", "red", "#12345", "#GGGGGG")
 
-  expect_error(
-    simulate_palette_cvd(invalid_hex_colors),
-    "colors must be a character vector of valid hex codes or NA."
-  )
+    expect_error(
+      simulate_palette_cvd(invalid_hex_colors),
+      "colors must be a character vector of valid hex codes or NA."
+    )
 
-  # Test mixed valid and invalid hex colors
-  mixed_colors <- c("#FF0000", "#INVALID", "#00FF00")
-  expect_error(
-    simulate_palette_cvd(mixed_colors),
-    "colors must be a character vector of valid hex codes or NA."
-  )
-})
+    mixed_colors <- c("#FF0000", "#INVALID", "#00FF00")
+    expect_error(
+      simulate_palette_cvd(mixed_colors),
+      "colors must be a character vector of valid hex codes or NA."
+    )
+  })
 
-test_that("simulate_palette_cvd handles empty colors after filtering", {
-  # Test all NA vector (lines 54-59 for single CVD type)
-  all_na_colors <- c(NA_character_, NA_character_, NA_character_)
+  it("handles empty colors after filtering", {
+    all_na_colors <- c(NA_character_, NA_character_, NA_character_)
 
-  # Test single CVD type - should warn about no valid colors
-  expect_warning(
-    {
+    expect_silent({
       result1 <- simulate_palette_cvd(all_na_colors, cvd_type = "protan")
-    },
-    "Input 'colors' contains no valid colors"
-  )
+    })
 
-  expect_true(is.character(result1))
-  expect_equal(length(result1), 0)
-  expect_true(inherits(result1, "huerd_simulation_result"))
-  expect_equal(attr(result1, "cvd_type"), "protan")
+    expect_true(is.list(result1))
+    expect_equal(length(result1), 1)
+    expect_true(inherits(result1, "huerd_simulation_result"))
+    expect_equal(attr(result1, "cvd_type"), "protan")
 
-  # Test "all" CVD types - should also warn about no valid colors
-  expect_warning(
-    {
+    expect_silent({
       result2 <- simulate_palette_cvd(all_na_colors, cvd_type = "all")
-    },
-    "Input 'colors' contains no valid colors"
-  )
+    })
 
-  expect_true(is.list(result2))
-  expect_true(inherits(result2, "huerd_simulation_result"))
-  expect_equal(attr(result2, "cvd_type"), "all")
-  expect_true("original" %in% names(result2))
-  expect_equal(length(result2$original), 0)
-})
+    expect_true(is.list(result2))
+    expect_true(inherits(result2, "huerd_simulation_result"))
+    expect_equal(attr(result2, "cvd_type"), "all")
+    expect_true("original" %in% names(result2))
+    expect_equal(length(result2$original), 0)
+  })
 
-test_that("simulate_palette_cvd handles invalid severity values", {
-  colors <- c("#FF0000", "#00FF00", "#0000FF")
+  it("handles invalid severity values", {
+    colors <- c("#FF0000", "#00FF00", "#0000FF")
 
-  # Test severity < 0 (line 70)
-  expect_error(
-    simulate_palette_cvd(colors, severity = -0.1),
-    "severity must be a number between 0 and 1."
-  )
+    expect_error(
+      simulate_palette_cvd(colors, severity = -0.1),
+      "severity must be a number between 0 and 1."
+    )
 
-  # Test severity > 1 (line 70)
-  expect_error(
-    simulate_palette_cvd(colors, severity = 1.5),
-    "severity must be a number between 0 and 1."
-  )
+    expect_error(
+      simulate_palette_cvd(colors, severity = 1.5),
+      "severity must be a number between 0 and 1."
+    )
 
-  # Test non-numeric severity (line 70)
-  expect_error(
-    simulate_palette_cvd(colors, severity = "invalid"),
-    "severity must be a number between 0 and 1."
-  )
+    expect_error(
+      simulate_palette_cvd(colors, severity = "invalid"),
+      "severity must be a number between 0 and 1."
+    )
 
-  # Test NA severity (line 70)
-  expect_error(
-    simulate_palette_cvd(colors, severity = NA),
-    "severity must be a number between 0 and 1."
-  )
-})
-
-test_that("plot_cvd_comparison handles single CVD type results", {
-  colors <- c("#FF0000", "#00FF00")
-  deutan_result <- simulate_palette_cvd(colors, cvd_type = "deutan")
-
-  # Should handle single CVD type results by creating comparison
-  expect_silent(plot_cvd_comparison(list(
-    original = colors,
-    simulated = deutan_result
-  )))
-})
-
-test_that("plot_cvd_comparison handles empty input gracefully", {
-  # Should handle empty results without error but may produce informational message
-  expect_message(
-    {
-      expect_no_error(plot_cvd_comparison(list(original = character(0))))
-    },
-    "Cannot plot CVD comparison"
-  )
+    expect_error(
+      simulate_palette_cvd(colors, severity = NA),
+      "severity must be a number between 0 and 1."
+    )
+  })
 })

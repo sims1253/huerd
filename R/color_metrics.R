@@ -3,23 +3,28 @@
 
 #' Evaluate Palette Quality
 #'
-#' Provides a comprehensive evaluation of a color palette's perceptual properties,
-#' including its distinguishability, CVD safety, and color distribution.
+#' Provides a comprehensive evaluation of a color palette's
+#' perceptual properties, including its distinguishability, CVD safety,
+#' and color distribution.
 #' Returns raw metrics without subjective scoring for post-hoc analysis.
 #'
-#' @param colors A character vector of hex colors, or a matrix of colors in OK LAB space.
+#' @param colors A character vector of hex colors, or a matrix of colors
+#'   in OK LAB space.
+#' @param ... Additional arguments reserved for future use.
 #' @return A list of evaluation metrics with class `huerd_evaluation`.
-#'         Contains raw metrics including distances, CVD safety, and distribution
-#'         for objective analysis without subjective heuristic scoring.
+#'         Contains raw metrics including distances, CVD safety, and
+#'         distribution for objective analysis without subjective
+#'         heuristic scoring.
 #' @export
 #' @examples
 #' pal <- generate_palette(5, progress = FALSE)
 #' metrics <- evaluate_palette(pal)
 #' print(metrics) # Uses custom print method
 #'
-#' # The performance_ratio compares the achieved min distance to an estimated maximum
+#' # The performance_ratio compares the achieved min distance to an
+#' # estimated maximum
 #' # metrics$distances$performance_ratio
-evaluate_palette <- function(colors) {
+evaluate_palette <- function(colors, ...) {
   # --- Input Validation and Pre-processing ---
   if (is.character(colors)) {
     if (length(colors) == 0) {
@@ -31,12 +36,13 @@ evaluate_palette <- function(colors) {
     } else {
       if (
         !all(
-          grepl("^#[0-9A-Fa-f]{6}$|^NA$", colors, ignore.case = TRUE) |
+          grepl("^#[0-9A-Fa-f]{6}$", colors) |
             is.na(colors)
         )
       ) {
         stop(
-          "If 'colors' is character, all elements must be valid hex codes or NA."
+          "If 'colors' is character, all elements must be valid hex ",
+          "codes or NA."
         )
       }
       valid_colors <- colors[!is.na(colors)]
@@ -60,20 +66,37 @@ evaluate_palette <- function(colors) {
     )
   } else {
     stop(
-      "colors must be a character vector of hex colors or an OKLAB matrix (N x 3 or 0x0/0x3)."
+      "colors must be a character vector of hex colors or an OKLAB ",
+      "matrix (N x 3 or 0x0/0x3)."
     )
   }
 
   result <- evaluate_palette_quality(oklab_colors)
   class(result) <- c("huerd_evaluation", "list")
-  return(result)
+  result
 }
 
 
 #' Internal Palette Quality Evaluation
 #' @noRd
 evaluate_palette_quality <- function(oklab_colors) {
+  # Handle case where oklab_colors might not be a matrix
+  if (!is.matrix(oklab_colors)) {
+    if (is.character(oklab_colors)) {
+      # If hex colors were passed directly, convert to OKLAB
+      oklab_colors <- .hex_to_oklab(oklab_colors)
+    } else {
+      stop(
+        "oklab_colors must be a matrix in OKLAB space or character ",
+        "vector of hex colors"
+      )
+    }
+  }
+
   n <- nrow(oklab_colors)
+  if (is.null(n) || length(n) == 0) {
+    n <- 0
+  }
 
   # Use NA_real_ for metrics that cannot be computed
   default_dist_stats <- list(
@@ -167,12 +190,12 @@ evaluate_palette_quality <- function(oklab_colors) {
 
   distribution_stats <- analyze_color_distribution(oklab_colors)
 
-  return(list(
+  list(
     n_colors = n,
     distances = dist_stats,
     cvd_safety = cvd_stats,
     distribution = distribution_stats
-  ))
+  )
 }
 
 #' Analyze CVD Safety Metrics (for evaluation)
@@ -210,18 +233,14 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
   # Convert OKLAB to hex colors for CVD simulation
   hex_colors <- .oklab_to_hex(oklab_colors)
 
-  if (any(is.na(hex_colors))) {
-    warning(
-      "CVD metrics: Some input colors are outside sRGB gamut; results may be NA.",
-      call. = FALSE
-    )
+  if (anyNA(hex_colors)) {
     return(na_cvd_result)
   }
 
   cvd_types <- c("protan", "deutan", "tritan")
   results <- list()
   all_cvd_min_distances <- rep(NA_real_, length(cvd_types))
-  
+
   # Store original lightness order for comparison
   original_lightness_order <- order(oklab_colors[, 1])
 
@@ -243,7 +262,7 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
     if (!is.matrix(cvd_oklab_sim) || nrow(cvd_oklab_sim) < 2) {
       current_min_dist_cvd <- NA_real_
       current_mean_dist_cvd <- NA_real_
-      hue_order_preserved <- TRUE  # Default to TRUE for insufficient data
+      hue_order_preserved <- TRUE # Default to TRUE for insufficient data
     } else {
       dist_matrix_cvd <- calculate_perceptual_distances(cvd_oklab_sim)
       distances_cvd_finite <- dist_matrix_cvd[upper.tri(dist_matrix_cvd)]
@@ -260,16 +279,20 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
       } else {
         NA_real_
       }
-      
+
       # Check hue order reversal using lightness-based ordering
       cvd_lightness_order <- order(cvd_oklab_sim[, 1])
-      hue_order_preserved <- identical(original_lightness_order, cvd_lightness_order)
+      hue_order_preserved <- identical(
+        original_lightness_order,
+        cvd_lightness_order
+      )
     }
     all_cvd_min_distances[i] <- current_min_dist_cvd
 
     preserved_ratio <- if (
       is.finite(original_min_distance) &&
-        original_min_distance > 1e-6 && # OKLAB tolerance for meaningful distance
+        original_min_distance > 1e-6 && # OKLAB tolerance for
+        # meaningful distance
         is.finite(current_min_dist_cvd)
     ) {
       current_min_dist_cvd / original_min_distance
@@ -293,7 +316,7 @@ analyze_cvd_safety_metrics <- function(oklab_colors, original_min_distance) {
   } else {
     NA_real_
   }
-  return(results)
+  results
 }
 
 #' Analyze Color Distribution Metrics
@@ -305,7 +328,7 @@ analyze_color_distribution <- function(oklab_colors) {
   n <- nrow(oklab_colors)
   na_range <- c(NA_real_, NA_real_)
 
-  if (n == 0 || any(is.na(oklab_colors))) {
+  if (n == 0 || anyNA(oklab_colors)) {
     return(list(
       lightness_oklab = list(range = na_range, mean = NA_real_, sd = NA_real_),
       chroma_oklab = list(range = na_range, mean = NA_real_, sd = NA_real_),
@@ -313,7 +336,7 @@ analyze_color_distribution <- function(oklab_colors) {
     ))
   }
 
-  L_values <- oklab_colors[, 1]
+  l_values <- oklab_colors[, 1]
   chroma <- sqrt(oklab_colors[, 2]^2 + oklab_colors[, 3]^2)
   hue_rad <- atan2(oklab_colors[, 3], oklab_colors[, 2])
   hue_deg <- (hue_rad * 180 / pi) %% 360
@@ -330,34 +353,31 @@ analyze_color_distribution <- function(oklab_colors) {
     0 # No variance for a single point
   }
 
-  return(list(
+  list(
     lightness_oklab = list(
-      range = if (n > 0) range(L_values, na.rm = T) else na_range,
-      mean = if (n > 0) mean(L_values, na.rm = T) else NA_real_,
-      sd = if (n > 1) stats::sd(L_values, na.rm = T) else NA_real_
+      range = if (n > 0) range(l_values, na.rm = TRUE) else na_range,
+      mean = if (n > 0) mean(l_values, na.rm = TRUE) else NA_real_,
+      sd = if (n > 1) stats::sd(l_values, na.rm = TRUE) else NA_real_
     ),
     chroma_oklab = list(
-      range = if (n > 0) range(chroma, na.rm = T) else na_range,
-      mean = if (n > 0) mean(chroma, na.rm = T) else NA_real_,
-      sd = if (n > 1) stats::sd(chroma, na.rm = T) else NA_real_
+      range = if (n > 0) range(chroma, na.rm = TRUE) else na_range,
+      mean = if (n > 0) mean(chroma, na.rm = TRUE) else NA_real_,
+      sd = if (n > 1) stats::sd(chroma, na.rm = TRUE) else NA_real_
     ),
     hue_oklab = list(
       circular_variance = circ_var,
-      range_degrees = if (n > 0) range(hue_deg, na.rm = T) else na_range
+      range_degrees = if (n > 0) range(hue_deg, na.rm = TRUE) else na_range
     )
-  ))
+  )
 }
 
 #' Helper to get estimated max distance from internal lookup table
 #' @noRd
 .get_estimated_max_dist <- function(n) {
-  # Better input validation from utils.R version
   if (!is.numeric(n) || length(n) != 1 || n < 2) {
     return(NA_real_)
   }
 
-  # Access the internal data object
-  # The names of the vector are characters "2", "3", etc.
   n_char <- as.character(n)
 
   if (!n_char %in% names(MAX_MIN_DIST_ESTIMATES)) {
@@ -367,6 +387,3 @@ analyze_color_distribution <- function(oklab_colors) {
   dist_val <- MAX_MIN_DIST_ESTIMATES[n_char]
   return(unname(dist_val))
 }
-
-# The `%||%` helper would typically live in R/utils.R or R/helpers_core.R
-# `%||%` <- function(x, y) if (is.null(x) || !is.finite(x) || is.na(x)) y else x

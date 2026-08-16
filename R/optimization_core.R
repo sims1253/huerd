@@ -1,16 +1,46 @@
+#' Clamp values to bounds
+#' @param values Numeric vector to clamp
+#' @param lower Lower bound
+#' @param upper Upper bound
+#' @return Clamped values
+#' @noRd
+.clamp_to_bounds <- function(values, lower, upper) {
+  pmax(lower, pmin(upper, values))
+}
+
+#' Make list result with proper classes
+#' @param palette Palette matrix
+#' @param details Details list
+#' @return Result list with classes set
+#' @noRd
+.make_list_result <- function(palette, details) {
+  palette <- as.matrix(palette)
+  class(palette) <- c("huerd_optimization_palette", "matrix")
+  res <- list(palette = palette, details = details)
+  class(res) <- c("huerd_optimization_result", "list")
+  class(res$details) <- c("huerd_optimization_details", "list")
+  res
+}
+
 #' Optimize Color Palette using Pure Minimax Box-Constrained Optimization
 #'
-#' This function takes an initial set of colors and optimizes the positions of
-#' the "free" colors to maximize the minimum perceptual distance between any
+#' This function takes an initial set of colors and optimizes positions of
+#' "free" colors to maximize the minimum perceptual distance between any
 #' two colors (pure minimax objective).
 #'
-#' @param initial_colors_oklab Matrix of all colors (fixed and initial free) in OK LAB space.
-#' @param fixed_mask Logical vector indicating which rows in `initial_colors_oklab` are fixed.
+#' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
+#'   in OK LAB space.
+#' @param fixed_mask Logical vector indicating which rows in
+#'   `initial_colors_oklab` are fixed.
 #' @param max_iterations Integer. Maximum iterations for nloptr.
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
-#' @return A list containing the optimized color matrix `palette` and `details` about the optimization.
+#' @param cvd_safe Logical. If `TRUE`, maximize the worst-case minimum
+#'   distance across CVD simulations; if `FALSE`, maximize the minimum
+#'   normal-vision perceptual distance.
+#' @return A list containing optimized color matrix `palette` and
+#'   `details` about optimization.
 #' @noRd
 optimize_colors_constrained <- function(
   initial_colors_oklab,
@@ -18,9 +48,72 @@ optimize_colors_constrained <- function(
   max_iterations,
   track_states = FALSE,
   save_every = 50,
-  return_states = FALSE
+  return_states = FALSE,
+  cvd_safe = TRUE
 ) {
+  if (is.null(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (!is.matrix(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (ncol(initial_colors_oklab) != 3) {
+    stop("initial_colors_oklab must have 3 columns (L, a, b)")
+  }
+  if (!is.numeric(initial_colors_oklab)) {
+    return(.make_list_result(
+      matrix(
+        numeric(0),
+        ncol = 3,
+        dimnames = list(NULL, c("L", "a", "b"))
+      ),
+      list(status_message = "initial_colors_oklab must be numeric")
+    ))
+  }
+  if (is.null(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask cannot be NULL")
+    ))
+  }
+  if (!is.logical(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask must be logical")
+    ))
+  }
+  if (length(fixed_mask) != nrow(initial_colors_oklab)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(
+        status_message = "fixed_mask length must match initial_colors_oklab rows"
+      )
+    ))
+  }
+  if (anyNA(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask contains NA values")
+    ))
+  }
+  if (is.na(max_iterations) || max_iterations < 0) {
+    max_iterations <- 0
+  }
+
   n_free_colors <- sum(!fixed_mask)
+
+  if (n_free_colors == 0) {
+    return(.make_list_result(
+      as.matrix(initial_colors_oklab),
+      list(
+        iterations = as.integer(0),
+        status_message = "No free colors to optimize",
+        nloptr_status = as.double(0),
+        final_objective_value = NA_real_
+      )
+    ))
+  }
+
   initial_free_params <- as.vector(t(initial_colors_oklab[
     !fixed_mask,
     ,
@@ -38,14 +131,16 @@ optimize_colors_constrained <- function(
   }
 
   # Objective function to be minimized by nloptr (pure minimax)
+  objective_fn <- .select_palette_objective(cvd_safe)
   eval_f <- function(free_params_vec) {
     eval_f_env$iter <- eval_f_env$iter + 1
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
 
-    # Pure minimax objective: maximize minimum perceptual distance
+    # Minimax objective: maximize the minimum distance under the selected
+    # objective (worst case across CVD simulations, or normal vision)
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
+    objective_value <- -objective_fn(temp_all_colors_oklab)
 
     # Capture state if tracking enabled
     if (track_states && eval_f_env$iter %% save_every == 0) {
@@ -65,7 +160,7 @@ optimize_colors_constrained <- function(
       optimization_states[[length(optimization_states) + 1]] <<- current_state
     }
 
-    return(if (is.finite(objective_value)) objective_value else 1e10) # Fallback for non-finite objectives
+    if (is.finite(objective_value)) objective_value else 1e10 # Fallback
   }
 
   # Setup and run nloptr
@@ -82,7 +177,6 @@ optimize_colors_constrained <- function(
 
   opts <- list(
     "algorithm" = "NLOPT_LN_COBYLA",
-    #"algorithm" = "NLOPT_GN_DIRECT_L_RAND",
     "xtol_rel" = 1.0e-5,
     "maxeval" = max_iterations,
     "print_level" = 0
@@ -105,39 +199,73 @@ optimize_colors_constrained <- function(
       list(
         solution = initial_free_params,
         status = -999,
-        message = paste("Error in nloptr:", e$message),
+        message = paste0("Error in nloptr: ", e$message),
         objective = initial_obj_val
       )
     }
   )
 
+  # Ensure result is a valid list; otherwise use defaults
+  if (is.null(result) || !is.list(result)) {
+    result <- list(
+      solution = initial_free_params,
+      status = -999,
+      message = "Error in nloptr: invalid result",
+      objective = NA_real_
+    )
+  }
+  # Ensure solution is valid; otherwise use initial parameters
+  if (
+    is.null(result$solution) ||
+      length(result$solution) != length(initial_free_params)
+  ) {
+    result$solution <- initial_free_params
+  }
+  # Ensure message is present
+  if (is.null(result$message)) {
+    result$message <- "Optimization completed"
+  }
+
   # Process and return results
   optimized_free_colors_oklab <- matrix(result$solution, ncol = 3, byrow = TRUE)
   # Final clamp to ensure solution is strictly within bounds
-  optimized_free_colors_oklab[, 1] <- pmax(
+  optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 1],
     lower_bounds[1],
-    pmin(upper_bounds[1], optimized_free_colors_oklab[, 1])
+    upper_bounds[1]
   )
-  optimized_free_colors_oklab[, 2] <- pmax(
+  optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 2],
     lower_bounds[2],
-    pmin(upper_bounds[2], optimized_free_colors_oklab[, 2])
+    upper_bounds[2]
   )
-  optimized_free_colors_oklab[, 3] <- pmax(
+  optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 3],
     lower_bounds[3],
-    pmin(upper_bounds[3], optimized_free_colors_oklab[, 3])
+    upper_bounds[3]
   )
 
   final_colors_oklab <- initial_colors_oklab
   final_colors_oklab[!fixed_mask, ] <- optimized_free_colors_oklab
 
   # Prepare return value
+  palette <- as.matrix(final_colors_oklab)
+  class(palette) <- c("huerd_optimization_palette", "matrix")
   return_value <- list(
-    palette = final_colors_oklab,
+    palette = palette,
     details = list(
-      iterations = eval_f_env$iter,
+      iterations = as.integer(eval_f_env$iter),
       status_message = result$message,
-      nloptr_status = result$status,
-      final_objective_value = result$objective
+      nloptr_status = if (is.null(result$status)) {
+        NA_real_
+      } else {
+        as.double(result$status)
+      },
+      final_objective_value = if (is.null(result$objective)) {
+        NA_real_
+      } else {
+        as.double(result$objective)
+      }
     )
   )
 
@@ -146,12 +274,16 @@ optimize_colors_constrained <- function(
     return_value$optimization_states <- optimization_states
   }
 
-  return(return_value)
+  class(return_value) <- c("huerd_optimization_result", "list")
+  class(return_value$details) <- c("huerd_optimization_details", "list")
+  return_value
 }
 
 #' Aggregate Objective Function for Optimization
-#' This function computes the score to be maximized (so it returns a positive value).
-#' The main optimization function will take the negative of this.
+#'
+#' This function computes the score to be maximized (so it returns a
+#' positive value). The main optimization function will take the
+#' negative of this.
 #' @noRd
 objective_function_aggregator <- function(
   colors_oklab,
@@ -176,13 +308,19 @@ objective_function_aggregator <- function(
   perceptual_score <- perceptual_score %||% 0
   cvd_score <- cvd_score %||% 0
 
-  # If weights are c(0,0), value will be 0.
-  return(balance_weights[1] * perceptual_score + balance_weights[2] * cvd_score)
+  # If weights are c(0, 0), value will be 0.
+  balance_weights[1] * perceptual_score + balance_weights[2] * cvd_score
 }
 
 #' Objective: Maximize Minimum Perceptual Distance
 #' @noRd
 objective_min_perceptual_dist <- function(colors_oklab) {
+  if (!is.matrix(colors_oklab) || ncol(colors_oklab) != 3) {
+    return(0)
+  }
+  if (anyNA(colors_oklab)) {
+    return(0)
+  }
   if (nrow(colors_oklab) < 2) {
     return(Inf)
   }
@@ -191,12 +329,21 @@ objective_min_perceptual_dist <- function(colors_oklab) {
   valid_distances <- dist_matrix[upper.tri(dist_matrix)]
   valid_distances <- valid_distances[is.finite(valid_distances)]
 
-  return(if (length(valid_distances) == 0) 0 else min(valid_distances))
+  if (length(valid_distances) == 0) 0 else min(valid_distances)
 }
 
 #' Objective: Maximize Minimum CVD-Safe Distance
 #' @noRd
 objective_min_cvd_safe_dist <- function(colors_oklab) {
+  if (is.null(colors_oklab) || !is.matrix(colors_oklab)) {
+    stop("colors_oklab must be a matrix")
+  }
+  if (ncol(colors_oklab) != 3) {
+    stop("colors_oklab must have 3 columns (L, a, b)")
+  }
+  if (anyNA(colors_oklab)) {
+    return(0)
+  }
   if (nrow(colors_oklab) < 2) {
     return(Inf)
   }
@@ -210,17 +357,9 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
   # Convert to 0-1 range (colorspace expects 0-1, farver returns 0-255)
   rgb_matrix_01 <- rgb_matrix_255 / 255
 
-  if (any(is.na(rgb_matrix_01))) {
+  if (anyNA(rgb_matrix_01)) {
     return(0)
   }
-
-  #if (!is.matrix(rgb_matrix_01) || ncol(rgb_matrix_01) != 3) {
-  # Force matrix structure if lost during conversion
-  #  rgb_matrix_01 <- as.matrix(rgb_matrix_01)
-  #  if (ncol(rgb_matrix_01) != 3) {
-  #    return(0) # Invalid color data
-  #  }
-  #}
 
   srgb_obj <- colorspace::sRGB(rgb_matrix_01)
 
@@ -250,22 +389,38 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
       na.rm = TRUE
     )
   }
-  return(worst_case_min_dist)
+  worst_case_min_dist
+}
+
+#' Select the minimax objective based on CVD safety
+#' @noRd
+.select_palette_objective <- function(cvd_safe) {
+  if (isTRUE(cvd_safe)) {
+    objective_min_cvd_safe_dist
+  } else {
+    objective_min_perceptual_dist
+  }
 }
 
 #' Optimize Color Palette using Simulated Annealing
 #'
-#' This function takes an initial set of colors and optimizes the positions of
-#' the "free" colors to maximize the minimum perceptual distance between any
+#' This function takes an initial set of colors and optimizes positions of
+#' "free" colors to maximize the minimum perceptual distance between any
 #' two colors using simulated annealing from stats::optim.
 #'
-#' @param initial_colors_oklab Matrix of all colors (fixed and initial free) in OK LAB space.
-#' @param fixed_mask Logical vector indicating which rows in `initial_colors_oklab` are fixed.
+#' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
+#'   in OK LAB space.
+#' @param fixed_mask Logical vector indicating which rows in
+#'   `initial_colors_oklab` are fixed.
 #' @param max_iterations Integer. Maximum iterations for simulated annealing.
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
-#' @return A list containing the optimized color matrix `palette` and `details` about the optimization.
+#' @param cvd_safe Logical. If `TRUE`, maximize the worst-case minimum
+#'   distance across CVD simulations; if `FALSE`, maximize the minimum
+#'   normal-vision perceptual distance.
+#' @return A list containing optimized color matrix `palette` and
+#'   `details` about optimization.
 #' @noRd
 optimize_colors_sann <- function(
   initial_colors_oklab,
@@ -273,9 +428,72 @@ optimize_colors_sann <- function(
   max_iterations,
   track_states = FALSE,
   save_every = 50,
-  return_states = FALSE
+  return_states = FALSE,
+  cvd_safe = TRUE
 ) {
+  if (is.null(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (!is.matrix(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (ncol(initial_colors_oklab) != 3) {
+    stop("initial_colors_oklab must have 3 columns (L, a, b)")
+  }
+  if (!is.numeric(initial_colors_oklab)) {
+    return(.make_list_result(
+      matrix(
+        numeric(0),
+        ncol = 3,
+        dimnames = list(NULL, c("L", "a", "b"))
+      ),
+      list(status_message = "initial_colors_oklab must be numeric")
+    ))
+  }
+  if (is.null(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask cannot be NULL")
+    ))
+  }
+  if (!is.logical(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask must be logical")
+    ))
+  }
+  if (length(fixed_mask) != nrow(initial_colors_oklab)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(
+        status_message = "fixed_mask length must match initial_colors_oklab rows"
+      )
+    ))
+  }
+  if (anyNA(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask contains NA values")
+    ))
+  }
+  if (is.na(max_iterations) || max_iterations < 0) {
+    max_iterations <- 0
+  }
+
   n_free_colors <- sum(!fixed_mask)
+
+  if (n_free_colors == 0) {
+    return(.make_list_result(
+      as.matrix(initial_colors_oklab),
+      list(
+        iterations = as.integer(0),
+        status_message = "No free colors to optimize",
+        sann_convergence = as.double(0),
+        final_objective_value = NA_real_
+      )
+    ))
+  }
+
   initial_free_params <- as.vector(t(initial_colors_oklab[
     !fixed_mask,
     ,
@@ -296,15 +514,18 @@ optimize_colors_sann <- function(
   lower_bounds <- rep(c(0.001, -0.4, -0.4), n_free_colors)
   upper_bounds <- rep(c(0.999, 0.4, 0.4), n_free_colors)
 
-  # Objective function to be minimized by optim (pure minimax with penalty for constraint violations)
+  # Objective function to be minimized by optim (pure minimax with
+  # penalty for constraint violations)
+  objective_fn <- .select_palette_objective(cvd_safe)
   eval_f <- function(free_params_vec) {
     eval_f_env$iter <- eval_f_env$iter + 1
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
 
-    # Pure minimax objective: maximize minimum perceptual distance
+    # Minimax objective: maximize the minimum distance under the selected
+    # objective (worst case across CVD simulations, or normal vision)
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
+    objective_value <- -objective_fn(temp_all_colors_oklab)
 
     # Add penalty for constraint violations (box constraints)
     penalty <- 0
@@ -314,6 +535,9 @@ optimize_colors_sann <- function(
 
     # Capture state if tracking enabled
     if (track_states && eval_f_env$iter %% save_every == 0) {
+      temp_all_colors_oklab <- initial_colors_oklab
+      temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
+
       current_state <- list(
         iteration = eval_f_env$iter,
         colors_oklab = temp_all_colors_oklab,
@@ -334,7 +558,7 @@ optimize_colors_sann <- function(
       1e10 + penalty
     }
 
-    return(final_objective)
+    final_objective
   }
 
   # Setup and run simulated annealing
@@ -357,37 +581,62 @@ optimize_colors_sann <- function(
       list(
         par = initial_free_params,
         convergence = -999,
-        message = paste("Error in optim SANN:", e$message),
+        message = paste0("Error in optim SANN: ", e$message),
         value = initial_obj_val
       )
     }
   )
 
+  # Ensure result is a valid list; otherwise use defaults
+  if (is.null(result) || !is.list(result)) {
+    result <- list(
+      par = initial_free_params,
+      convergence = -999,
+      message = "Error in optim SANN: invalid result",
+      value = NA_real_
+    )
+  }
+  # Ensure par is valid; otherwise use initial parameters
+  if (
+    is.null(result$par) || length(result$par) != length(initial_free_params)
+  ) {
+    result$par <- initial_free_params
+  }
+  # Ensure message is present
+  if (is.null(result$message)) {
+    result$message <- "Optimization completed"
+  }
+
   # Process and return results
   optimized_free_colors_oklab <- matrix(result$par, ncol = 3, byrow = TRUE)
 
   # Final clamp to ensure solution is strictly within bounds
-  optimized_free_colors_oklab[, 1] <- pmax(
+  optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 1],
     lower_bounds[1],
-    pmin(upper_bounds[1], optimized_free_colors_oklab[, 1])
+    upper_bounds[1]
   )
-  optimized_free_colors_oklab[, 2] <- pmax(
+  optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 2],
     lower_bounds[2],
-    pmin(upper_bounds[2], optimized_free_colors_oklab[, 2])
+    upper_bounds[2]
   )
-  optimized_free_colors_oklab[, 3] <- pmax(
+  optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 3],
     lower_bounds[3],
-    pmin(upper_bounds[3], optimized_free_colors_oklab[, 3])
+    upper_bounds[3]
   )
 
   final_colors_oklab <- initial_colors_oklab
   final_colors_oklab[!fixed_mask, ] <- optimized_free_colors_oklab
 
   # Prepare return value
+  palette <- as.matrix(final_colors_oklab)
+  class(palette) <- c("huerd_optimization_palette", "matrix")
   return_value <- list(
-    palette = final_colors_oklab,
+    palette = palette,
     details = list(
-      iterations = eval_f_env$iter,
+      iterations = as.integer(eval_f_env$iter),
       status_message = if (result$convergence == 0) {
         "Optimization converged"
       } else if (!is.null(result$message)) {
@@ -395,8 +644,16 @@ optimize_colors_sann <- function(
       } else {
         paste("Optimization status:", result$convergence)
       },
-      sann_convergence = result$convergence,
-      final_objective_value = result$value
+      sann_convergence = if (is.null(result$convergence)) {
+        NA_real_
+      } else {
+        as.double(result$convergence)
+      },
+      final_objective_value = if (is.null(result$value)) {
+        NA_real_
+      } else {
+        as.double(result$value)
+      }
     )
   )
 
@@ -405,24 +662,32 @@ optimize_colors_sann <- function(
     return_value$optimization_states <- optimization_states
   }
 
-  return(return_value)
+  class(return_value) <- c("huerd_optimization_result", "list")
+  class(return_value$details) <- c("huerd_optimization_details", "list")
+  return_value
 }
 
 #' Optimize Color Palette using NLopt DIRECT Algorithm
 #'
-#' This function takes an initial set of colors and optimizes the positions of
-#' the "free" colors to maximize the minimum perceptual distance between any
-#' two colors using the DIRECT (Dividing Rectangles) global optimization algorithm.
+#' This function takes an initial set of colors and optimizes positions of
+#' "free" colors to maximize the minimum perceptual distance between any
+#' two colors using DIRECT (Dividing Rectangles) global optimization algorithm.
 #' This is a deterministic global optimizer that provides excellent scientific
 #' reproducibility, though it may be slower than local optimization methods.
 #'
-#' @param initial_colors_oklab Matrix of all colors (fixed and initial free) in OK LAB space.
-#' @param fixed_mask Logical vector indicating which rows in `initial_colors_oklab` are fixed.
+#' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
+#'   in OK LAB space.
+#' @param fixed_mask Logical vector indicating which rows in
+#'   `initial_colors_oklab` are fixed.
 #' @param max_iterations Integer. Maximum iterations for nloptr DIRECT.
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
-#' @return A list containing the optimized color matrix `palette` and `details` about the optimization.
+#' @param cvd_safe Logical. If `TRUE`, maximize the worst-case minimum
+#'   distance across CVD simulations; if `FALSE`, maximize the minimum
+#'   normal-vision perceptual distance.
+#' @return A list containing optimized color matrix `palette` and
+#'   `details` about optimization.
 #' @noRd
 optimize_colors_nlopt_direct <- function(
   initial_colors_oklab,
@@ -430,9 +695,71 @@ optimize_colors_nlopt_direct <- function(
   max_iterations,
   track_states = FALSE,
   save_every = 50,
-  return_states = FALSE
+  return_states = FALSE,
+  cvd_safe = TRUE
 ) {
+  if (is.null(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (!is.matrix(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (ncol(initial_colors_oklab) != 3) {
+    stop("initial_colors_oklab must have 3 columns (L, a, b)")
+  }
+  if (!is.numeric(initial_colors_oklab)) {
+    return(.make_list_result(
+      matrix(
+        numeric(0),
+        ncol = 3,
+        dimnames = list(NULL, c("L", "a", "b"))
+      ),
+      list(status_message = "initial_colors_oklab must be numeric")
+    ))
+  }
+  if (is.null(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask cannot be NULL")
+    ))
+  }
+  if (!is.logical(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask must be logical")
+    ))
+  }
+  if (length(fixed_mask) != nrow(initial_colors_oklab)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(
+        status_message = "fixed_mask length must match initial_colors_oklab rows"
+      )
+    ))
+  }
+  if (anyNA(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask contains NA values")
+    ))
+  }
+  if (is.na(max_iterations) || max_iterations < 0) {
+    max_iterations <- 0
+  }
+
   n_free_colors <- sum(!fixed_mask)
+
+  if (n_free_colors == 0) {
+    return(.make_list_result(
+      as.matrix(initial_colors_oklab),
+      list(
+        iterations = as.integer(0),
+        status_message = "No free colors to optimize",
+        nloptr_status = as.double(0),
+        final_objective_value = NA_real_
+      )
+    ))
+  }
   initial_free_params <- as.vector(t(initial_colors_oklab[
     !fixed_mask,
     ,
@@ -450,14 +777,16 @@ optimize_colors_nlopt_direct <- function(
   }
 
   # Objective function to be minimized by nloptr (pure minimax)
+  objective_fn <- .select_palette_objective(cvd_safe)
   eval_f <- function(free_params_vec) {
     eval_f_env$iter <- eval_f_env$iter + 1
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
 
-    # Pure minimax objective: maximize minimum perceptual distance
+    # Minimax objective: maximize the minimum distance under the selected
+    # objective (worst case across CVD simulations, or normal vision)
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
+    objective_value <- -objective_fn(temp_all_colors_oklab)
 
     # Capture state if tracking enabled
     if (track_states && eval_f_env$iter %% save_every == 0) {
@@ -477,7 +806,7 @@ optimize_colors_nlopt_direct <- function(
       optimization_states[[length(optimization_states) + 1]] <<- current_state
     }
 
-    return(if (is.finite(objective_value)) objective_value else 1e10) # Fallback for non-finite objectives
+    if (is.finite(objective_value)) objective_value else 1e10 # Fallback
   }
 
   # Setup and run nloptr with DIRECT algorithm
@@ -514,39 +843,74 @@ optimize_colors_nlopt_direct <- function(
       list(
         solution = initial_free_params,
         status = -999,
-        message = paste("Error in nloptr DIRECT:", e$message),
+        message = paste0("Error in nloptr DIRECT: ", e$message),
         objective = initial_obj_val
       )
     }
   )
 
+  # Ensure result is a valid list; otherwise use defaults
+  if (is.null(result) || !is.list(result)) {
+    result <- list(
+      solution = initial_free_params,
+      status = -999,
+      message = "Error in nloptr DIRECT: invalid result",
+      objective = NA_real_
+    )
+  }
+  # Ensure solution is valid; otherwise use initial parameters
+  if (
+    is.null(result$solution) ||
+      length(result$solution) != length(initial_free_params)
+  ) {
+    result$solution <- initial_free_params
+  }
+  # Ensure message is present
+  if (is.null(result$message)) {
+    result$message <- "Optimization completed"
+  }
+
   # Process and return results
   optimized_free_colors_oklab <- matrix(result$solution, ncol = 3, byrow = TRUE)
+
   # Final clamp to ensure solution is strictly within bounds
-  optimized_free_colors_oklab[, 1] <- pmax(
+  optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 1],
     lower_bounds[1],
-    pmin(upper_bounds[1], optimized_free_colors_oklab[, 1])
+    upper_bounds[1]
   )
-  optimized_free_colors_oklab[, 2] <- pmax(
+  optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 2],
     lower_bounds[2],
-    pmin(upper_bounds[2], optimized_free_colors_oklab[, 2])
+    upper_bounds[2]
   )
-  optimized_free_colors_oklab[, 3] <- pmax(
+  optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 3],
     lower_bounds[3],
-    pmin(upper_bounds[3], optimized_free_colors_oklab[, 3])
+    upper_bounds[3]
   )
 
   final_colors_oklab <- initial_colors_oklab
   final_colors_oklab[!fixed_mask, ] <- optimized_free_colors_oklab
 
   # Prepare return value
+  palette <- as.matrix(final_colors_oklab)
+  class(palette) <- c("huerd_optimization_palette", "matrix")
   return_value <- list(
-    palette = final_colors_oklab,
+    palette = palette,
     details = list(
-      iterations = eval_f_env$iter,
+      iterations = as.integer(eval_f_env$iter),
       status_message = result$message,
-      nloptr_status = result$status,
-      final_objective_value = result$objective
+      nloptr_status = if (is.null(result$status)) {
+        NA_real_
+      } else {
+        as.double(result$status)
+      },
+      final_objective_value = if (is.null(result$objective)) {
+        NA_real_
+      } else {
+        as.double(result$objective)
+      }
     )
   )
 
@@ -555,24 +919,32 @@ optimize_colors_nlopt_direct <- function(
     return_value$optimization_states <- optimization_states
   }
 
-  return(return_value)
+  class(return_value) <- c("huerd_optimization_result", "list")
+  class(return_value$details) <- c("huerd_optimization_details", "list")
+  return_value
 }
 
 #' Optimize Color Palette using NLopt Nelder-Mead Algorithm
 #'
-#' This function takes an initial set of colors and optimizes the positions of
-#' the "free" colors to maximize the minimum perceptual distance between any
-#' two colors using the Nelder-Mead simplex algorithm from NLopt. This is a
+#' This function takes an initial set of colors and optimizes positions of
+#' "free" colors to maximize the minimum perceptual distance between any
+#' two colors using Nelder-Mead simplex algorithm from NLopt. This is a
 #' local optimization method that is derivative-free and robust for non-smooth
-#' objective functions, making it a good alternative to the COBYLA algorithm.
+#' objective functions, making it a good alternative to COBYLA algorithm.
 #'
-#' @param initial_colors_oklab Matrix of all colors (fixed and initial free) in OK LAB space.
-#' @param fixed_mask Logical vector indicating which rows in `initial_colors_oklab` are fixed.
+#' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
+#'   in OK LAB space.
+#' @param fixed_mask Logical vector indicating which rows in
+#'   `initial_colors_oklab` are fixed.
 #' @param max_iterations Integer. Maximum iterations for nloptr Nelder-Mead.
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
-#' @return A list containing the optimized color matrix `palette` and `details` about the optimization.
+#' @param cvd_safe Logical. If `TRUE`, maximize the worst-case minimum
+#'   distance across CVD simulations; if `FALSE`, maximize the minimum
+#'   normal-vision perceptual distance.
+#' @return A list containing optimized color matrix `palette` and
+#'   `details` about optimization.
 #' @noRd
 optimize_colors_nlopt_neldermead <- function(
   initial_colors_oklab,
@@ -580,16 +952,78 @@ optimize_colors_nlopt_neldermead <- function(
   max_iterations,
   track_states = FALSE,
   save_every = 50,
-  return_states = FALSE
+  return_states = FALSE,
+  cvd_safe = TRUE
 ) {
+  if (is.null(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (!is.matrix(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (ncol(initial_colors_oklab) != 3) {
+    stop("initial_colors_oklab must have 3 columns (L, a, b)")
+  }
+  if (!is.numeric(initial_colors_oklab)) {
+    return(.make_list_result(
+      matrix(
+        numeric(0),
+        ncol = 3,
+        dimnames = list(NULL, c("L", "a", "b"))
+      ),
+      list(status_message = "initial_colors_oklab must be numeric")
+    ))
+  }
+  if (is.null(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask cannot be NULL")
+    ))
+  }
+  if (!is.logical(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask must be logical")
+    ))
+  }
+  if (length(fixed_mask) != nrow(initial_colors_oklab)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(
+        status_message = "fixed_mask length must match initial_colors_oklab rows"
+      )
+    ))
+  }
+  if (anyNA(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask contains NA values")
+    ))
+  }
+  if (is.na(max_iterations) || max_iterations < 0) {
+    max_iterations <- 0
+  }
+
   n_free_colors <- sum(!fixed_mask)
+
+  if (n_free_colors == 0) {
+    return(.make_list_result(
+      as.matrix(initial_colors_oklab),
+      list(
+        iterations = as.integer(0),
+        status_message = "No free colors to optimize",
+        nloptr_status = as.double(0),
+        final_objective_value = NA_real_
+      )
+    ))
+  }
   initial_free_params <- as.vector(t(initial_colors_oklab[
     !fixed_mask,
     ,
     drop = FALSE
   ]))
 
-  # Environment to hold iteration count, accessible by the objective function
+  # Track iteration count
   eval_f_env <- new.env(parent = emptyenv())
   eval_f_env$iter <- 0
 
@@ -600,14 +1034,16 @@ optimize_colors_nlopt_neldermead <- function(
   }
 
   # Objective function to be minimized by nloptr (pure minimax)
+  objective_fn <- .select_palette_objective(cvd_safe)
   eval_f <- function(free_params_vec) {
     eval_f_env$iter <- eval_f_env$iter + 1
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
 
-    # Pure minimax objective: maximize minimum perceptual distance
+    # Minimax objective: maximize the minimum distance under the selected
+    # objective (worst case across CVD simulations, or normal vision)
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
+    objective_value <- -objective_fn(temp_all_colors_oklab)
 
     # Capture state if tracking enabled
     if (track_states && eval_f_env$iter %% save_every == 0) {
@@ -627,11 +1063,11 @@ optimize_colors_nlopt_neldermead <- function(
       optimization_states[[length(optimization_states) + 1]] <<- current_state
     }
 
-    return(if (is.finite(objective_value)) objective_value else 1e10) # Fallback for non-finite objectives
+    if (is.finite(objective_value)) objective_value else 1e10 # Fallback
   }
 
-  # Setup and run nloptr with Nelder-Mead algorithm
-  # Box constraints for OKLAB space
+  # Define bounds for free colors (OKLAB space)
+  # Using 0.001/0.999 to avoid numerical issues at exact boundaries
   lower_bounds <- rep(c(0.001, -0.4, -0.4), n_free_colors)
   upper_bounds <- rep(
     c(
@@ -665,39 +1101,73 @@ optimize_colors_nlopt_neldermead <- function(
       list(
         solution = initial_free_params,
         status = -999,
-        message = paste("Error in nloptr Nelder-Mead:", e$message),
+        message = paste0("Error in nloptr Nelder-Mead: ", e$message),
         objective = initial_obj_val
       )
     }
   )
 
+  # Ensure result is a valid list; otherwise use defaults
+  if (is.null(result) || !is.list(result)) {
+    result <- list(
+      solution = initial_free_params,
+      status = -999,
+      message = "Error in nloptr Nelder-Mead: invalid result",
+      objective = NA_real_
+    )
+  }
+  # Ensure solution is valid; otherwise use initial parameters
+  if (
+    is.null(result$solution) ||
+      length(result$solution) != length(initial_free_params)
+  ) {
+    result$solution <- initial_free_params
+  }
+  # Ensure message is present
+  if (is.null(result$message)) {
+    result$message <- "Optimization completed"
+  }
+
   # Process and return results
   optimized_free_colors_oklab <- matrix(result$solution, ncol = 3, byrow = TRUE)
   # Final clamp to ensure solution is strictly within bounds
-  optimized_free_colors_oklab[, 1] <- pmax(
+  optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 1],
     lower_bounds[1],
-    pmin(upper_bounds[1], optimized_free_colors_oklab[, 1])
+    upper_bounds[1]
   )
-  optimized_free_colors_oklab[, 2] <- pmax(
+  optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 2],
     lower_bounds[2],
-    pmin(upper_bounds[2], optimized_free_colors_oklab[, 2])
+    upper_bounds[2]
   )
-  optimized_free_colors_oklab[, 3] <- pmax(
+  optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
+    optimized_free_colors_oklab[, 3],
     lower_bounds[3],
-    pmin(upper_bounds[3], optimized_free_colors_oklab[, 3])
+    upper_bounds[3]
   )
 
   final_colors_oklab <- initial_colors_oklab
   final_colors_oklab[!fixed_mask, ] <- optimized_free_colors_oklab
 
   # Prepare return value
+  palette <- as.matrix(final_colors_oklab)
+  class(palette) <- c("huerd_optimization_palette", "matrix")
   return_value <- list(
-    palette = final_colors_oklab,
+    palette = palette,
     details = list(
-      iterations = eval_f_env$iter,
+      iterations = as.integer(eval_f_env$iter),
       status_message = result$message,
-      nloptr_status = result$status,
-      final_objective_value = result$objective
+      nloptr_status = if (is.null(result$status)) {
+        NA_real_
+      } else {
+        as.double(result$status)
+      },
+      final_objective_value = if (is.null(result$objective)) {
+        NA_real_
+      } else {
+        as.double(result$objective)
+      }
     )
   )
 
@@ -706,5 +1176,283 @@ optimize_colors_nlopt_neldermead <- function(
     return_value$optimization_states <- optimization_states
   }
 
-  return(return_value)
+  class(return_value) <- c("huerd_optimization_result", "list")
+  class(return_value$details) <- c("huerd_optimization_details", "list")
+  return_value
+}
+
+#' L-BFGS Optimization Implementation
+#'
+#' High-performance gradient-based optimization using L-BFGS algorithm
+#' paired with smooth differentiable objective functions.
+#'
+#' @param initial_colors_oklab Initial color matrix in OKLAB space.
+#' @param fixed_mask Logical vector indicating which colors are fixed.
+#' @param max_iterations Maximum optimization iterations.
+#' @param weights Named numeric vector specifying which smooth objective to use.
+#'   If contains "smooth_logsumexp" with positive value, uses log-sum-exp
+#'   objective. Otherwise uses smooth repulsion objective. Default is NULL
+#'   (uses repulsion).
+#' @param track_states Whether to track optimization states.
+#' @param save_every Save state every N iterations.
+#' @param return_states Whether to return optimization states.
+#' @return List with optimized palette and details
+#' @noRd
+optimize_colors_lbfgs <- function(
+  initial_colors_oklab,
+  fixed_mask,
+  max_iterations,
+  weights = NULL,
+  track_states = FALSE,
+  save_every = 50,
+  return_states = FALSE
+) {
+  if (is.null(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (!is.matrix(initial_colors_oklab)) {
+    stop("initial_colors_oklab must be a matrix")
+  }
+  if (ncol(initial_colors_oklab) != 3) {
+    stop("initial_colors_oklab must have 3 columns (L, a, b)")
+  }
+  if (!is.numeric(initial_colors_oklab)) {
+    return(.make_list_result(
+      matrix(
+        numeric(0),
+        ncol = 3,
+        dimnames = list(NULL, c("L", "a", "b"))
+      ),
+      list(status_message = "initial_colors_oklab must be numeric")
+    ))
+  }
+  if (is.null(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask cannot be NULL")
+    ))
+  }
+  if (!is.logical(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask must be logical")
+    ))
+  }
+  if (length(fixed_mask) != nrow(initial_colors_oklab)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(
+        status_message = "fixed_mask length must match initial_colors_oklab rows"
+      )
+    ))
+  }
+  if (anyNA(fixed_mask)) {
+    return(.make_list_result(
+      initial_colors_oklab,
+      list(status_message = "fixed_mask contains NA values")
+    ))
+  }
+  if (is.na(max_iterations) || max_iterations < 0) {
+    max_iterations <- 0
+  }
+
+  n_free_colors <- sum(!fixed_mask)
+
+  if (n_free_colors == 0) {
+    return(.make_list_result(
+      as.matrix(initial_colors_oklab),
+      list(
+        iterations = as.integer(0),
+        status_message = "No free colors to optimize",
+        nloptr_status = as.double(0),
+        final_objective_value = NA_real_,
+        algorithm = "L-BFGS"
+      )
+    ))
+  }
+
+  initial_free_params <- as.vector(t(initial_colors_oklab[
+    !fixed_mask,
+    ,
+    drop = FALSE
+  ]))
+
+  # Track iteration count
+  eval_f_env <- new.env(parent = emptyenv())
+  eval_f_env$iter <- 0
+
+  # Initialize state tracking if enabled
+  optimization_states <- NULL
+  if (track_states) {
+    optimization_states <- list()
+  }
+
+  # Define bounds for free colors (OKLAB space)
+  # Using 0.001/0.999 to avoid numerical issues at exact boundaries
+  lower_bounds <- rep(c(0.001, -0.4, -0.4), n_free_colors)
+  upper_bounds <- rep(c(0.999, 0.4, 0.4), n_free_colors)
+
+  # Determine which smooth objective to use based on weights
+  use_logsumexp <- !is.null(weights) &&
+    "smooth_logsumexp" %in% names(weights) &&
+    is.finite(weights["smooth_logsumexp"]) &&
+    weights["smooth_logsumexp"] > 0
+
+  # Select objective and gradient functions
+  objective_func <- if (use_logsumexp) {
+    objective_smooth_logsumexp
+  } else {
+    objective_smooth_repulsion
+  }
+  gradient_func <- if (use_logsumexp) {
+    gradient_smooth_logsumexp
+  } else {
+    gradient_smooth_repulsion
+  }
+
+  # Objective function using selected smooth objective
+  eval_f <- function(free_params_vec) {
+    eval_f_env$iter <- eval_f_env$iter + 1
+    current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
+
+    # Reconstruct full color matrix
+    temp_all_colors_oklab <- initial_colors_oklab
+    temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
+
+    # Use selected smooth objective
+    objective_value <- objective_func(temp_all_colors_oklab)
+
+    # Track states if requested
+    if (track_states && eval_f_env$iter %% save_every == 0) {
+      current_state <- list(
+        iteration = eval_f_env$iter,
+        colors_oklab = temp_all_colors_oklab,
+        objective_value = objective_value,
+        timestamp = Sys.time()
+      )
+      optimization_states[[length(optimization_states) + 1]] <<- current_state
+    }
+
+    objective_value
+  }
+
+  # Gradient function using selected gradient function
+  eval_grad_f <- function(free_params_vec) {
+    current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
+
+    # Reconstruct full color matrix
+    temp_all_colors_oklab <- initial_colors_oklab
+    temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
+
+    # Calculate gradient for all colors using selected gradient function
+    full_gradient <- gradient_func(temp_all_colors_oklab)
+
+    # Extract gradient for free colors only
+    free_gradient <- full_gradient[!fixed_mask, , drop = FALSE]
+
+    as.vector(t(free_gradient))
+  }
+
+  # L-BFGS optimization using nloptr
+  nloptr_result <- tryCatch(
+    nloptr::nloptr(
+      x0 = initial_free_params,
+      eval_f = eval_f,
+      eval_grad_f = eval_grad_f,
+      lb = lower_bounds,
+      ub = upper_bounds,
+      opts = list(
+        "algorithm" = "NLOPT_LD_LBFGS",
+        "xtol_rel" = 1.0e-8,
+        "maxeval" = max_iterations,
+        "print_level" = 0
+      )
+    ),
+    error = function(e) {
+      list(
+        solution = initial_free_params,
+        status = -999,
+        message = paste0("Error in nloptr L-BFGS: ", e$message),
+        objective = NA_real_
+      )
+    }
+  )
+
+  # Ensure result is a valid list; otherwise use defaults
+  if (is.null(nloptr_result) || !is.list(nloptr_result)) {
+    nloptr_result <- list(
+      solution = initial_free_params,
+      status = -999,
+      message = "Error in nloptr L-BFGS: invalid result",
+      objective = NA_real_
+    )
+  }
+  # Ensure solution is valid; otherwise use initial parameters
+  if (
+    is.null(nloptr_result$solution) ||
+      length(nloptr_result$solution) != length(initial_free_params)
+  ) {
+    nloptr_result$solution <- initial_free_params
+  }
+  # Ensure message is present
+  if (is.null(nloptr_result$message)) {
+    nloptr_result$message <- "Optimization completed"
+  }
+
+  # Reconstruct final color matrix
+  optimized_free_colors <- matrix(
+    nloptr_result$solution,
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  # Defensive clamp: ensure solution is strictly within bounds
+  optimized_free_colors[, 1] <- .clamp_to_bounds(
+    optimized_free_colors[, 1],
+    lower_bounds[1],
+    upper_bounds[1]
+  )
+  optimized_free_colors[, 2] <- .clamp_to_bounds(
+    optimized_free_colors[, 2],
+    lower_bounds[2],
+    upper_bounds[2]
+  )
+  optimized_free_colors[, 3] <- .clamp_to_bounds(
+    optimized_free_colors[, 3],
+    lower_bounds[3],
+    upper_bounds[3]
+  )
+
+  optimized_all_colors_oklab <- initial_colors_oklab
+  optimized_all_colors_oklab[!fixed_mask, ] <- optimized_free_colors
+
+  palette <- as.matrix(optimized_all_colors_oklab)
+  class(palette) <- c("huerd_optimization_palette", "matrix")
+  return_value <- list(
+    palette = palette,
+    details = list(
+      algorithm = "L-BFGS",
+      iterations = as.integer(eval_f_env$iter),
+      nloptr_status = if (is.null(nloptr_result$status)) {
+        NA_real_
+      } else {
+        as.double(nloptr_result$status)
+      },
+      final_objective_value = if (is.null(nloptr_result$objective)) {
+        NA_real_
+      } else {
+        as.double(nloptr_result$objective)
+      },
+      status_message = nloptr_result$message
+    )
+  )
+
+  # Add optimization states if requested
+  if (return_states && track_states) {
+    return_value$optimization_states <- optimization_states
+  }
+
+  class(return_value) <- c("huerd_optimization_result", "list")
+  class(return_value$details) <- c("huerd_optimization_details", "list")
+  return_value
 }

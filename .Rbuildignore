@@ -14,3 +14,12 @@
 ^scripts/
 ^thesis_study_results/
 ^todo\.md$
+^\.venv
+^\.serena$
+^\.tldr$
+^\.tldrignore$
+^R/\.tldr$
+^air\.toml$
+^docs/
+^\.claude$
+^\.Rcheck$

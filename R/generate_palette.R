@@ -1,33 +1,42 @@
 # Default configuration for aesthetic initialization parameters.
-# Users can override these via the `aesthetic_init_config` argument in `generate_palette`.
-.DEFAULT_AESTHETIC_INIT_CONFIG <- list(
+# Users can override these via `aesthetic_init_config` argument in
+# `generate_palette`.
+
+.default_aesthetic_init_config <- list(
   # Versioning for future API stability.
   config_version = 1,
 
   # K-means++ OKLAB L-bounds adaptation from fixed color mean L.
-  # The SD of fixed colors' L is multiplied by this value to define the search window.
+  # The SD of fixed colors' L is multiplied by this value to define
+  # the search window.
   kmeans_L_sd_multiplier = 1.5,
 
   # K-means++ OKLAB C-filter adaptation from fixed color mean C.
-  # The SD of fixed colors' C is multiplied by this value to define the allowed deviation.
+  # The SD of fixed colors' C is multiplied by this value to define
+  # the allowed deviation.
   kmeans_C_sd_multiplier = 1.5,
-  # A small constant added to the allowed C deviation to handle cases where SD is zero.
+  # A small constant added to the allowed C deviation to handle cases
+  # where SD is zero.
   kmeans_C_base_deviation = 0.05,
-  # Factor determining how `fixed_aesthetic_influence` tightens the C-filter.
-  kmeans_C_influence_tightening_factor = 0.75, # Influence factor for aesthetic-guided chroma filtering
+  # Factor determining how `fixed_aesthetic_influence` tightens the
+  # C-filter.
+  kmeans_C_influence_tightening_factor = 0.75, # Influence factor for
+  # aesthetic-guided chroma filtering
 
   # Harmony HCL L/C bounds adaptation.
-  # Fallback Standard Deviation for HCL L/C if only one fixed color or actual SD is zero.
+  # Fallback Standard Deviation for HCL L/C if only one fixed color or
+  # actual SD is zero.
   harmony_hcl_sd_fallback = 15,
   # Minimum allowed Standard Deviation for HCL L.
   harmony_hcl_L_min_sd = 5,
   # Minimum allowed Standard Deviation for HCL C.
   harmony_hcl_C_min_sd = 5,
-  # Multiplier for the SDs derived from fixed colors' HCL L/C values.
+  # Multiplier for SDs derived from fixed colors' HCL L/C values.
   harmony_hcl_sd_multiplier = 1.0,
 
   # Fallback strategy.
-  # Factor by which to relax the max_C_deviation if initial filtering yields too few candidates.
+  # Factor by which to relax the max_C_deviation if initial filtering
+  # yields too few candidates.
   kmeans_C_filter_relaxation_factor = 1.5
 )
 
@@ -56,7 +65,7 @@
   n_fixed <- length(include_colors)
 
   if (progress) {
-    cat("Preparing for palette generation...\n")
+    cli::cli_alert_info("Preparing for palette generation...")
   }
 
   fixed_oklab <- NULL
@@ -64,7 +73,8 @@
   if (n_fixed > 0) {
     oklab_matrix <- .hex_to_oklab(include_colors)
 
-    # Sort fixed colors by brightness (lightness) to ensure final palette is brightness-sorted
+    # Sort fixed colors by brightness (lightness) to ensure final
+    # palette is brightness-sorted
     lightness_order <- order(oklab_matrix[, 1])
     fixed_oklab <- oklab_matrix[lightness_order, , drop = FALSE]
     sorted_include_colors <- include_colors[lightness_order]
@@ -105,7 +115,7 @@
 
 #' Initialize and validate free colors
 #' @noRd
-.initialize_and_validate_colors <- function(
+.init_and_validate_colors <- function(
   n_free,
   n_fixed,
   fixed_oklab,
@@ -117,13 +127,8 @@
   progress
 ) {
   if (progress) {
-    cat(
-      "Initializing ",
-      n_free,
-      " free colors (method: ",
-      initialization,
-      ")...\n",
-      sep = ""
+    cli::cli_inform(
+      "Initializing {n_free} free colors (method: {initialization})..."
     )
   }
 
@@ -143,13 +148,9 @@
 
   if (actual_n_init_free < n_free) {
     if (progress) {
-      cat(
-        "Warning: Initialization generated ",
-        actual_n_init_free,
-        " of ",
-        n_free,
-        " requested free colors. Palette will be smaller.\n",
-        sep = ""
+      cli::cli_alert_warning(
+        "Initialization generated {actual_n_init_free} of {n_free} ",
+        "requested free colors. Palette will be smaller."
       )
     }
     if (actual_n_init_free == 0) {
@@ -186,16 +187,13 @@
   max_iterations,
   n_free,
   progress,
-  optimizer = "nloptr_cobyla"
+  optimizer = "nloptr_cobyla",
+  weights = NULL,
+  cvd_safe = TRUE
 ) {
   if (progress && n_free > 0) {
-    cat(
-      "Optimizing ",
-      n_free,
-      " free colors using ",
-      optimizer,
-      "...\n",
-      sep = ""
+    cli::cli_inform(
+      "Optimizing {n_free} free colors using {optimizer}..."
     )
   }
 
@@ -205,26 +203,33 @@
     "nloptr_cobyla" = optimize_colors_constrained(
       current_all_colors_oklab,
       fixed_mask,
-      max_iterations
+      max_iterations,
+      cvd_safe = cvd_safe
     ),
     "sann" = optimize_colors_sann(
       current_all_colors_oklab,
       fixed_mask,
-      max_iterations
+      max_iterations,
+      cvd_safe = cvd_safe
     ),
     "nlopt_direct" = optimize_colors_nlopt_direct(
       current_all_colors_oklab,
       fixed_mask,
-      max_iterations
+      max_iterations,
+      cvd_safe = cvd_safe
     ),
     "nlopt_neldermead" = optimize_colors_nlopt_neldermead(
       current_all_colors_oklab,
       fixed_mask,
-      max_iterations
+      max_iterations,
+      cvd_safe = cvd_safe
     ),
-    # Future optimizers can be added here
-    # "genetic_algorithm" = optimize_colors_genetic(...),
-    # "particle_swarm" = optimize_colors_pso(...),
+    "nlopt_lbfgs" = optimize_colors_lbfgs(
+      current_all_colors_oklab,
+      fixed_mask,
+      max_iterations,
+      weights
+    ),
     stop(
       "Unsupported optimizer: ",
       optimizer,
@@ -245,15 +250,17 @@
   generation_metadata = NULL
 ) {
   if (progress) {
-    cat("Finalizing palette...\n")
+    cli::cli_alert_info("Finalizing palette...")
   }
 
-  # Convert to hex first, then sort by brightness (due to gamut clamping effects)
+  # Convert to hex first, then sort by brightness (due to gamut
+  # clamping effects)
   if (is.matrix(optimized_colors_oklab) && nrow(optimized_colors_oklab) > 0) {
     # Convert to hex colors first
     hex_colors <- .oklab_to_hex(optimized_colors_oklab)
 
-    # Convert back to OKLAB to get the actual lightness values after gamut clamping
+    # Convert back to OKLAB to get the actual lightness values after
+    # gamut clamping
     final_oklab_matrix <- .hex_to_oklab(hex_colors)
 
     # Sort hex colors by their actual final lightness values
@@ -291,7 +298,7 @@
   }
 
   if (progress) {
-    cat("Done.\n")
+    cli::cli_alert_success("Done")
   }
 
   hex_colors
@@ -301,7 +308,7 @@
 #'
 #' Creates a scientifically-grounded color palette that maximizes the minimum
 #' perceptual distance between any two colors using pure minimax optimization in
-#' the OKLAB color space. Colors are automatically sorted by brightness and can
+#' OKLAB color space. Colors are automatically sorted by brightness and can
 #' include fixed brand colors.
 #'
 #' @param n Integer. Total number of colors in the palette.
@@ -309,51 +316,75 @@
 #'   in the palette unchanged. Default is NULL.
 #' @param initialization Character. Initialization method for free colors:
 #'   "k-means++" or "harmony". Default is "k-means++".
-#' @param init_lightness_bounds Numeric vector of length 2. For k-means++ initialization,
-#'   target lightness (L in OKLAB) range for initial candidates. Default `c(0.2, 0.9)`.
+#' @param init_lightness_bounds Numeric vector of length 2. For k-means++
+#'   initialization, target lightness (L in OKLAB) range for initial
+#'   candidates. Default `c(0.2, 0.9)`.
 #' @param init_hcl_bounds List. For harmony-based initialization, target
 #'   `C` (Chroma) and `L` (Luminance) ranges for initial HCL colors.
 #'   Default `list(C = c(40, 80), L = c(50, 80))`.
-#' @param fixed_aesthetic_influence Numeric, 0 to 1. If `include_colors` are provided,
-#'   controls how strongly their aesthetic properties influence the initialization
-#'   for free colors. 0 = no influence, 1 = strong influence. Default is 0.75.
-#' @param aesthetic_init_config List. Advanced configuration for aesthetic initialization.
-#'   Use `NULL` (default) for built-in defaults.
-#' @param max_iterations Integer. Maximum optimization iterations. Default is 1000.
+#' @param fixed_aesthetic_influence Numeric, 0 to 1. If `include_colors`
+#'   are provided, controls how strongly their aesthetic properties
+#'   influence the initialization for free colors. 0 = no influence,
+#'   1 = strong influence. Default is 0.75.
+#' @param aesthetic_init_config List. Advanced configuration for aesthetic
+#'   initialization. Use `NULL` (default) for built-in defaults.
+#' @param max_iterations Integer. Maximum optimization iterations. Default
+#'   is 1000.
 #' @param return_metrics Logical. Whether to return evaluation metrics as
 #'   attributes. Default is TRUE.
-#' @param progress Logical. Show progress messages. Default is `interactive()`.
-#' @param weights Named numeric vector. Weights for multi-objective optimization.
-#'   Currently only supports `c(distance = 1)` for distance-based optimization.
-#'   Default is NULL (equivalent to pure distance optimization).
-#' @param optimizer Character. Optimization algorithm to use. Currently supported:
-#'   "nloptr_cobyla" (default) for deterministic optimization with constraint handling,
-#'   "sann" for stochastic simulated annealing (excellent quality but not perfectly
-#'   reproducible without a seed), "nlopt_direct" for deterministic global optimization
-#'   using the DIRECT algorithm (best choice for scientific reproducibility and high
-#'   quality, though may be slower), "nlopt_neldermead" for derivative-free local
-#'   optimization using the Nelder-Mead simplex algorithm (good alternative to COBYLA
-#'   for robust local optimization). The framework is designed to easily support
-#'   additional optimizers in future versions.
+#' @param progress Logical. Show progress messages. Default is
+#'   `interactive()`.
+#' @param weights Named numeric vector. Weights for multi-objective
+#'   optimization. Supports: `c(distance = 1)` for discrete distance
+#'   optimization, `c(smooth_repulsion = 1)` for smooth repulsion
+#'   objective using inverse squared distances, or
+#'   `c(smooth_logsumexp = 1)` for smooth log-sum-exp objective. Default
+#'   is NULL, which is internally equivalent to `c(distance = 1)` for
+#'   most optimizers. For "nlopt_lbfgs", NULL defaults to
+#'   `smooth_repulsion`.
+#' @param optimizer Character. Optimization algorithm to use. Currently
+#'   supported: "nloptr_cobyla" (default) for deterministic optimization
+#'   with constraint handling, "sann" for stochastic simulated annealing
+#'   (excellent quality but not perfectly reproducible without a seed),
+#'   "nlopt_direct" for deterministic global optimization using the
+#'   DIRECT algorithm (best choice for scientific reproducibility and
+#'   high quality, though may be slower), "nlopt_neldermead" for
+#'   derivative-free local optimization using the Nelder-Mead simplex
+#'   algorithm (good alternative to COBYLA for robust local optimization),
+#'   "nlopt_lbfgs" for gradient-based L-BFGS optimization (fastest
+#'   convergence for smooth objectives; works best with
+#'   `smooth_repulsion` or `smooth_logsumexp` weights). The framework is
+#'   designed to easily support additional optimizers in future versions.
+#' @param cvd_safe Logical. If `TRUE` (default), the objective maximizes
+#'   the minimum perceptual distance in the worst case across deuteranopia,
+#'   protanopia, and tritanopia simulations, producing palettes that are
+#'   distinguishable for viewers with color vision deficiencies. If
+#'   `FALSE`, the objective maximizes the minimum perceptual distance for
+#'   normal vision only. Has no effect when `optimizer = "nlopt_lbfgs"`
+#'   because the smooth objectives are normal-vision only.
+#' @param ... Additional arguments reserved for future use.
 #'
-#' @return A character vector of hex colors with class `huerd_palette`, automatically
-#'   sorted by brightness (lightness). If `return_metrics = TRUE`, includes evaluation
-#'   metrics as attributes.
+#' @return A character vector of hex colors with class `huerd_palette`,
+#'   automatically sorted by brightness (lightness). If
+#'   `return_metrics = TRUE`, includes evaluation metrics as attributes.
 #'
 #' @details
-#' This function implements pure minimax optimization to create color palettes with
-#' maximum worst-case perceptual distinguishability. The approach is scientifically
-#' grounded and focuses on a single, clear objective.
+#' This function implements pure minimax optimization to create color
+#' palettes with maximum worst-case perceptual distinguishability. The
+#' approach is scientifically grounded and focuses on a single, clear
+#' objective.
 #'
 #' The process:
 #' 1. Initialize free colors using k-means++ or harmony-based methods
-#' 2. Optimize using box-constrained nloptr to maximize minimum perceptual distance
+#' 2. Optimize using box-constrained nloptr to maximize the minimum
+#'    perceptual distance (worst case across CVD simulations when
+#'    `cvd_safe = TRUE`, the default)
 #' 3. Sort final palette by OKLAB lightness for intuitive ordering
 #' 4. Apply gamut compensation during brightness sorting
 #'
-#' The pure minimax approach ensures optimal categorical color palettes without
-#' complex multi-objective trade-offs. Quality can be assessed using `evaluate_palette()`
-#' and visualized with `plot_palette_analysis()`.
+#' The pure minimax approach ensures optimal categorical color palettes
+#' without complex multi-objective trade-offs. Quality can be assessed
+#' using `evaluate_palette()` and visualized with `plot_palette_analysis()`.
 #'
 #' @section Performance Tips:
 #' \itemize{
@@ -361,7 +392,7 @@
 #'   \item Use `progress = TRUE` to monitor optimization convergence
 #'   \item Include 2-3 fixed colors maximum for best optimization
 #'   \item Use diagnostic dashboard `plot_palette_analysis()` for analysis
-#' }
+#'   }
 #'
 #' @examples
 #' # Simple optimal palette
@@ -390,17 +421,35 @@
 #'   progress = FALSE
 #' )
 #'
-#' # Using DIRECT algorithm (deterministic global, best for scientific reproducibility)
+#' # Using DIRECT algorithm (deterministic global, best for scientific
+#' # reproducibility)
 #' direct_palette <- generate_palette(
 #'   n = 4,
 #'   optimizer = "nlopt_direct",
 #'   progress = FALSE
 #' )
 #'
-#' # Using Nelder-Mead algorithm (derivative-free local, good alternative to COBYLA)
+#' # Using Nelder-Mead algorithm (derivative-free local, good alternative
+#' # to COBYLA)
 #' neldermead_palette <- generate_palette(
 #'   n = 4,
 #'   optimizer = "nlopt_neldermead",
+#'   progress = FALSE
+#' )
+#'
+#' # Using smooth optimization with L-BFGS (efficient for larger palettes)
+#' smooth_palette <- generate_palette(
+#'   n = 12,
+#'   weights = c(smooth_repulsion = 1),
+#'   optimizer = "nlopt_lbfgs",
+#'   progress = FALSE
+#' )
+#'
+#' # Using alternative smooth objective
+#' logsumexp_palette <- generate_palette(
+#'   n = 6,
+#'   weights = c(smooth_logsumexp = 1),
+#'   optimizer = "nlopt_lbfgs",
 #'   progress = FALSE
 #' )
 #'
@@ -425,8 +474,22 @@ generate_palette <- function(
   return_metrics = TRUE,
   progress = interactive(),
   weights = NULL,
-  optimizer = "nloptr_cobyla"
+  optimizer = "nloptr_cobyla",
+  cvd_safe = TRUE,
+  ...
 ) {
+  if (!is.logical(cvd_safe) || length(cvd_safe) != 1 || is.na(cvd_safe)) {
+    stop("`cvd_safe` must be a single TRUE or FALSE.", call. = FALSE)
+  }
+
+  # nolint start: object_usage_linter
+  seed_info <- if (exists(".Random.seed")) {
+    .Random.seed
+  } else {
+    NULL
+  }
+  # nolint end
+
   generation_metadata <- list(
     n_colors = n,
     include_colors = include_colors,
@@ -439,7 +502,8 @@ generate_palette <- function(
     return_metrics = return_metrics,
     weights = weights,
     optimizer = optimizer,
-    seed = if (exists(".Random.seed")) .Random.seed else NULL,
+    cvd_safe = cvd_safe,
+    seed = seed_info,
     package_version = utils::packageVersion("huerd"),
     target_space = "oklab",
     timestamp = Sys.time()
@@ -489,7 +553,7 @@ generate_palette <- function(
   )
 
   # Initialize and validate colors
-  init_result <- .initialize_and_validate_colors(
+  init_result <- .init_and_validate_colors(
     n_free,
     fixed_result$n_fixed,
     fixed_result$fixed_oklab,
@@ -503,55 +567,67 @@ generate_palette <- function(
 
   # Handle early return from initialization failure
   if (inherits(init_result, "huerd_palette")) {
-    return(init_result)
+    init_result
+  } else {
+    # Optimize colors
+    opt_result <- .optimize_palette(
+      init_result$initial_colors_oklab,
+      init_result$fixed_mask,
+      max_iterations,
+      init_result$n_free,
+      progress,
+      optimizer,
+      weights,
+      cvd_safe = cvd_safe
+    )
+
+    # Finalize and return
+    final_palette <- .finalize_palette(
+      opt_result$palette,
+      opt_result,
+      return_metrics,
+      progress,
+      generation_metadata
+    )
+
+    final_palette
   }
-
-  # Optimize colors
-  opt_result <- .optimize_palette(
-    init_result$initial_colors_oklab,
-    init_result$fixed_mask,
-    max_iterations,
-    init_result$n_free,
-    progress,
-    optimizer
-  )
-
-  # Finalize and return
-  final_palette <- .finalize_palette(
-    opt_result$palette,
-    opt_result,
-    return_metrics,
-    progress,
-    generation_metadata
-  )
-
-  return(final_palette)
 }
 
 #' Reproduce Palette from Existing huerd_palette Object
 #'
-#' Recreates an identical color palette from a previously generated huerd_palette
-#' object using the stored generation metadata.
+#' Recreates an identical color palette from a previously generated
+#' huerd_palette object using stored generation metadata.
 #'
 #' @param palette A huerd_palette object (result from `generate_palette()`)
 #'   containing generation metadata.
-#' @param progress Logical. Show progress messages. Default is `interactive()`.
-#'   If NULL, uses the progress setting from the original generation.
+#' @param progress Logical. Show progress messages. Default is
+#'   `interactive()`. If NULL, uses the progress setting from the
+#'   original generation.
+#' @param ... Additional arguments reserved for future use.
 #'
 #' @return A character vector of hex colors with class `huerd_palette`,
 #'   identical to the input palette when reproduction is successful.
 #'
 #' @details
-#' This function reads the generation metadata stored in the `generation_metadata`
-#' attribute of a huerd_palette object and re-runs `generate_palette()` with
-#' the exact same parameters. When a random seed was captured during original
-#' generation, the reproduction will be identical if the optimizer supports
-#' the usage of a seed. For deterministic optimizers like "nlopt_direct",
-#' reproduction should always be identical regardless of random seed.
+#' This function reads the generation metadata stored in the
+#' `generation_metadata` attribute of a huerd_palette object and
+#' re-runs `generate_palette()` with the exact same parameters.
+#'
+#' Reproducibility depends on the optimizer used:
+#' \itemize{
+#'   \item **Deterministic optimizers** ("nlopt_direct", "nloptr_cobyla",
+#'     "nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
+#'     regardless of the random seed, as these algorithms produce the same
+#'     results for the same inputs.
+#'   \item **Stochastic optimizers** ("sann"): Reproduction requires
+#'     restoring the random seed captured during the original generation.
+#'     The seed is scoped using `withr::with_seed()` to avoid mutating
+#'     global state.
+#' }
 #'
 #' The function validates that the input object contains the necessary metadata
-#' and provides informative error messages if reproduction fails due to missing
-#' metadata or package version incompatibilities.
+#' and provides informative error messages if reproduction fails.
 #'
 #' @examples
 #' \dontrun{
@@ -576,7 +652,7 @@ generate_palette <- function(
 #' }
 #'
 #' @export
-reproduce_palette <- function(palette, progress = NULL) {
+reproduce_palette <- function(palette, progress = NULL, ...) {
   # Validate input
   if (!inherits(palette, "huerd_palette")) {
     stop(
@@ -590,7 +666,7 @@ reproduce_palette <- function(palette, progress = NULL) {
     stop(
       "No generation metadata found in palette object. ",
       "This palette may have been created with an older version of huerd ",
-      "or the metadata was removed. Reproduction requires metadata."
+      "or metadata was removed. Reproduction requires metadata."
     )
   }
 
@@ -627,14 +703,6 @@ reproduce_palette <- function(palette, progress = NULL) {
     }
   }
 
-  # Restore random seed if available
-  if (!is.null(metadata$seed)) {
-    if (progress) {
-      cat("Restoring random seed for reproducibility...\n")
-    }
-    .Random.seed <<- metadata$seed
-  }
-
   # Package version compatibility check
   if (!is.null(metadata$package_version)) {
     current_version <- utils::packageVersion("huerd")
@@ -650,27 +718,53 @@ reproduce_palette <- function(palette, progress = NULL) {
   }
 
   if (progress) {
-    cat("Reproducing palette using stored metadata...\n")
+    cli::cli_alert_info("Reproducing palette using stored metadata...")
   }
 
-  # Reproduce the palette using stored parameters
-  reproduced_palette <- generate_palette(
-    n = metadata$n_colors,
-    include_colors = metadata$include_colors,
-    initialization = metadata$initialization,
-    init_lightness_bounds = metadata$init_lightness_bounds,
-    init_hcl_bounds = metadata$init_hcl_bounds,
-    fixed_aesthetic_influence = metadata$fixed_aesthetic_influence,
-    aesthetic_init_config = metadata$aesthetic_init_config,
-    max_iterations = metadata$max_iterations,
-    return_metrics = metadata$return_metrics,
-    progress = progress,
-    weights = metadata$weights,
-    optimizer = metadata$optimizer
-  )
+  # Reproduce palette using stored parameters
+  # Use withr::set_seed to restore the exact RNG state
+  if (!is.null(metadata$seed)) {
+    # nolint start: object_usage_linter, object_name_linter
+    reproduced_palette <- withr::with_preserve_seed({
+      .Random.seed <<- metadata$seed
+      generate_palette(
+        n = metadata$n_colors,
+        include_colors = metadata$include_colors,
+        initialization = metadata$initialization,
+        init_lightness_bounds = metadata$init_lightness_bounds,
+        init_hcl_bounds = metadata$init_hcl_bounds,
+        fixed_aesthetic_influence = metadata$fixed_aesthetic_influence,
+        aesthetic_init_config = metadata$aesthetic_init_config,
+        max_iterations = metadata$max_iterations,
+        return_metrics = metadata$return_metrics,
+        progress = progress,
+        weights = metadata$weights,
+        optimizer = metadata$optimizer,
+        cvd_safe = metadata$cvd_safe %||% TRUE
+      )
+    })
+    # nolint end
+  } else {
+    reproduced_palette <- generate_palette(
+      n = metadata$n_colors,
+      include_colors = metadata$include_colors,
+      initialization = metadata$initialization,
+      init_lightness_bounds = metadata$init_lightness_bounds,
+      init_hcl_bounds = metadata$init_hcl_bounds,
+      fixed_aesthetic_influence = metadata$fixed_aesthetic_influence,
+      aesthetic_init_config = metadata$aesthetic_init_config,
+      max_iterations = metadata$max_iterations,
+      return_metrics = metadata$return_metrics,
+      progress = progress,
+      weights = metadata$weights,
+      optimizer = metadata$optimizer,
+      cvd_safe = metadata$cvd_safe %||% TRUE
+    )
+  }
 
-  # Preserve the original generation metadata to maintain perfect reproducibility
+  # Preserve the original generation metadata to maintain perfect
+  # reproducibility
   attr(reproduced_palette, "generation_metadata") <- metadata
 
-  return(reproduced_palette)
+  reproduced_palette
 }

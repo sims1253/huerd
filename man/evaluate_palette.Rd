@@ -4,19 +4,24 @@
 \alias{evaluate_palette}
 \title{Evaluate Palette Quality}
 \usage{
-evaluate_palette(colors)
+evaluate_palette(colors, ...)
 }
 \arguments{
-\item{colors}{A character vector of hex colors, or a matrix of colors in OK LAB space.}
+\item{colors}{A character vector of hex colors, or a matrix of colors
+in OK LAB space.}
+
+\item{...}{Additional arguments reserved for future use.}
 }
 \value{
 A list of evaluation metrics with class \code{huerd_evaluation}.
-Contains raw metrics including distances, CVD safety, and distribution
-for objective analysis without subjective heuristic scoring.
+Contains raw metrics including distances, CVD safety, and
+distribution for objective analysis without subjective
+heuristic scoring.
 }
 \description{
-Provides a comprehensive evaluation of a color palette's perceptual properties,
-including its distinguishability, CVD safety, and color distribution.
+Provides a comprehensive evaluation of a color palette's
+perceptual properties, including its distinguishability, CVD safety,
+and color distribution.
 Returns raw metrics without subjective scoring for post-hoc analysis.
 }
 \examples{
@@ -24,6 +29,7 @@ pal <- generate_palette(5, progress = FALSE)
 metrics <- evaluate_palette(pal)
 print(metrics) # Uses custom print method
 
-# The performance_ratio compares the achieved min distance to an estimated maximum
+# The performance_ratio compares the achieved min distance to an
+# estimated maximum
 # metrics$distances$performance_ratio
 }

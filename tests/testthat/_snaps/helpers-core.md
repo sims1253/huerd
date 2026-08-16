@@ -1,4 +1,4 @@
-# .merge_aesthetic_config handles version mismatch warning
+# .merge_aesthetic_config() / handles version mismatch warning
 
     Code
       .merge_aesthetic_config(user_config)
@@ -38,7 +38,7 @@
       [1] 123
       
 
-# .normalize_weights shows warning when normalizing with progress
+# .normalize_weights() / shows warning when normalizing with progress
 
     Code
       .normalize_weights(weights, "test_weights", progress = TRUE)

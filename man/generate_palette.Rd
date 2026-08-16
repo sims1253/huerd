@@ -16,7 +16,9 @@ generate_palette(
   return_metrics = TRUE,
   progress = interactive(),
   weights = NULL,
-  optimizer = "nloptr_cobyla"
+  optimizer = "nloptr_cobyla",
+  cvd_safe = TRUE,
+  ...
 )
 }
 \arguments{
@@ -28,68 +30,94 @@ in the palette unchanged. Default is NULL.}
 \item{initialization}{Character. Initialization method for free colors:
 "k-means++" or "harmony". Default is "k-means++".}
 
-\item{init_lightness_bounds}{Numeric vector of length 2. For k-means++ initialization,
-target lightness (L in OKLAB) range for initial candidates. Default \code{c(0.2, 0.9)}.}
+\item{init_lightness_bounds}{Numeric vector of length 2. For k-means++
+initialization, target lightness (L in OKLAB) range for initial
+candidates. Default \code{c(0.2, 0.9)}.}
 
 \item{init_hcl_bounds}{List. For harmony-based initialization, target
 \code{C} (Chroma) and \code{L} (Luminance) ranges for initial HCL colors.
 Default \code{list(C = c(40, 80), L = c(50, 80))}.}
 
-\item{fixed_aesthetic_influence}{Numeric, 0 to 1. If \code{include_colors} are provided,
-controls how strongly their aesthetic properties influence the initialization
-for free colors. 0 = no influence, 1 = strong influence. Default is 0.75.}
+\item{fixed_aesthetic_influence}{Numeric, 0 to 1. If \code{include_colors}
+are provided, controls how strongly their aesthetic properties
+influence the initialization for free colors. 0 = no influence,
+1 = strong influence. Default is 0.75.}
 
-\item{aesthetic_init_config}{List. Advanced configuration for aesthetic initialization.
-Use \code{NULL} (default) for built-in defaults.}
+\item{aesthetic_init_config}{List. Advanced configuration for aesthetic
+initialization. Use \code{NULL} (default) for built-in defaults.}
 
-\item{max_iterations}{Integer. Maximum optimization iterations. Default is 1000.}
+\item{max_iterations}{Integer. Maximum optimization iterations. Default
+is 1000.}
 
 \item{return_metrics}{Logical. Whether to return evaluation metrics as
 attributes. Default is TRUE.}
 
-\item{progress}{Logical. Show progress messages. Default is \code{interactive()}.}
+\item{progress}{Logical. Show progress messages. Default is
+\code{interactive()}.}
 
-\item{weights}{Named numeric vector. Weights for multi-objective optimization.
-Currently only supports \code{c(distance = 1)} for distance-based optimization.
-Default is NULL (equivalent to pure distance optimization).}
+\item{weights}{Named numeric vector. Weights for multi-objective
+optimization. Supports: \code{c(distance = 1)} for discrete distance
+optimization, \code{c(smooth_repulsion = 1)} for smooth repulsion
+objective using inverse squared distances, or
+\code{c(smooth_logsumexp = 1)} for smooth log-sum-exp objective. Default
+is NULL, which is internally equivalent to \code{c(distance = 1)} for
+most optimizers. For "nlopt_lbfgs", NULL defaults to
+\code{smooth_repulsion}.}
 
-\item{optimizer}{Character. Optimization algorithm to use. Currently supported:
-"nloptr_cobyla" (default) for deterministic optimization with constraint handling,
-"sann" for stochastic simulated annealing (excellent quality but not perfectly
-reproducible without a seed), "nlopt_direct" for deterministic global optimization
-using the DIRECT algorithm (best choice for scientific reproducibility and high
-quality, though may be slower), "nlopt_neldermead" for derivative-free local
-optimization using the Nelder-Mead simplex algorithm (good alternative to COBYLA
-for robust local optimization). The framework is designed to easily support
-additional optimizers in future versions.}
+\item{optimizer}{Character. Optimization algorithm to use. Currently
+supported: "nloptr_cobyla" (default) for deterministic optimization
+with constraint handling, "sann" for stochastic simulated annealing
+(excellent quality but not perfectly reproducible without a seed),
+"nlopt_direct" for deterministic global optimization using the
+DIRECT algorithm (best choice for scientific reproducibility and
+high quality, though may be slower), "nlopt_neldermead" for
+derivative-free local optimization using the Nelder-Mead simplex
+algorithm (good alternative to COBYLA for robust local optimization),
+"nlopt_lbfgs" for gradient-based L-BFGS optimization (fastest
+convergence for smooth objectives; works best with
+\code{smooth_repulsion} or \code{smooth_logsumexp} weights). The framework is
+designed to easily support additional optimizers in future versions.}
+
+\item{cvd_safe}{Logical. If \code{TRUE} (default), the objective maximizes
+the minimum perceptual distance in the worst case across deuteranopia,
+protanopia, and tritanopia simulations, producing palettes that are
+distinguishable for viewers with color vision deficiencies. If
+\code{FALSE}, the objective maximizes the minimum perceptual distance for
+normal vision only. Has no effect when \code{optimizer = "nlopt_lbfgs"}
+because the smooth objectives are normal-vision only.}
+
+\item{...}{Additional arguments reserved for future use.}
 }
 \value{
-A character vector of hex colors with class \code{huerd_palette}, automatically
-sorted by brightness (lightness). If \code{return_metrics = TRUE}, includes evaluation
-metrics as attributes.
+A character vector of hex colors with class \code{huerd_palette},
+automatically sorted by brightness (lightness). If
+\code{return_metrics = TRUE}, includes evaluation metrics as attributes.
 }
 \description{
 Creates a scientifically-grounded color palette that maximizes the minimum
 perceptual distance between any two colors using pure minimax optimization in
-the OKLAB color space. Colors are automatically sorted by brightness and can
+OKLAB color space. Colors are automatically sorted by brightness and can
 include fixed brand colors.
 }
 \details{
-This function implements pure minimax optimization to create color palettes with
-maximum worst-case perceptual distinguishability. The approach is scientifically
-grounded and focuses on a single, clear objective.
+This function implements pure minimax optimization to create color
+palettes with maximum worst-case perceptual distinguishability. The
+approach is scientifically grounded and focuses on a single, clear
+objective.
 
 The process:
 \enumerate{
 \item Initialize free colors using k-means++ or harmony-based methods
-\item Optimize using box-constrained nloptr to maximize minimum perceptual distance
+\item Optimize using box-constrained nloptr to maximize the minimum
+perceptual distance (worst case across CVD simulations when
+\code{cvd_safe = TRUE}, the default)
 \item Sort final palette by OKLAB lightness for intuitive ordering
 \item Apply gamut compensation during brightness sorting
 }
 
-The pure minimax approach ensures optimal categorical color palettes without
-complex multi-objective trade-offs. Quality can be assessed using \code{evaluate_palette()}
-and visualized with \code{plot_palette_analysis()}.
+The pure minimax approach ensures optimal categorical color palettes
+without complex multi-objective trade-offs. Quality can be assessed
+using \code{evaluate_palette()} and visualized with \code{plot_palette_analysis()}.
 }
 \section{Performance Tips}{
 
@@ -128,17 +156,35 @@ sann_palette <- generate_palette(
   progress = FALSE
 )
 
-# Using DIRECT algorithm (deterministic global, best for scientific reproducibility)
+# Using DIRECT algorithm (deterministic global, best for scientific
+# reproducibility)
 direct_palette <- generate_palette(
   n = 4,
   optimizer = "nlopt_direct",
   progress = FALSE
 )
 
-# Using Nelder-Mead algorithm (derivative-free local, good alternative to COBYLA)
+# Using Nelder-Mead algorithm (derivative-free local, good alternative
+# to COBYLA)
 neldermead_palette <- generate_palette(
   n = 4,
   optimizer = "nlopt_neldermead",
+  progress = FALSE
+)
+
+# Using smooth optimization with L-BFGS (efficient for larger palettes)
+smooth_palette <- generate_palette(
+  n = 12,
+  weights = c(smooth_repulsion = 1),
+  optimizer = "nlopt_lbfgs",
+  progress = FALSE
+)
+
+# Using alternative smooth objective
+logsumexp_palette <- generate_palette(
+  n = 6,
+  weights = c(smooth_logsumexp = 1),
+  optimizer = "nlopt_lbfgs",
   progress = FALSE
 )
 
