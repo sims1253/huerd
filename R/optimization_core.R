@@ -718,8 +718,12 @@ optimize_colors_sann <- function(
 #' This function takes an initial set of colors and optimizes positions of
 #' "free" colors to maximize the minimum perceptual distance between any
 #' two colors using DIRECT (Dividing Rectangles) global optimization algorithm.
-#' This is a deterministic global optimizer that provides excellent scientific
-#' reproducibility, though it may be slower than local optimization methods.
+#'
+#' Deprecated: exposed via `optimizer = "nlopt_direct"` in
+#' `generate_palette()`, which warns on use. DIRECT's center-lattice
+#' sampling cannot reliably find all-distinct color configurations in this
+#' parameterization, so it returns degenerate palettes for most palette
+#' sizes. Retained only for backwards compatibility.
 #'
 #' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
 #'   in OK LAB space.

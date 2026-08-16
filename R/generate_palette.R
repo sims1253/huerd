@@ -330,15 +330,16 @@
 #'   supported: "nloptr_cobyla" (default) for deterministic optimization
 #'   with constraint handling, "sann" for stochastic simulated annealing
 #'   (excellent quality but not perfectly reproducible without a seed),
-#'   "nlopt_direct" for deterministic global optimization using the
-#'   DIRECT algorithm (best choice for scientific reproducibility and
-#'   high quality, though may be slower), "nlopt_neldermead" for
-#'   derivative-free local optimization using the Nelder-Mead simplex
-#'   algorithm (good alternative to COBYLA for robust local optimization),
-#'   "nlopt_lbfgs" for gradient-based L-BFGS optimization (fastest
-#'   convergence for smooth objectives; works best with
-#'   `smooth_repulsion` or `smooth_logsumexp` weights). The framework is
-#'   designed to easily support additional optimizers in future versions.
+#'   "nlopt_neldermead" for derivative-free local optimization using the
+#'   Nelder-Mead simplex algorithm (good alternative to COBYLA for robust
+#'   local optimization), "nlopt_lbfgs" for gradient-based L-BFGS
+#'   optimization (fastest convergence for smooth objectives; works best
+#'   with `smooth_repulsion` or `smooth_logsumexp` weights), and
+#'   "nlopt_direct" (**deprecated**) for deterministic global optimization
+#'   via the DIRECT algorithm — produces degenerate palettes for most
+#'   palette sizes and will be removed in a future release. The framework
+#'   is designed to easily support additional optimizers in future
+#'   versions.
 #' @param cvd_safe Logical. If `TRUE` (default), the objective maximizes
 #'   the minimum perceptual distance in the worst case across deuteranopia,
 #'   protanopia, and tritanopia simulations, producing palettes that are
@@ -402,14 +403,6 @@
 #' sann_palette <- generate_palette(
 #'   n = 4,
 #'   optimizer = "sann",
-#'   progress = FALSE
-#' )
-#'
-#' # Using DIRECT algorithm (deterministic global, best for scientific
-#' # reproducibility)
-#' direct_palette <- generate_palette(
-#'   n = 4,
-#'   optimizer = "nlopt_direct",
 #'   progress = FALSE
 #' )
 #'
@@ -504,6 +497,27 @@ generate_palette <- function(
     weights,
     optimizer
   )
+
+  # Soft deprecation: DIRECT's center-lattice sampling cannot reliably
+  # find all-distinct color configurations in 3n dimensions, so it
+  # returns degenerate palettes for most palette sizes.
+  if (identical(optimizer, "nlopt_direct")) {
+    cli::cli_warn(c(
+      "!" = paste0(
+        "{.arg optimizer} = {.val nlopt_direct} is deprecated and will ",
+        "be removed in a future release."
+      ),
+      "i" = paste0(
+        "The DIRECT algorithm cannot reliably separate colors in this ",
+        "parameterization and produces degenerate palettes (duplicate ",
+        "colors) for most palette sizes."
+      ),
+      "i" = paste0(
+        "Use {.val nloptr_cobyla} (the default) or ",
+        "{.val nlopt_neldermead} instead."
+      )
+    ))
+  }
 
   # Setup and parameter normalization
   params <- .setup_palette_params(
@@ -600,7 +614,7 @@ generate_palette <- function(
 #'
 #' Reproducibility depends on the optimizer used:
 #' \itemize{
-#'   \item **Deterministic optimizers** ("nlopt_direct", "nloptr_cobyla",
+#'   \item **Deterministic optimizers** ("nloptr_cobyla",
 #'     "nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
 #'     regardless of the random seed, as these algorithms produce the same
 #'     results for the same inputs.
@@ -620,7 +634,7 @@ generate_palette <- function(
 #' original_palette <- generate_palette(
 #'   n = 5,
 #'   include_colors = c("#FF0000"),
-#'   optimizer = "nlopt_direct",
+#'   optimizer = "nloptr_cobyla",
 #'   progress = FALSE
 #' )
 #'

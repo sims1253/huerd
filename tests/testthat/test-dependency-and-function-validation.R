@@ -820,12 +820,21 @@ describe("Integration Tests", {
 
       for (opt in optimizers) {
         # This test specifically catches missing eval_f or other internal function issues
+        # nlopt_direct is deprecated and emits an expected warning on use
         expect_no_error({
-          palette <- generate_palette(
-            3,
-            optimizer = opt,
-            progress = FALSE
-          )
+          palette <- if (opt == "nlopt_direct") {
+            suppressWarnings(generate_palette(
+              3,
+              optimizer = opt,
+              progress = FALSE
+            ))
+          } else {
+            generate_palette(
+              3,
+              optimizer = opt,
+              progress = FALSE
+            )
+          }
         })
         expect_true(
           inherits(palette, "huerd_palette"),

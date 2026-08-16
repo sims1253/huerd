@@ -210,7 +210,10 @@
     stop("'optimizer' must be a single character string.", call. = FALSE)
   }
 
-  # Currently supported optimizers
+  # Currently supported optimizers. "nlopt_direct" is deprecated (it
+  # produces degenerate palettes for most palette sizes; generate_palette()
+  # warns on use) and is only retained for backwards compatibility until it
+  # is removed in a future release.
   valid_optimizers <- c(
     "nloptr_cobyla",
     "sann",

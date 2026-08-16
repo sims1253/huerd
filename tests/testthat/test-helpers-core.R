@@ -298,13 +298,15 @@ describe(".handle_no_free_colors()", {
 describe("reproduce_palette()", {
   it("works with valid metadata", {
     set.seed(42)
-    original <- generate_palette(
+    # nlopt_direct is deprecated: suppress the expected deprecation
+    # warning (asserted in test-generate-palette.R)
+    original <- suppressWarnings(generate_palette(
       n = 3,
       optimizer = "nlopt_direct",
       progress = FALSE
-    )
+    ))
 
-    reproduced <- reproduce_palette(original)
+    reproduced <- suppressWarnings(reproduce_palette(original))
 
     expect_identical(original, reproduced)
   })

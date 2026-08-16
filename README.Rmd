@@ -144,7 +144,8 @@ print(palette)
 
 ## Multi-Optimizer Support
 
-Choose from 5 different optimization algorithms based on your needs:
+Choose from 4 different optimization algorithms based on your needs
+(a fifth, `"nlopt_direct"`, is deprecated and slated for removal):
 
 ```{r optimizers}
 library(huerd)
@@ -156,9 +157,6 @@ cobyla_palette <- generate_palette(6, optimizer = "nloptr_cobyla", progress = FA
 # SANN: Stochastic simulated annealing for higher quality
 sann_palette <- generate_palette(6, optimizer = "sann", progress = FALSE)
 
-# DIRECT: Global optimization for reproducibility (may need tuning)
-direct_palette <- generate_palette(6, optimizer = "nlopt_direct", progress = FALSE)
-
 # Nelder-Mead: Derivative-free local optimization
 # As an alternative deterministic approach
 neldermead_palette <- generate_palette(6, optimizer = "nlopt_neldermead", progress = FALSE)
@@ -169,7 +167,6 @@ lbfgs_palette <- generate_palette(6, optimizer = "nlopt_lbfgs",
 
 cat("COBYLA:", paste(cobyla_palette, collapse = ", "), "\n")
 cat("SANN:", paste(sann_palette, collapse = ", "), "\n")
-cat("DIRECT:", paste(direct_palette, collapse = ", "), "\n")
 cat("Nelder-Mead:", paste(neldermead_palette, collapse = ", "), "\n")
 cat("L-BFGS:", paste(lbfgs_palette, collapse = ", "), "\n")
 ```
