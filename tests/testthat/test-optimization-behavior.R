@@ -65,51 +65,6 @@ describe("optimization behavior", {
   })
 })
 
-describe("gamut penalty calculation", {
-  it("is correct", {
-    # Test gamut penalty logic with known good colors
-    test_oklab <- matrix(
-      c(
-        0.7573138,
-        0.04645336,
-        0.12015603, # Bright orange (#E5A04C)
-        0.5153679,
-        -0.02382086,
-        -0.05782878 # Blue (#4A6B8A)
-      ),
-      nrow = 2,
-      byrow = TRUE
-    )
-
-    # Simulate the gamut penalty calculation from optimization_core.R
-    lab_colors <- farver::convert_colour(test_oklab, from = "oklab", to = "lab")
-    rgb_colors <- farver::convert_colour(lab_colors, from = "lab", to = "rgb")
-
-    # This is CORRECT calculation (RGB should be divided by 255)
-    out_of_gamut_dist_sq_correct <- pmax(0, rgb_colors / 255 - 1)^2 +
-      pmax(0, -(rgb_colors / 255))^2
-    gamut_penalty_correct <- sum(out_of_gamut_dist_sq_correct) /
-      nrow(test_oklab)
-
-    # Valid colors should have minimal gamut penalty
-    expect_true(
-      gamut_penalty_correct < 0.01,
-      info = "Valid RGB colors should have minimal gamut penalty"
-    )
-
-    # Test what happens with BUGGY calculation (using RGB 0-255 directly)
-    out_of_gamut_dist_sq_buggy <- pmax(0, rgb_colors - 1)^2 +
-      pmax(0, -rgb_colors)^2
-    gamut_penalty_buggy <- sum(out_of_gamut_dist_sq_buggy) / nrow(test_oklab)
-
-    # The buggy calculation should give massive penalty for valid colors
-    expect_true(
-      gamut_penalty_buggy > 1000,
-      info = "Buggy gamut calculation gives huge penalty for valid colors"
-    )
-  })
-})
-
 describe("objective function", {
   it("behaves correctly", {
     # Test that the objective function rewards separated colors

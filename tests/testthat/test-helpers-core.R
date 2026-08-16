@@ -174,8 +174,10 @@ describe(".merge_aesthetic_config()", {
   })
 
   it("handles version mismatch warning", {
-    # Test version mismatch warning path
-    user_config <- list(config_version = "999.0", test_param = 123)
+    # Test version mismatch warning path (numeric wrong version; a string
+    # version or an unknown key would be rejected by
+    # .validate_aesthetic_config() before the merge ever sees them)
+    user_config <- list(config_version = 999)
 
     expect_snapshot(.merge_aesthetic_config(user_config))
   })
