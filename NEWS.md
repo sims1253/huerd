@@ -1,5 +1,9 @@
 # huerd (development version)
 
+## Deprecated
+
+- `optimizer = "nlopt_direct"` in `generate_palette()` is now deprecated and emits a warning; it will be removed in a future release. The DIRECT algorithm's center-lattice sampling cannot reliably find configurations with all pairwise-separated colors in this parameterization, so it returns degenerate palettes (all colors collapsing to a single hex) for most palette sizes; increasing `max_iterations` does not help. Use the default `"nloptr_cobyla"` or `"nlopt_neldermead"` instead.
+
 ## Internal Changes
 
 - Deduplicated the five optimizer implementations (`optimize_colors_constrained()`, `optimize_colors_sann()`, `optimize_colors_nlopt_direct()`, `optimize_colors_nlopt_neldermead()`, `optimize_colors_lbfgs()`) into a single shared internal driver; roughly 1,000 lines removed with no behavior change (verified byte-identical outputs across all optimizers)

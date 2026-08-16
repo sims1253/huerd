@@ -68,15 +68,16 @@ most optimizers. For "nlopt_lbfgs", NULL defaults to
 supported: "nloptr_cobyla" (default) for deterministic optimization
 with constraint handling, "sann" for stochastic simulated annealing
 (excellent quality but not perfectly reproducible without a seed),
-"nlopt_direct" for deterministic global optimization using the
-DIRECT algorithm (best choice for scientific reproducibility and
-high quality, though may be slower), "nlopt_neldermead" for
-derivative-free local optimization using the Nelder-Mead simplex
-algorithm (good alternative to COBYLA for robust local optimization),
-"nlopt_lbfgs" for gradient-based L-BFGS optimization (fastest
-convergence for smooth objectives; works best with
-\code{smooth_repulsion} or \code{smooth_logsumexp} weights). The framework is
-designed to easily support additional optimizers in future versions.}
+"nlopt_neldermead" for derivative-free local optimization using the
+Nelder-Mead simplex algorithm (good alternative to COBYLA for robust
+local optimization), "nlopt_lbfgs" for gradient-based L-BFGS
+optimization (fastest convergence for smooth objectives; works best
+with \code{smooth_repulsion} or \code{smooth_logsumexp} weights), and
+"nlopt_direct" (\strong{deprecated}) for deterministic global optimization
+via the DIRECT algorithm — produces degenerate palettes for most
+palette sizes and will be removed in a future release. The framework
+is designed to easily support additional optimizers in future
+versions.}
 
 \item{cvd_safe}{Logical. If \code{TRUE} (default), the objective maximizes
 the minimum perceptual distance in the worst case across deuteranopia,
@@ -153,14 +154,6 @@ set.seed(42)  # For reproducibility
 sann_palette <- generate_palette(
   n = 4,
   optimizer = "sann",
-  progress = FALSE
-)
-
-# Using DIRECT algorithm (deterministic global, best for scientific
-# reproducibility)
-direct_palette <- generate_palette(
-  n = 4,
-  optimizer = "nlopt_direct",
   progress = FALSE
 )
 

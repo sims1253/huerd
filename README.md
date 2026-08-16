@@ -44,22 +44,22 @@ print(palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #371D00
+#> [ 1] #371C00
 #> [ 2] #483E00
-#> [ 3] #7C00D2
-#> [ 4] #757800
-#> [ 5] #AF4D88
-#> [ 6] #0096C7
+#> [ 3] #7B00D1
+#> [ 4] #767800
+#> [ 5] #AE4E88
+#> [ 6] #0095C6
 #> [ 7] #FF004B
-#> [ 8] #00DFC3
+#> [ 8] #00DFC2
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.111
-#> * Optimizer Performance Ratio      : 35.9%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.096
+#> * Min. Perceptual Distance (OKLAB): 0.114
+#> * Optimizer Performance Ratio      : 36.8%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.095
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 693
+#> * Optimizer Iterations: 536
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Quick generation for immediate use
@@ -68,22 +68,22 @@ print(quick_palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #003C00
-#> [ 2] #740084
-#> [ 3] #5320F5
+#> [ 1] #3D3F00
+#> [ 2] #700063
+#> [ 3] #6F30F5
 #> [ 4] #FF0000
-#> [ 5] #00CB99
-#> [ 6] #FF5EFF
-#> [ 7] #00F8FF
-#> [ 8] #FFDE51
+#> [ 5] #FF5DFF
+#> [ 6] #00D080
+#> [ 7] #00F1FF
+#> [ 8] #FFEC00
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.163
-#> * Optimizer Performance Ratio      : 52.7%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.144
+#> * Min. Perceptual Distance (OKLAB): 0.175
+#> * Optimizer Performance Ratio      : 56.4%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.129
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 623
+#> * Optimizer Iterations: 894
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
@@ -147,20 +147,20 @@ print(quick_colors)
 #> 
 #> -- huerd Color Palette (6 colors) --
 #> Colors:
-#> [ 1] #4B0000
-#> [ 2] #00718B
-#> [ 3] #C10000
+#> [ 1] #990000
+#> [ 2] #00677A
+#> [ 3] #FF0000
 #> [ 4] #FF00FF
-#> [ 5] #FAB800
+#> [ 5] #D3B600
 #> [ 6] #00FFFF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.270
-#> * Optimizer Performance Ratio      : 73.9%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.178
+#> * Min. Perceptual Distance (OKLAB): 0.215
+#> * Optimizer Performance Ratio      : 58.9%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.139
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 596
+#> * Optimizer Iterations: 272
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Access the default brand palette
@@ -182,7 +182,7 @@ print(brand_colors)
 #> * Min. CVD-Safe Distance (OKLAB)  : 0.180
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 276
+#> * Optimizer Iterations: 269
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Export palette in different formats for web development
@@ -191,33 +191,33 @@ css_output <- export_palette(quick_colors, format = "css", names = color_names)
 cat("CSS Output:\n", css_output, "\n\n")
 #> CSS Output:
 #>  :root {
-#>   --color_1: #4B0000;
-#>   --color_2: #00718B;
-#>   --color_3: #C10000;
+#>   --color_1: #990000;
+#>   --color_2: #00677A;
+#>   --color_3: #FF0000;
 #>   --color_4: #FF00FF;
-#>   --color_5: #FAB800;
+#>   --color_5: #D3B600;
 #>   --color_6: #00FFFF;
 #> }
 
 sass_output <- export_palette(quick_colors, format = "sass", names = color_names)
 cat("Sass Output:\n", sass_output, "\n\n")
 #> Sass Output:
-#>  $color_1: #4B0000;
-#> $color_2: #00718B;
-#> $color_3: #C10000;
+#>  $color_1: #990000;
+#> $color_2: #00677A;
+#> $color_3: #FF0000;
 #> $color_4: #FF00FF;
-#> $color_5: #FAB800;
+#> $color_5: #D3B600;
 #> $color_6: #00FFFF;
 
 json_output <- export_palette(quick_colors, format = "json", names = color_names)
 cat("JSON Output:\n", json_output, "\n")
 #> JSON Output:
 #>  {
-#>     "color_1": "#4B0000",
-#>     "color_2": "#00718B",
-#>     "color_3": "#C10000",
+#>     "color_1": "#990000",
+#>     "color_2": "#00677A",
+#>     "color_3": "#FF0000",
 #>     "color_4": "#FF00FF",
-#>     "color_5": "#FAB800",
+#>     "color_5": "#D3B600",
 #>     "color_6": "#00FFFF"
 #> }
 
@@ -227,8 +227,8 @@ print(quality_info)
 #> 
 #> ── Palette Quality Assessment ──
 #> 
-#> This 6-color palette is highly optimized (74% of theoretical maximum).
-#> Excellent - colors are highly distinct and easy to differentiate
+#> This 6-color palette is well optimized (59% of theoretical maximum). Excellent
+#> - colors are highly distinct and easy to differentiate
 #> 
 #> ── Distinctness
 #> Excellent - colors are highly distinct and easy to differentiate
@@ -269,13 +269,14 @@ print(palette)
 #> * Min. CVD-Safe Distance (OKLAB)  : 0.101
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 370
+#> * Optimizer Iterations: 339
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
 ## Multi-Optimizer Support
 
-Choose from 5 different optimization algorithms based on your needs:
+Choose from 4 different optimization algorithms based on your needs (a
+fifth, `"nlopt_direct"`, is deprecated and slated for removal):
 
 ``` r
 library(huerd)
@@ -287,27 +288,22 @@ cobyla_palette <- generate_palette(6, optimizer = "nloptr_cobyla", progress = FA
 # SANN: Stochastic simulated annealing for higher quality
 sann_palette <- generate_palette(6, optimizer = "sann", progress = FALSE)
 
-# DIRECT: Global optimization for reproducibility (may need tuning)
-direct_palette <- generate_palette(6, optimizer = "nlopt_direct", progress = FALSE)
-
 # Nelder-Mead: Derivative-free local optimization
 # As an alternative deterministic approach
 neldermead_palette <- generate_palette(6, optimizer = "nlopt_neldermead", progress = FALSE)
 
 # L-BFGS: Gradient-based optimization for smooth objectives (v0.5.0+)
-lbfgs_palette <- generate_palette(6, optimizer = "nlopt_lbfgs", 
+lbfgs_palette <- generate_palette(6, optimizer = "nlopt_lbfgs",
                                   weights = c(smooth_repulsion = 1), progress = FALSE)
 
 cat("COBYLA:", paste(cobyla_palette, collapse = ", "), "\n")
-#> COBYLA: #100405, #960081, #008700, #FF2BBD, #00C700, #00FFFF
+#> COBYLA: #1F0300, #8F007F, #008300, #FF22C1, #00C500, #00FFFF
 cat("SANN:", paste(sann_palette, collapse = ", "), "\n")
 #> SANN: #000C02, #770000, #B20070, #FF0000, #FFB5FF, #A8FF00
-cat("DIRECT:", paste(direct_palette, collapse = ", "), "\n")
-#> DIRECT: #636363, #636363, #636363, #636363, #636363, #636363
 cat("Nelder-Mead:", paste(neldermead_palette, collapse = ", "), "\n")
-#> Nelder-Mead: #2F00E4, #0089A1, #FF0000, #FF48FF, #00C99E, #00FCFF
+#> Nelder-Mead: #1D0083, #710000, #0055FF, #FF0000, #16CBFF, #FCCC00
 cat("L-BFGS:", paste(lbfgs_palette, collapse = ", "), "\n")
-#> L-BFGS: #003700, #2E0079, #000092, #FF0000, #FF00FF, #00FFFF
+#> L-BFGS: #003700, #2E0079, #FF0000, #FF00FF, #00FF00, #00FFFF
 ```
 
 ## Multi-Objective Framework
@@ -350,20 +346,20 @@ print(distance_palette)
 #> 
 #> -- huerd Color Palette (6 colors) --
 #> Colors:
-#> [ 1] #002B00
+#> [ 1] #002A00
 #> [ 2] #9B0000
-#> [ 3] #C80000
+#> [ 3] #C70000
 #> [ 4] #FF0000
 #> [ 5] #0095FF
-#> [ 6] #00DDC2
+#> [ 6] #00DCC1
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.097
-#> * Optimizer Performance Ratio      : 26.6%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.067
+#> * Min. Perceptual Distance (OKLAB): 0.095
+#> * Optimizer Performance Ratio      : 26.0%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.070
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 407
+#> * Optimizer Iterations: 381
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 cat("\nSmooth repulsion palette:\n")
 #> 
@@ -467,22 +463,22 @@ print(palette)
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #AB5445
-#> [ 2] #AC7D3B
-#> [ 3] #8FA800
-#> [ 4] #C0BC00
-#> [ 5] #FF93D2
-#> [ 6] #B2B8FF
-#> [ 7] #4CDF9C
-#> [ 8] #59FDE7
+#> [ 1] #AB5453
+#> [ 2] #AA7D4A
+#> [ 3] #90A500
+#> [ 4] #C8BA00
+#> [ 5] #FF8BCA
+#> [ 6] #3EE59F
+#> [ 7] #D8BEFF
+#> [ 8] #37FFEC
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.092
-#> * Optimizer Performance Ratio      : 29.6%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.072
+#> * Min. Perceptual Distance (OKLAB): 0.103
+#> * Optimizer Performance Ratio      : 33.2%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.077
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 753
+#> * Optimizer Iterations: 936
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
@@ -607,17 +603,17 @@ print(my_brand_palette)
 The huerd package includes comprehensive vignettes for different user
 needs:
 
-- **[Data Scientist
-  Workflow](https://sims1253.github.io/huerd/articles/data-scientist-workflow.html)**:
-  Create accessible dashboard visualizations with optimized color
-  schemes for color vision deficient viewers.
+  - **[Data Scientist
+    Workflow](https://sims1253.github.io/huerd/articles/data-scientist-workflow.html)**:
+    Create accessible dashboard visualizations with optimized color
+    schemes for color vision deficient viewers.
 
-- **[Designer
-  Workflow](https://sims1253.github.io/huerd/articles/designer-workflow.html)**:
-  Integrate brand colors into cohesive palettes and export them in
-  various formats (CSS, Sass, JSON) for web development.
+  - **[Designer
+    Workflow](https://sims1253.github.io/huerd/articles/designer-workflow.html)**:
+    Integrate brand colors into cohesive palettes and export them in
+    various formats (CSS, Sass, JSON) for web development.
 
-- **[Package Developer
-  Workflow](https://sims1253.github.io/huerd/articles/package-developer-workflow.html)**:
-  Use the programmatic API for reproducible palette generation and
-  integrate huerd into your own packages or applications.
+  - **[Package Developer
+    Workflow](https://sims1253.github.io/huerd/articles/package-developer-workflow.html)**:
+    Use the programmatic API for reproducible palette generation and
+    integrate huerd into your own packages or applications.

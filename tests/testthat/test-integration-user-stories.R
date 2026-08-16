@@ -622,8 +622,11 @@ describe("Error Recovery: Reproducibility edge cases", {
     )
 
     # Should not error - deterministic optimizers don't need seed
+    # (suppress the expected deprecation warning for nlopt_direct)
     expect_no_error({
-      reproduced <- reproduce_palette(palette, progress = FALSE)
+      reproduced <- suppressWarnings(
+        reproduce_palette(palette, progress = FALSE)
+      )
     })
   })
 
@@ -643,7 +646,7 @@ describe("Error Recovery: Reproducibility edge cases", {
         max_iterations = 100,
         return_metrics = TRUE,
         weights = NULL,
-        optimizer = "nlopt_direct",
+        optimizer = "nloptr_cobyla",
         seed = NULL,
         package_version = "0.0.0", # Different version
         target_space = "oklab",
@@ -651,7 +654,8 @@ describe("Error Recovery: Reproducibility edge cases", {
       )
     )
 
-    # Should warn about version mismatch but still work
+    # Should warn about version mismatch but still work (uses the default
+    # optimizer so the version warning is the only warning emitted)
     expect_warning(
       {
         reproduced <- reproduce_palette(palette, progress = FALSE)
@@ -686,8 +690,9 @@ describe("Error Recovery: Reproducibility edge cases", {
     )
 
     # Should use default FALSE progress when progress is not in metadata
+    # (suppress the expected deprecation warning for nlopt_direct)
     expect_no_error({
-      reproduced <- reproduce_palette(palette, progress = NULL)
+      reproduced <- suppressWarnings(reproduce_palette(palette, progress = NULL))
     })
 
     expect_s3_class(reproduced, "huerd_palette")

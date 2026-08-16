@@ -181,6 +181,25 @@ describe("generate_palette()", {
         "All elements in 'include_colors' must be valid hex colors"
       )
     })
+
+    it("warns when optimizer is nlopt_direct (deprecated)", {
+      expect_warning(
+        generate_palette(4, optimizer = "nlopt_direct", progress = FALSE),
+        "deprecated"
+      )
+    })
+
+    it("does not warn on the default optimizer", {
+      expect_no_warning(generate_palette(4, progress = FALSE))
+    })
+
+    it("deprecation warning fires via reproduce_palette()", {
+      p <- suppressWarnings(
+        generate_palette(3, optimizer = "nlopt_direct", progress = FALSE)
+      )
+
+      expect_warning(reproduce_palette(p), "deprecated")
+    })
   })
 
   describe("weights parameter", {
@@ -530,14 +549,14 @@ describe("generate_palette()", {
     })
   })
 
-  describe("nlopt_direct optimizer", {
+  describe("nlopt_direct optimizer (deprecated)", {
     it("accepts nlopt_direct optimizer", {
       # Test with nlopt_direct optimizer
-      palette_direct <- generate_palette(
+      palette_direct <- suppressWarnings(generate_palette(
         n = 3,
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
+      ))
 
       expect_equal(length(palette_direct), 3)
       expect_true(inherits(palette_direct, "huerd_palette"))
@@ -545,12 +564,12 @@ describe("generate_palette()", {
       expect_true("optimization_details" %in% names(attributes(palette_direct)))
 
       # Test with fixed colors
-      palette_fixed <- generate_palette(
+      palette_fixed <- suppressWarnings(generate_palette(
         n = 4,
         include_colors = c("#FF0000"),
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
+      ))
 
       expect_equal(length(palette_fixed), 4)
       expect_true("#FF0000" %in% palette_fixed)
@@ -558,11 +577,11 @@ describe("generate_palette()", {
 
     it("has proper attributes", {
       # Check that optimization details are included for nlopt_direct optimizer
-      palette <- generate_palette(
+      palette <- suppressWarnings(generate_palette(
         n = 3,
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
+      ))
 
       expect_true("optimization_details" %in% names(attributes(palette)))
       details <- attr(palette, "optimization_details")
@@ -582,11 +601,11 @@ describe("generate_palette()", {
 
     it("returns colors sorted by brightness", {
       # Generate a palette with nlopt_direct optimizer and check that colors are sorted by brightness
-      palette <- generate_palette(
+      palette <- suppressWarnings(generate_palette(
         n = 5,
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
+      ))
 
       # Convert to OKLAB and check that L values are sorted
       oklab_matrix <- .hex_to_oklab(palette)
@@ -595,12 +614,12 @@ describe("generate_palette()", {
       expect_true(all(diff(oklab_matrix[, 1]) >= 0))
 
       # Test with fixed colors
-      palette_fixed <- generate_palette(
+      palette_fixed <- suppressWarnings(generate_palette(
         n = 4,
         include_colors = c("#FF0000"),
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
+      ))
 
       # Should still be sorted by brightness
       oklab_matrix_fixed <- .hex_to_oklab(palette_fixed)
@@ -609,16 +628,16 @@ describe("generate_palette()", {
 
     it("is deterministic", {
       # Test that nlopt_direct optimizer produces consistent results
-      palette1 <- generate_palette(
+      palette1 <- suppressWarnings(generate_palette(
         n = 3,
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
-      palette2 <- generate_palette(
+      ))
+      palette2 <- suppressWarnings(generate_palette(
         n = 3,
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
+      ))
 
       # Colors should be identical for deterministic optimizer
       expect_identical(as.character(palette1), as.character(palette2))
@@ -630,16 +649,16 @@ describe("generate_palette()", {
       )
 
       # Test with the same seed (should be redundant for deterministic optimizer)
-      palette3 <- generate_palette(
+      palette3 <- suppressWarnings(generate_palette(
         n = 3,
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
-      palette4 <- generate_palette(
+      ))
+      palette4 <- suppressWarnings(generate_palette(
         n = 3,
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
+      ))
 
       expect_identical(as.character(palette3), as.character(palette4))
       expect_identical(
@@ -649,15 +668,17 @@ describe("generate_palette()", {
     })
 
     it("validates nlopt_direct optimizer", {
-      # Test that nlopt_direct is now a valid optimizer
-      expect_no_error({
-        generate_palette(n = 3, optimizer = "nlopt_direct", progress = FALSE)
-      })
+      # Test that nlopt_direct is still a valid (though deprecated)
+      # optimizer: it must not error, and it must warn
+      expect_warning(
+        generate_palette(n = 3, optimizer = "nlopt_direct", progress = FALSE),
+        "deprecated"
+      )
     })
 
     it("works with all parameters", {
       # Test nlopt_direct optimizer with full parameter set
-      palette_full <- generate_palette(
+      palette_full <- suppressWarnings(generate_palette(
         n = 5,
         include_colors = c("#FF0000"),
         initialization = "k-means++",
@@ -668,7 +689,7 @@ describe("generate_palette()", {
         return_metrics = TRUE,
         progress = FALSE,
         optimizer = "nlopt_direct"
-      )
+      ))
 
       expect_equal(length(palette_full), 5)
       expect_true(inherits(palette_full, "huerd_palette"))
@@ -693,10 +714,11 @@ describe("generate_palette()", {
         progress = FALSE
       )
 
-      # Run optimization 3 times
-      palette1 <- do.call(generate_palette, params)
-      palette2 <- do.call(generate_palette, params)
-      palette3 <- do.call(generate_palette, params)
+      # Run optimization 3 times (suppressing the expected deprecation
+      # warning, which is tested separately)
+      palette1 <- suppressWarnings(do.call(generate_palette, params))
+      palette2 <- suppressWarnings(do.call(generate_palette, params))
+      palette3 <- suppressWarnings(do.call(generate_palette, params))
 
       # All colors should be identical for scientific reproducibility
       expect_identical(as.character(palette1), as.character(palette2))
@@ -925,13 +947,13 @@ describe("generate_palette()", {
     })
 
     it("metadata includes custom parameters", {
-      palette <- generate_palette(
+      palette <- suppressWarnings(generate_palette(
         n = 3,
         initialization = "harmony",
         init_lightness_bounds = c(0.3, 0.8),
         optimizer = "nlopt_direct",
         progress = FALSE
-      )
+      ))
 
       metadata <- attr(palette, "generation_metadata")
       expect_equal(metadata$initialization, "harmony")
