@@ -2,8 +2,8 @@
 
 Creates a scientifically-grounded color palette that maximizes the
 minimum perceptual distance between any two colors using pure minimax
-optimization in the OKLAB color space. Colors are automatically sorted
-by brightness and can include fixed brand colors.
+optimization in OKLAB color space. Colors are automatically sorted by
+brightness and can include fixed brand colors.
 
 ## Usage
 
@@ -20,7 +20,9 @@ generate_palette(
   return_metrics = TRUE,
   progress = interactive(),
   weights = NULL,
-  optimizer = "nloptr_cobyla"
+  optimizer = "nloptr_cobyla",
+  cvd_safe = TRUE,
+  ...
 )
 ```
 
@@ -80,9 +82,12 @@ generate_palette(
 - weights:
 
   Named numeric vector. Weights for multi-objective optimization.
-  Currently only supports `c(distance = 1)` for distance-based
-  optimization. Default is NULL (equivalent to pure distance
-  optimization).
+  Supports: `c(distance = 1)` for discrete distance optimization,
+  `c(smooth_repulsion = 1)` for smooth repulsion objective using inverse
+  squared distances, or `c(smooth_logsumexp = 1)` for smooth log-sum-exp
+  objective. Default is NULL, which is internally equivalent to
+  `c(distance = 1)` for most optimizers. For "nlopt_lbfgs", NULL
+  defaults to `smooth_repulsion`.
 
 - optimizer:
 
@@ -94,8 +99,25 @@ generate_palette(
   algorithm (best choice for scientific reproducibility and high
   quality, though may be slower), "nlopt_neldermead" for derivative-free
   local optimization using the Nelder-Mead simplex algorithm (good
-  alternative to COBYLA for robust local optimization). The framework is
-  designed to easily support additional optimizers in future versions.
+  alternative to COBYLA for robust local optimization), "nlopt_lbfgs"
+  for gradient-based L-BFGS optimization (fastest convergence for smooth
+  objectives; works best with `smooth_repulsion` or `smooth_logsumexp`
+  weights). The framework is designed to easily support additional
+  optimizers in future versions.
+
+- cvd_safe:
+
+  Logical. If `TRUE` (default), the objective maximizes the minimum
+  perceptual distance in the worst case across deuteranopia, protanopia,
+  and tritanopia simulations, producing palettes that are
+  distinguishable for viewers with color vision deficiencies. If
+  `FALSE`, the objective maximizes the minimum perceptual distance for
+  normal vision only. Has no effect when `optimizer = "nlopt_lbfgs"`
+  because the smooth objectives are normal-vision only.
+
+- ...:
+
+  Additional arguments reserved for future use.
 
 ## Value
 
@@ -114,8 +136,9 @@ The process:
 
 1.  Initialize free colors using k-means++ or harmony-based methods
 
-2.  Optimize using box-constrained nloptr to maximize minimum perceptual
-    distance
+2.  Optimize using box-constrained nloptr to maximize the minimum
+    perceptual distance (worst case across CVD simulations when
+    `cvd_safe = TRUE`, the default)
 
 3.  Sort final palette by OKLAB lightness for intuitive ordering
 
@@ -149,19 +172,19 @@ print(palette)
 #> 
 #> -- huerd Color Palette (5 colors) --
 #> Colors:
-#> [ 1] #970000
-#> [ 2] #FF0000
-#> [ 3] #F78D00
-#> [ 4] #00DE8C
-#> [ 5] #00FFFF
+#> [ 1] #5600AD
+#> [ 2] #F40000
+#> [ 3] #F853FF
+#> [ 4] #C7AA00
+#> [ 5] #00FF00
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.158
-#> * Optimizer Performance Ratio      : 38.5%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.106
+#> * Min. Perceptual Distance (OKLAB): 0.251
+#> * Optimizer Performance Ratio      : 61.1%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.122
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 375
+#> * Optimizer Iterations: 382
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Brand-constrained palette
@@ -186,26 +209,44 @@ sann_palette <- generate_palette(
   progress = FALSE
 )
 
-# Using DIRECT algorithm (deterministic global, best for scientific reproducibility)
+# Using DIRECT algorithm (deterministic global, best for scientific
+# reproducibility)
 direct_palette <- generate_palette(
   n = 4,
   optimizer = "nlopt_direct",
   progress = FALSE
 )
 
-# Using Nelder-Mead algorithm (derivative-free local, good alternative to COBYLA)
+# Using Nelder-Mead algorithm (derivative-free local, good alternative
+# to COBYLA)
 neldermead_palette <- generate_palette(
   n = 4,
   optimizer = "nlopt_neldermead",
   progress = FALSE
 )
 
+# Using smooth optimization with L-BFGS (efficient for larger palettes)
+smooth_palette <- generate_palette(
+  n = 12,
+  weights = c(smooth_repulsion = 1),
+  optimizer = "nlopt_lbfgs",
+  progress = FALSE
+)
+
+# Using alternative smooth objective
+logsumexp_palette <- generate_palette(
+  n = 6,
+  weights = c(smooth_logsumexp = 1),
+  optimizer = "nlopt_lbfgs",
+  progress = FALSE
+)
+
 # Evaluate quality
 evaluation <- evaluate_palette(brand_palette)
 cat("Min distance:", evaluation$distances$min, "\n")
-#> Min distance: 0.149913 
+#> Min distance: 0.1237911 
 cat("Performance:", evaluation$distances$performance_ratio * 100, "%\n")
-#> Performance: 41.01215 %
+#> Performance: 33.86589 %
 
 # Comprehensive analysis
 plot_palette_analysis(brand_palette)

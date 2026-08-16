@@ -10,7 +10,7 @@ established scientific palettes.
 ## Usage
 
 ``` r
-plot_palette_analysis(colors, force_font_scale = NULL)
+plot_palette_analysis(colors, force_font_scale = NULL, ...)
 ```
 
 ## Arguments
@@ -22,6 +22,10 @@ plot_palette_analysis(colors, force_font_scale = NULL)
 - force_font_scale:
 
   Allows to force a specific font scale
+
+- ...:
+
+  Additional arguments reserved for future use.
 
 ## Value
 

@@ -11,7 +11,8 @@ simulate_palette_cvd(
   colors,
   cvd_type = c("all", "protan", "deutan", "tritan"),
   severity = 1,
-  plot = FALSE
+  plot = FALSE,
+  ...
 )
 ```
 
@@ -36,11 +37,16 @@ simulate_palette_cvd(
   Logical. Whether to plot a comparison using base R graphics. Default
   is FALSE.
 
+- ...:
+
+  Additional arguments reserved for future use.
+
 ## Value
 
-If `cvd_type` is "all", returns a list with simulated palettes for each
-type (and original). Otherwise returns a character vector of simulated
-hex colors. The output object also inherits from
+A list with simulated palettes. If `cvd_type` is "all", the list
+contains elements `original`, `protan`, `deutan`, and `tritan`. For a
+single CVD type, the list contains a single element named after that
+type (e.g., `protan`). The output object also inherits from
 `huerd_simulation_result`.
 
 ## Examples
@@ -53,12 +59,13 @@ deutan_palette <- simulate_palette_cvd(palette_ex, "deutan", severity = 1.0)
 print(deutan_palette)
 #> 
 #> -- huerd CVD Simulation Result (Type: deutan, Severity: 1.00) --
-#>   [ 1] #001D53
-#>   [ 2] #56585F
-#>   [ 3] #0058C3
-#>   [ 4] #9D8C14
-#>   [ 5] #96B4FB
-#>   [ 6] #D8C131
+#> Palette for: deutan
+#>   [ 1] #241F03
+#>   [ 2] #0065F3
+#>   [ 3] #949492
+#>   [ 4] #A89626
+#>   [ 5] #84ABFE
+#>   [ 6] #E1D7B2
 
 # See all CVD types and plot them
 if (interactive() && length(palette_ex) > 0) {

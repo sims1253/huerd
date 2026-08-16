@@ -6,7 +6,7 @@ simulated common CVD conditions meets a specified threshold.
 ## Usage
 
 ``` r
-is_cvd_safe(colors, min_cvd_distance = 0.08)
+is_cvd_safe(colors, min_cvd_distance = 0.08, ...)
 ```
 
 ## Arguments
@@ -21,6 +21,10 @@ is_cvd_safe(colors, min_cvd_distance = 0.08)
   that any two colors in the palette should maintain under simulated
   deuteranopia, protanopia, and tritanopia. Default is 0.08. Recall JND
   is ~0.02.
+
+- ...:
+
+  Additional arguments reserved for future use.
 
 ## Value
 

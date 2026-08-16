@@ -51,3 +51,7 @@ Useful links:
 ## Author
 
 **Maintainer**: Maximilian Scholz <dev.scholz@mailbox.org>
+
+Authors:
+
+- Maximilian Scholz <dev.scholz@mailbox.org>
