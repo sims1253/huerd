@@ -181,31 +181,6 @@ describe(".merge_aesthetic_config()", {
   })
 })
 
-describe(".normalize_weights()", {
-  it("handles already normalized weights", {
-    weights <- c(0.5, 0.5)
-    result <- .normalize_weights(weights, "test_weights", progress = FALSE)
-    expect_equal(result, weights)
-    expect_equal(sum(result), 1.0)
-  })
-
-  it("normalizes unnormalized weights", {
-    weights <- c(2, 4, 6) # Sum = 12
-    result <- .normalize_weights(weights, "test_weights", progress = FALSE)
-    expect_equal(result, c(2 / 12, 4 / 12, 6 / 12))
-    expect_equal(sum(result), 1.0)
-  })
-
-  it("shows warning when normalizing with progress", {
-    weights <- c(2, 4, 6) # Sum = 12
-    expect_snapshot(.normalize_weights(
-      weights,
-      "test_weights",
-      progress = TRUE
-    ))
-  })
-})
-
 describe("validate_inputs()", {
   it("validates n parameter", {
     # Basic valid parameters

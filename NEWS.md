@@ -1,3 +1,13 @@
+# huerd (development version)
+
+## Internal Changes
+
+- Removed dead internal code: the unused `validate_color_input_smart()` / `validate_hex_colors()` / `validate_oklab_matrix()` validation subsystem, the legacy multi-objective `objective_function_aggregator()`, the unused `.validate_balance_weights()`, `.validate_aesthetic_weights()`, and `.normalize_weights()` helpers, and the unused `track`-free print indirection `.print_color_item()`
+- Removed three `aesthetic_init_config` keys that were accepted but never used by any code (`kmeans_C_sd_multiplier`, `harmony_hcl_L_min_sd`, `harmony_hcl_C_min_sd`); passing them now errors with an "Invalid name" message instead of being silently ignored
+- Cleaned unused NAMESPACE imports (`colorspace::simulate_cvd`, `stats::setNames`, `stats::var`, `grDevices::rgb`)
+
+---
+
 # huerd 0.6.2 (2026-08-16)
 
 ## Bug Fixes

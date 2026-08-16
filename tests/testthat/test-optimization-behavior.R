@@ -602,35 +602,6 @@ describe("numeric edge cases: extreme parameter values", {
       info = "Should handle maximum L values"
     )
   })
-
-  it("objective aggregator handles zero weights", {
-    colors_oklab <- matrix(
-      c(
-        0.3,
-        0.1,
-        0.1,
-        0.7,
-        -0.1,
-        -0.1,
-        0.5,
-        0.0,
-        0.0
-      ),
-      nrow = 3,
-      byrow = TRUE
-    )
-
-    # Zero weights should not cause NaN
-    zero_weights <- c(distance = 0, smooth_repulsion = 0, smooth_logsumexp = 0)
-
-    # This tests the internal handling - may error if all weights are zero
-    # which is expected behavior
-    expect_error(
-      objective_function_aggregator(colors_oklab, "perceptual", zero_weights),
-      NA,
-      info = "Should handle zero weights gracefully"
-    )
-  })
 })
 
 describe("numeric edge cases: numerical stability", {

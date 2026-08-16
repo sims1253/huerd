@@ -10,9 +10,6 @@
       $kmeans_L_sd_multiplier
       [1] 1.5
       
-      $kmeans_C_sd_multiplier
-      [1] 1.5
-      
       $kmeans_C_base_deviation
       [1] 0.05
       
@@ -21,12 +18,6 @@
       
       $harmony_hcl_sd_fallback
       [1] 15
-      
-      $harmony_hcl_L_min_sd
-      [1] 5
-      
-      $harmony_hcl_C_min_sd
-      [1] 5
       
       $harmony_hcl_sd_multiplier
       [1] 1
@@ -37,12 +28,4 @@
       $test_param
       [1] 123
       
-
-# .normalize_weights() / shows warning when normalizing with progress
-
-    Code
-      .normalize_weights(weights, "test_weights", progress = TRUE)
-    Output
-      Warning: test_weights do not sum to 1 and will be normalized.
-      [1] 0.1666667 0.3333333 0.5000000
 

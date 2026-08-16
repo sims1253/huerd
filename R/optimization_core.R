@@ -279,39 +279,6 @@ optimize_colors_constrained <- function(
   return_value
 }
 
-#' Aggregate Objective Function for Optimization
-#'
-#' This function computes the score to be maximized (so it returns a
-#' positive value). The main optimization function will take the
-#' negative of this.
-#' @noRd
-objective_function_aggregator <- function(
-  colors_oklab,
-  optimize_for,
-  balance_weights
-) {
-  if (nrow(colors_oklab) < 2) {
-    return(Inf)
-  }
-
-  if (optimize_for == "perceptual") {
-    return(objective_min_perceptual_dist(colors_oklab))
-  }
-  if (optimize_for == "cvd_safe") {
-    return(objective_min_cvd_safe_dist(colors_oklab))
-  }
-
-  # Balanced
-  perceptual_score <- objective_min_perceptual_dist(colors_oklab)
-  cvd_score <- objective_min_cvd_safe_dist(colors_oklab)
-
-  perceptual_score <- perceptual_score %||% 0
-  cvd_score <- cvd_score %||% 0
-
-  # If weights are c(0, 0), value will be 0.
-  balance_weights[1] * perceptual_score + balance_weights[2] * cvd_score
-}
-
 #' Objective: Maximize Minimum Perceptual Distance
 #' @noRd
 objective_min_perceptual_dist <- function(colors_oklab) {

@@ -11,10 +11,6 @@
   # the search window.
   kmeans_L_sd_multiplier = 1.5,
 
-  # K-means++ OKLAB C-filter adaptation from fixed color mean C.
-  # The SD of fixed colors' C is multiplied by this value to define
-  # the allowed deviation.
-  kmeans_C_sd_multiplier = 1.5,
   # A small constant added to the allowed C deviation to handle cases
   # where SD is zero.
   kmeans_C_base_deviation = 0.05,
@@ -27,10 +23,6 @@
   # Fallback Standard Deviation for HCL L/C if only one fixed color or
   # actual SD is zero.
   harmony_hcl_sd_fallback = 15,
-  # Minimum allowed Standard Deviation for HCL L.
-  harmony_hcl_L_min_sd = 5,
-  # Minimum allowed Standard Deviation for HCL C.
-  harmony_hcl_C_min_sd = 5,
   # Multiplier for SDs derived from fixed colors' HCL L/C values.
   harmony_hcl_sd_multiplier = 1.0,
 
@@ -69,7 +61,6 @@
   }
 
   fixed_oklab <- NULL
-  sorted_include_colors <- include_colors
   if (n_fixed > 0) {
     oklab_matrix <- .hex_to_oklab(include_colors)
 
@@ -77,13 +68,11 @@
     # palette is brightness-sorted
     lightness_order <- order(oklab_matrix[, 1])
     fixed_oklab <- oklab_matrix[lightness_order, , drop = FALSE]
-    sorted_include_colors <- include_colors[lightness_order]
   }
 
   list(
     fixed_oklab = fixed_oklab,
-    n_fixed = n_fixed,
-    sorted_include_colors = sorted_include_colors
+    n_fixed = n_fixed
   )
 }
 

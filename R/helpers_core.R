@@ -59,21 +59,6 @@
   }
 }
 
-#' Validate balance_weights parameter
-#' @noRd
-.validate_balance_weights <- function(balance_weights) {
-  if (
-    !is.numeric(balance_weights) ||
-      length(balance_weights) != 2 ||
-      any(balance_weights < 0)
-  ) {
-    stop(
-      "'balance_weights' must be a numeric vector of two non-negative values.",
-      call. = FALSE
-    )
-  }
-}
-
 #' Validate initialization lightness bounds
 #' @noRd
 .validate_lightness_bounds <- function(init_lightness_bounds) {
@@ -129,24 +114,6 @@
     stop(
       "'fixed_aesthetic_influence' must be a single numeric value ",
       "between 0 and 1.",
-      call. = FALSE
-    )
-  }
-}
-
-#' Validate aesthetic penalty weights
-#' @noRd
-.validate_aesthetic_weights <- function(aesthetic_weights_lc) {
-  if (
-    !is.numeric(aesthetic_weights_lc) ||
-      length(aesthetic_weights_lc) != 2 ||
-      any(aesthetic_weights_lc < 0) ||
-      is.null(names(aesthetic_weights_lc)) ||
-      !all(sort(names(aesthetic_weights_lc)) == c("C", "L"))
-  ) {
-    stop(
-      "'aesthetic_weights_lc' must be a named numeric vector of two ",
-      "non-negative values, with names 'L' and 'C'. E.g., c(L=1.0, C=2.0).",
       call. = FALSE
     )
   }
@@ -344,33 +311,6 @@ validate_inputs <- function(
     cat("Done.\n")
   }
   final_hex_colors
-}
-
-#' Normalize weight vectors
-#'
-#' Ensures a numeric vector sums to 1.0 if its sum is positive.
-#' @param weights A numeric vector.
-#' @param name The name of the parameter, for use in warning messages.
-#' @param progress Logical, whether to show `cli` messages.
-#' @return A numeric vector that sums to 1.0 or 0.
-#' @noRd
-.normalize_weights <- function(weights, name, progress) {
-  if (
-    sum(weights, na.rm = TRUE) > 0 &&
-      !identical(sum(weights, na.rm = TRUE), 1.0)
-  ) {
-    if (progress) {
-      cat(
-        "Warning: ",
-        name,
-        " do not sum to 1 and will be normalized.\n",
-        sep = ""
-      )
-    }
-    weights / sum(weights, na.rm = TRUE)
-  } else {
-    weights
-  }
 }
 
 #' Merge user-provided aesthetic config with defaults
