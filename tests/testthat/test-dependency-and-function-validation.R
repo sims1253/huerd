@@ -468,9 +468,6 @@ describe("Function Signature Validation", {
         "initial_colors_oklab",
         "fixed_mask",
         "max_iterations",
-        "track_states",
-        "save_every",
-        "return_states",
         "cvd_safe"
       )
       expect_equal(
@@ -488,9 +485,6 @@ describe("Function Signature Validation", {
         "initial_colors_oklab",
         "fixed_mask",
         "max_iterations",
-        "track_states",
-        "save_every",
-        "return_states",
         "cvd_safe"
       )
       expect_equal(
@@ -508,10 +502,7 @@ describe("Function Signature Validation", {
         "initial_colors_oklab",
         "fixed_mask",
         "max_iterations",
-        "weights",
-        "track_states",
-        "save_every",
-        "return_states"
+        "weights"
       )
       expect_equal(
         sort(func_params),

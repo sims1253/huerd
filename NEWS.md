@@ -2,6 +2,8 @@
 
 ## Internal Changes
 
+- Deduplicated the five optimizer implementations (`optimize_colors_constrained()`, `optimize_colors_sann()`, `optimize_colors_nlopt_direct()`, `optimize_colors_nlopt_neldermead()`, `optimize_colors_lbfgs()`) into a single shared internal driver; roughly 1,000 lines removed with no behavior change (verified byte-identical outputs across all optimizers)
+- Removed the unreachable optimization-state-tracking machinery: the `track_states`, `save_every`, and `return_states` parameters of the optimizers and the corresponding `optimization_states` plumbing; no public API or caller ever used them
 - Removed dead internal code: the unused `validate_color_input_smart()` / `validate_hex_colors()` / `validate_oklab_matrix()` validation subsystem, the legacy multi-objective `objective_function_aggregator()`, the unused `.validate_balance_weights()`, `.validate_aesthetic_weights()`, and `.normalize_weights()` helpers, and the unused `track`-free print indirection `.print_color_item()`
 - Removed three `aesthetic_init_config` keys that were accepted but never used by any code (`kmeans_C_sd_multiplier`, `harmony_hcl_L_min_sd`, `harmony_hcl_C_min_sd`); passing them now errors with an "Invalid name" message instead of being silently ignored
 - Cleaned unused NAMESPACE imports (`colorspace::simulate_cvd`, `stats::setNames`, `stats::var`, `grDevices::rgb`)
