@@ -19,9 +19,10 @@ quick_palette(
 included in the palette. These colors will be preserved exactly as
 provided, and additional colors will be optimized around them.}
 
-\item{cvd_safe}{Logical. If \code{TRUE} (default), optimizes for color vision
-deficiency safety. Currently this uses the default optimization which
-considers CVD in its metrics.}
+\item{cvd_safe}{Logical. If \code{TRUE} (default), the optimizer maximizes
+the worst-case perceptual distance across color vision deficiency
+simulations (deuteranopia, protanopia, tritanopia). If \code{FALSE}, it
+optimizes for normal vision only.}
 
 \item{quality}{Character string specifying the quality/speed tradeoff:
 \itemize{

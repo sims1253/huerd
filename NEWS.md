@@ -1,4 +1,26 @@
-# huerd 0.6.1
+# huerd 0.6.2 (2026-08-16)
+
+## Bug Fixes
+
+- `interpret_palette_quality()` no longer errors on palettes with more than 40 colors, where the theoretical-maximum distance lookup is undefined and `performance_ratio` is `NA`; the summary now reports that the percentage is not available
+- `validate_color_input_smart()` now reports the actual problem ("Colors must be a character vector (hex codes) or an OKLAB matrix") for wrong-type inputs instead of an unrelated "no base colors provided" message
+- `export_palette()` documentation now correctly states that `"hex"` returns a character vector, not a single string
+
+## New Features
+
+- `generate_palette()` gains a `cvd_safe` argument (default `TRUE`): when `TRUE`, the objective maximizes the worst-case perceptual distance across deuteranopia, protanopia, and tritanopia simulations; when `FALSE`, it optimizes normal-vision distance only. Applies to all derivative-free optimizers; documented as having no effect for `"nlopt_lbfgs"`, whose smooth objectives are normal-vision only
+- The previously ignored `cvd_safe` arguments of `quick_palette()` and `brand_palette()` are now forwarded to `generate_palette()` and take effect
+- `reproduce_palette()` forwards the stored `cvd_safe` setting; palettes generated before 0.6.2 reproduce with the previous default behavior
+
+## Infrastructure
+
+- Moved `withr` from Suggests to Imports: `reproduce_palette()` calls `withr::with_preserve_seed()` on its default code path, which must not fail for installations without suggested packages
+- Removed the committed `R/.tldr` tool cache from version control (already excluded from the built tarball via `.Rbuildignore`)
+- Removed redundant `Author`/`Maintainer` fields from `DESCRIPTION` (regenerated automatically from `Authors@R`)
+
+---
+
+# huerd 0.6.1 (2026-01-26)
 
 ## Bug Fixes
 
@@ -15,7 +37,7 @@
 
 ---
 
-# huerd 0.6.0
+# huerd 0.6.0 (2026-01-18)
 
 ## Bug Fixes
 
@@ -52,6 +74,10 @@
 
 # huerd 0.5.3
 
+## Breaking Changes
+
+- `simulate_palette_cvd()` with a single `cvd_type` now returns a named list instead of a character vector; access the simulated colors via `result$simulated`. The print method was updated accordingly
+
 ## Code Quality Improvements
 
 This release focuses on code quality, maintainability, and consistency improvements identified through comprehensive code review.
@@ -77,7 +103,7 @@ This release focuses on code quality, maintainability, and consistency improveme
 ### API Consistency
 
 - Added `...` parameter to exported functions for future extensibility
-- Fixed `simulate_palette_cvd()` to always return a named list for consistent API behavior
+- `simulate_palette_cvd()` return structure unified across single and multiple `cvd_type` values (see Breaking Changes above)
 
 ## Bug Fixes
 

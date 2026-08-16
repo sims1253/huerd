@@ -14,9 +14,10 @@
 #' @param brand_colors Optional character vector of hex colors that must be
 #'   included in the palette. These colors will be preserved exactly as
 #'   provided, and additional colors will be optimized around them.
-#' @param cvd_safe Logical. If `TRUE` (default), optimizes for color vision
-#'   deficiency safety. Currently this uses the default optimization which
-#'   considers CVD in its metrics.
+#' @param cvd_safe Logical. If `TRUE` (default), the optimizer maximizes
+#'   the worst-case perceptual distance across color vision deficiency
+#'   simulations (deuteranopia, protanopia, tritanopia). If `FALSE`, it
+#'   optimizes for normal vision only.
 #' @param quality Character string specifying the quality/speed tradeoff:
 #'   - `"fast"`: Quick generation with fewer iterations (good for exploration)
 #'   - `"balanced"`: Default balance of quality and speed
@@ -111,8 +112,10 @@ quick_palette <- function(
 #'   colors. These will be preserved exactly in the output.
 #' @param n_total Total number of colors needed in the final palette. Must be
 #'   at least as large as the number of brand colors.
-#' @param cvd_safe Logical. If `TRUE` (default), prioritizes CVD safety in
-#'   optimization.
+#' @param cvd_safe Logical. If `TRUE` (default), the optimizer maximizes
+#'   the worst-case perceptual distance across color vision deficiency
+#'   simulations (deuteranopia, protanopia, tritanopia). If `FALSE`, it
+#'   optimizes for normal vision only.
 #'
 #' @return A `huerd_palette` object containing the brand colors plus
 #'   optimized complementary colors.
@@ -169,10 +172,11 @@ brand_palette <- function(brand_colors, n_total, cvd_safe = TRUE) {
 #'   to the given file path and (invisibly) returns the file path as a
 #'   character string.
 #'
-#' @return If `file` is `NULL`, returns the formatted palette as a character
-#'   string (invisibly for `"hex"`). If `file` is specified, the function
-#'   writes the formatted palette to the given file and (invisibly) returns the
-#'   file path as a character string.
+#' @return If `file` is `NULL`: for `"hex"`, the palette as a character
+#'   vector (returned invisibly); for all other formats, the formatted
+#'   palette as a single character string. If `file` is specified, the
+#'   function writes the formatted palette to the given file and
+#'   (invisibly) returns the file path as a character string.
 #' @examples
 #' pal <- generate_palette(5, progress = FALSE)
 #'
@@ -332,21 +336,22 @@ interpret_palette_quality <- function(palette) {
 
   # Interpret performance ratio
   perf_ratio <- eval$distances$performance_ratio
-  perf_text <- if (perf_ratio >= 0.6) {
-    "highly optimized"
-  } else if (perf_ratio >= 0.4) {
-    "well optimized"
-  } else if (perf_ratio >= 0.25) {
-    "moderately optimized"
+  # The theoretical-maximum lookup only covers n <= 40, so performance_ratio
+  # can be NA; guard all downstream comparisons
+  if (is.na(perf_ratio)) {
+    perf_text <- "of unknown optimization quality"
+    percent_text <- "not available"
   } else {
-    "has room for improvement"
-  }
-
-  # Handle NA performance ratio for summary
-  percent_text <- if (is.na(perf_ratio)) {
-    "not available"
-  } else {
-    sprintf("%.0f%% of theoretical maximum", perf_ratio * 100)
+    perf_text <- if (perf_ratio >= 0.6) {
+      "highly optimized"
+    } else if (perf_ratio >= 0.4) {
+      "well optimized"
+    } else if (perf_ratio >= 0.25) {
+      "moderately optimized"
+    } else {
+      "has room for improvement"
+    }
+    percent_text <- sprintf("%.0f%% of theoretical maximum", perf_ratio * 100)
   }
 
   # Interpret CVD safety

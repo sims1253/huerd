@@ -35,8 +35,10 @@ validate_color_input_smart <- function(
     validation_result$errors <- c(
       validation_result$errors,
       paste0(
-        "Cannot generate palette: no base colors provided ",
-        "and n_colors not specified"
+        "Colors must be a character vector (hex codes) or an OKLAB ",
+        "matrix with 3 columns, not ",
+        class(colors)[1],
+        "."
       )
     )
   }

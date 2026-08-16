@@ -39,6 +39,20 @@ describe("quick_palette()", {
     expect_error(quick_palette(3, lightness = "invalid"))
     expect_error(quick_palette(3, lightness = c(0.5)))
   })
+
+  it("honors cvd_safe parameter", {
+    set.seed(42)
+    pal_safe <- quick_palette(4, cvd_safe = TRUE)
+    set.seed(42)
+    pal_plain <- quick_palette(4, cvd_safe = FALSE)
+
+    expect_length(pal_safe, 4)
+    expect_length(pal_plain, 4)
+    # Different objectives converge to different palettes from the same start
+    expect_false(identical(as.character(pal_safe), as.character(pal_plain)))
+    expect_true(attr(pal_safe, "generation_metadata")$cvd_safe)
+    expect_false(attr(pal_plain, "generation_metadata")$cvd_safe)
+  })
 })
 
 
@@ -169,6 +183,17 @@ describe("interpret_palette_quality()", {
 
     expect_no_error(print(result))
     expect_invisible(print(result))
+  })
+
+  it("handles palettes beyond the theoretical maximum lookup (n > 40)", {
+    set.seed(123)
+    pal <- quick_palette(41, quality = "fast")
+
+    result <- interpret_palette_quality(pal)
+
+    expect_s3_class(result, "huerd_interpretation")
+    expect_match(result$summary, "not available")
+    expect_true(is.na(result$metrics$performance_ratio))
   })
 })
 

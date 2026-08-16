@@ -188,7 +188,8 @@
   n_free,
   progress,
   optimizer = "nloptr_cobyla",
-  weights = NULL
+  weights = NULL,
+  cvd_safe = TRUE
 ) {
   if (progress && n_free > 0) {
     cli::cli_inform(
@@ -202,22 +203,26 @@
     "nloptr_cobyla" = optimize_colors_constrained(
       current_all_colors_oklab,
       fixed_mask,
-      max_iterations
+      max_iterations,
+      cvd_safe = cvd_safe
     ),
     "sann" = optimize_colors_sann(
       current_all_colors_oklab,
       fixed_mask,
-      max_iterations
+      max_iterations,
+      cvd_safe = cvd_safe
     ),
     "nlopt_direct" = optimize_colors_nlopt_direct(
       current_all_colors_oklab,
       fixed_mask,
-      max_iterations
+      max_iterations,
+      cvd_safe = cvd_safe
     ),
     "nlopt_neldermead" = optimize_colors_nlopt_neldermead(
       current_all_colors_oklab,
       fixed_mask,
-      max_iterations
+      max_iterations,
+      cvd_safe = cvd_safe
     ),
     "nlopt_lbfgs" = optimize_colors_lbfgs(
       current_all_colors_oklab,
@@ -350,6 +355,13 @@
 #'   convergence for smooth objectives; works best with
 #'   `smooth_repulsion` or `smooth_logsumexp` weights). The framework is
 #'   designed to easily support additional optimizers in future versions.
+#' @param cvd_safe Logical. If `TRUE` (default), the objective maximizes
+#'   the minimum perceptual distance in the worst case across deuteranopia,
+#'   protanopia, and tritanopia simulations, producing palettes that are
+#'   distinguishable for viewers with color vision deficiencies. If
+#'   `FALSE`, the objective maximizes the minimum perceptual distance for
+#'   normal vision only. Has no effect when `optimizer = "nlopt_lbfgs"`
+#'   because the smooth objectives are normal-vision only.
 #' @param ... Additional arguments reserved for future use.
 #'
 #' @return A character vector of hex colors with class `huerd_palette`,
@@ -365,7 +377,8 @@
 #' The process:
 #' 1. Initialize free colors using k-means++ or harmony-based methods
 #' 2. Optimize using box-constrained nloptr to maximize the minimum
-#'    perceptual distance
+#'    perceptual distance (worst case across CVD simulations when
+#'    `cvd_safe = TRUE`, the default)
 #' 3. Sort final palette by OKLAB lightness for intuitive ordering
 #' 4. Apply gamut compensation during brightness sorting
 #'
@@ -462,8 +475,13 @@ generate_palette <- function(
   progress = interactive(),
   weights = NULL,
   optimizer = "nloptr_cobyla",
+  cvd_safe = TRUE,
   ...
 ) {
+  if (!is.logical(cvd_safe) || length(cvd_safe) != 1 || is.na(cvd_safe)) {
+    stop("`cvd_safe` must be a single TRUE or FALSE.", call. = FALSE)
+  }
+
   # nolint start: object_usage_linter
   seed_info <- if (exists(".Random.seed")) {
     .Random.seed
@@ -484,6 +502,7 @@ generate_palette <- function(
     return_metrics = return_metrics,
     weights = weights,
     optimizer = optimizer,
+    cvd_safe = cvd_safe,
     seed = seed_info,
     package_version = utils::packageVersion("huerd"),
     target_space = "oklab",
@@ -558,7 +577,8 @@ generate_palette <- function(
       init_result$n_free,
       progress,
       optimizer,
-      weights
+      weights,
+      cvd_safe = cvd_safe
     )
 
     # Finalize and return
@@ -719,7 +739,8 @@ reproduce_palette <- function(palette, progress = NULL, ...) {
         return_metrics = metadata$return_metrics,
         progress = progress,
         weights = metadata$weights,
-        optimizer = metadata$optimizer
+        optimizer = metadata$optimizer,
+        cvd_safe = metadata$cvd_safe %||% TRUE
       )
     })
     # nolint end
@@ -736,7 +757,8 @@ reproduce_palette <- function(palette, progress = NULL, ...) {
       return_metrics = metadata$return_metrics,
       progress = progress,
       weights = metadata$weights,
-      optimizer = metadata$optimizer
+      optimizer = metadata$optimizer,
+      cvd_safe = metadata$cvd_safe %||% TRUE
     )
   }
 

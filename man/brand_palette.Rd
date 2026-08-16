@@ -13,8 +13,10 @@ colors. These will be preserved exactly in the output.}
 \item{n_total}{Total number of colors needed in the final palette. Must be
 at least as large as the number of brand colors.}
 
-\item{cvd_safe}{Logical. If \code{TRUE} (default), prioritizes CVD safety in
-optimization.}
+\item{cvd_safe}{Logical. If \code{TRUE} (default), the optimizer maximizes
+the worst-case perceptual distance across color vision deficiency
+simulations (deuteranopia, protanopia, tritanopia). If \code{FALSE}, it
+optimizes for normal vision only.}
 }
 \value{
 A \code{huerd_palette} object containing the brand colors plus

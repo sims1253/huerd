@@ -477,7 +477,8 @@ describe("Function Signature Validation", {
         "max_iterations",
         "track_states",
         "save_every",
-        "return_states"
+        "return_states",
+        "cvd_safe"
       )
       expect_equal(
         sort(func_params),
@@ -496,7 +497,8 @@ describe("Function Signature Validation", {
         "max_iterations",
         "track_states",
         "save_every",
-        "return_states"
+        "return_states",
+        "cvd_safe"
       )
       expect_equal(
         sort(func_params),
@@ -542,6 +544,7 @@ describe("Function Signature Validation", {
         "progress",
         "weights",
         "optimizer",
+        "cvd_safe",
         "..."
       )
       expect_equal(

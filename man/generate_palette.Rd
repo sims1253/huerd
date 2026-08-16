@@ -17,6 +17,7 @@ generate_palette(
   progress = interactive(),
   weights = NULL,
   optimizer = "nloptr_cobyla",
+  cvd_safe = TRUE,
   ...
 )
 }
@@ -77,6 +78,14 @@ convergence for smooth objectives; works best with
 \code{smooth_repulsion} or \code{smooth_logsumexp} weights). The framework is
 designed to easily support additional optimizers in future versions.}
 
+\item{cvd_safe}{Logical. If \code{TRUE} (default), the objective maximizes
+the minimum perceptual distance in the worst case across deuteranopia,
+protanopia, and tritanopia simulations, producing palettes that are
+distinguishable for viewers with color vision deficiencies. If
+\code{FALSE}, the objective maximizes the minimum perceptual distance for
+normal vision only. Has no effect when \code{optimizer = "nlopt_lbfgs"}
+because the smooth objectives are normal-vision only.}
+
 \item{...}{Additional arguments reserved for future use.}
 }
 \value{
@@ -100,7 +109,8 @@ The process:
 \enumerate{
 \item Initialize free colors using k-means++ or harmony-based methods
 \item Optimize using box-constrained nloptr to maximize the minimum
-perceptual distance
+perceptual distance (worst case across CVD simulations when
+\code{cvd_safe = TRUE}, the default)
 \item Sort final palette by OKLAB lightness for intuitive ordering
 \item Apply gamut compensation during brightness sorting
 }

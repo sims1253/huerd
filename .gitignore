@@ -39,3 +39,5 @@ create_hex_logo.R
 pkgdown/
 .Rcheck/
 ..Rcheck/
+*.Rcheck/
+*.tar.gz

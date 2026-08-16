@@ -32,10 +32,11 @@ to the given file path and (invisibly) returns the file path as a
 character string.}
 }
 \value{
-If \code{file} is \code{NULL}, returns the formatted palette as a character
-string (invisibly for \code{"hex"}). If \code{file} is specified, the function
-writes the formatted palette to the given file and (invisibly) returns the
-file path as a character string.
+If \code{file} is \code{NULL}: for \code{"hex"}, the palette as a character
+vector (returned invisibly); for all other formats, the formatted
+palette as a single character string. If \code{file} is specified, the
+function writes the formatted palette to the given file and
+(invisibly) returns the file path as a character string.
 }
 \description{
 Export a huerd palette to common formats used in design and development

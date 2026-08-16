@@ -1,10 +1,8 @@
 Package: huerd
 Title: Color Palette Optimization with fixed colors
-Version: 0.6.1
-Date: 2026-01-26
+Version: 0.6.2
+Date: 2026-08-16
 Authors@R: person("Maximilian", "Scholz", email = "dev.scholz@mailbox.org", role = c("aut", "cre"))
-Author: Maximilian Scholz [aut, cre]
-Maintainer: Maximilian Scholz <dev.scholz@mailbox.org>
 Description: Generates color palettes using minimax optimization to
     maximize the minimum perceptual distance between colors. Features the
     ability to define fixed colors that are kept throughout the
@@ -25,14 +23,14 @@ Imports:
     farver,
     grid,
     gridExtra,
-    nloptr
+    nloptr,
+    withr
 Suggests:
     ggplot2 (>= 3.4.0),
     knitr,
     ragg,
     rmarkdown,
-    testthat (>= 3.0.0),
-    withr
+    testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
@@ -41,4 +39,4 @@ Language: en-US
 LazyData: true
 Config/testthat/parallel: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.0.0

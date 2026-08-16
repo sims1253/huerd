@@ -36,6 +36,9 @@
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
+#' @param cvd_safe Logical. If `TRUE`, maximize the worst-case minimum
+#'   distance across CVD simulations; if `FALSE`, maximize the minimum
+#'   normal-vision perceptual distance.
 #' @return A list containing optimized color matrix `palette` and
 #'   `details` about optimization.
 #' @noRd
@@ -45,7 +48,8 @@ optimize_colors_constrained <- function(
   max_iterations,
   track_states = FALSE,
   save_every = 50,
-  return_states = FALSE
+  return_states = FALSE,
+  cvd_safe = TRUE
 ) {
   if (is.null(initial_colors_oklab)) {
     stop("initial_colors_oklab must be a matrix")
@@ -127,14 +131,16 @@ optimize_colors_constrained <- function(
   }
 
   # Objective function to be minimized by nloptr (pure minimax)
+  objective_fn <- .select_palette_objective(cvd_safe)
   eval_f <- function(free_params_vec) {
     eval_f_env$iter <- eval_f_env$iter + 1
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
 
-    # Pure minimax objective: maximize minimum perceptual distance
+    # Minimax objective: maximize the minimum distance under the selected
+    # objective (worst case across CVD simulations, or normal vision)
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
+    objective_value <- -objective_fn(temp_all_colors_oklab)
 
     # Capture state if tracking enabled
     if (track_states && eval_f_env$iter %% save_every == 0) {
@@ -386,6 +392,16 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
   worst_case_min_dist
 }
 
+#' Select the minimax objective based on CVD safety
+#' @noRd
+.select_palette_objective <- function(cvd_safe) {
+  if (isTRUE(cvd_safe)) {
+    objective_min_cvd_safe_dist
+  } else {
+    objective_min_perceptual_dist
+  }
+}
+
 #' Optimize Color Palette using Simulated Annealing
 #'
 #' This function takes an initial set of colors and optimizes positions of
@@ -400,6 +416,9 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
+#' @param cvd_safe Logical. If `TRUE`, maximize the worst-case minimum
+#'   distance across CVD simulations; if `FALSE`, maximize the minimum
+#'   normal-vision perceptual distance.
 #' @return A list containing optimized color matrix `palette` and
 #'   `details` about optimization.
 #' @noRd
@@ -409,7 +428,8 @@ optimize_colors_sann <- function(
   max_iterations,
   track_states = FALSE,
   save_every = 50,
-  return_states = FALSE
+  return_states = FALSE,
+  cvd_safe = TRUE
 ) {
   if (is.null(initial_colors_oklab)) {
     stop("initial_colors_oklab must be a matrix")
@@ -496,14 +516,16 @@ optimize_colors_sann <- function(
 
   # Objective function to be minimized by optim (pure minimax with
   # penalty for constraint violations)
+  objective_fn <- .select_palette_objective(cvd_safe)
   eval_f <- function(free_params_vec) {
     eval_f_env$iter <- eval_f_env$iter + 1
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
 
-    # Pure minimax objective: maximize minimum perceptual distance
+    # Minimax objective: maximize the minimum distance under the selected
+    # objective (worst case across CVD simulations, or normal vision)
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
+    objective_value <- -objective_fn(temp_all_colors_oklab)
 
     # Add penalty for constraint violations (box constraints)
     penalty <- 0
@@ -661,6 +683,9 @@ optimize_colors_sann <- function(
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
+#' @param cvd_safe Logical. If `TRUE`, maximize the worst-case minimum
+#'   distance across CVD simulations; if `FALSE`, maximize the minimum
+#'   normal-vision perceptual distance.
 #' @return A list containing optimized color matrix `palette` and
 #'   `details` about optimization.
 #' @noRd
@@ -670,7 +695,8 @@ optimize_colors_nlopt_direct <- function(
   max_iterations,
   track_states = FALSE,
   save_every = 50,
-  return_states = FALSE
+  return_states = FALSE,
+  cvd_safe = TRUE
 ) {
   if (is.null(initial_colors_oklab)) {
     stop("initial_colors_oklab must be a matrix")
@@ -751,14 +777,16 @@ optimize_colors_nlopt_direct <- function(
   }
 
   # Objective function to be minimized by nloptr (pure minimax)
+  objective_fn <- .select_palette_objective(cvd_safe)
   eval_f <- function(free_params_vec) {
     eval_f_env$iter <- eval_f_env$iter + 1
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
 
-    # Pure minimax objective: maximize minimum perceptual distance
+    # Minimax objective: maximize the minimum distance under the selected
+    # objective (worst case across CVD simulations, or normal vision)
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
+    objective_value <- -objective_fn(temp_all_colors_oklab)
 
     # Capture state if tracking enabled
     if (track_states && eval_f_env$iter %% save_every == 0) {
@@ -912,6 +940,9 @@ optimize_colors_nlopt_direct <- function(
 #' @param track_states Logical. Whether to track optimization states.
 #' @param save_every Integer. Frequency for saving optimization states.
 #' @param return_states Logical. Whether to return optimization states.
+#' @param cvd_safe Logical. If `TRUE`, maximize the worst-case minimum
+#'   distance across CVD simulations; if `FALSE`, maximize the minimum
+#'   normal-vision perceptual distance.
 #' @return A list containing optimized color matrix `palette` and
 #'   `details` about optimization.
 #' @noRd
@@ -921,7 +952,8 @@ optimize_colors_nlopt_neldermead <- function(
   max_iterations,
   track_states = FALSE,
   save_every = 50,
-  return_states = FALSE
+  return_states = FALSE,
+  cvd_safe = TRUE
 ) {
   if (is.null(initial_colors_oklab)) {
     stop("initial_colors_oklab must be a matrix")
@@ -1002,14 +1034,16 @@ optimize_colors_nlopt_neldermead <- function(
   }
 
   # Objective function to be minimized by nloptr (pure minimax)
+  objective_fn <- .select_palette_objective(cvd_safe)
   eval_f <- function(free_params_vec) {
     eval_f_env$iter <- eval_f_env$iter + 1
     current_free_colors_oklab <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
 
-    # Pure minimax objective: maximize minimum perceptual distance
+    # Minimax objective: maximize the minimum distance under the selected
+    # objective (worst case across CVD simulations, or normal vision)
     temp_all_colors_oklab <- initial_colors_oklab
     temp_all_colors_oklab[!fixed_mask, ] <- current_free_colors_oklab
-    objective_value <- -objective_min_cvd_safe_dist(temp_all_colors_oklab)
+    objective_value <- -objective_fn(temp_all_colors_oklab)
 
     # Capture state if tracking enabled
     if (track_states && eval_f_env$iter %% save_every == 0) {

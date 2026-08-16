@@ -29,7 +29,7 @@ describe("validate_color_input_smart()", {
       {
         validate_color_input_smart(123, context = "evaluation")
       },
-      "no base colors provided"
+      "Colors must be a character vector"
     )
 
     expect_error(

@@ -1126,3 +1126,47 @@ describe("generate_palette()", {
     })
   })
 })
+
+
+describe("generate_palette() cvd_safe parameter", {
+  it("validates cvd_safe input", {
+    expect_error(
+      generate_palette(3, cvd_safe = "yes", progress = FALSE),
+      "cvd_safe"
+    )
+    expect_error(
+      generate_palette(3, cvd_safe = NA, progress = FALSE),
+      "cvd_safe"
+    )
+    expect_error(
+      generate_palette(3, cvd_safe = c(TRUE, FALSE), progress = FALSE),
+      "cvd_safe"
+    )
+  })
+
+  it("records cvd_safe in generation metadata", {
+    pal_default <- generate_palette(3, progress = FALSE)
+    pal_plain <- generate_palette(3, cvd_safe = FALSE, progress = FALSE)
+
+    expect_true(attr(pal_default, "generation_metadata")$cvd_safe)
+    expect_false(attr(pal_plain, "generation_metadata")$cvd_safe)
+  })
+
+  it("optimizes different objectives for different cvd_safe settings", {
+    set.seed(99)
+    pal_cvd <- generate_palette(4, cvd_safe = TRUE, progress = FALSE)
+    set.seed(99)
+    pal_norm <- generate_palette(4, cvd_safe = FALSE, progress = FALSE)
+
+    expect_false(identical(as.character(pal_cvd), as.character(pal_norm)))
+  })
+
+  it("reproduces palettes generated with cvd_safe = FALSE", {
+    set.seed(7)
+    pal <- generate_palette(3, cvd_safe = FALSE, progress = FALSE)
+
+    rep <- reproduce_palette(pal, progress = FALSE)
+
+    expect_identical(as.character(rep), as.character(pal))
+  })
+})
