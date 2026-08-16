@@ -24,7 +24,10 @@ brand_palette(brand_colors, n_total, cvd_safe = TRUE)
 
 - cvd_safe:
 
-  Logical. If `TRUE` (default), prioritizes CVD safety in optimization.
+  Logical. If `TRUE` (default), the optimizer maximizes the worst-case
+  perceptual distance across color vision deficiency simulations
+  (deuteranopia, protanopia, tritanopia). If `FALSE`, it optimizes for
+  normal vision only.
 
 ## Value
 
@@ -47,19 +50,19 @@ brand_palette(
 #> 
 #> -- huerd Color Palette (6 colors) --
 #> Colors:
-#> [ 1] #190000
+#> [ 1] #21001B
 #> [ 2] #003366
-#> [ 3] #AA0000
-#> [ 4] #724EC8
+#> [ 3] #750000
+#> [ 4] #1A78A2
 #> [ 5] #FF6600
-#> [ 6] #00B5FF
+#> [ 6] #82B9FF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.237
-#> * Optimizer Performance Ratio      : 64.8%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.165
+#> * Min. Perceptual Distance (OKLAB): 0.195
+#> * Optimizer Performance Ratio      : 53.2%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.163
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 203
+#> * Optimizer Iterations: 264
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```

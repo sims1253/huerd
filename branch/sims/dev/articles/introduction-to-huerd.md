@@ -15,6 +15,7 @@ basic palette generation to in-depth analysis.
 You can install the development version of `huerd` from GitHub with:
 
 ``` r
+
 # install.packages("remotes")
 # remotes::install_github("sims1253/huerd")
 ```
@@ -27,6 +28,7 @@ function. By default, it will create a palette of the specified size
 with colors that are as distinct as possible.
 
 ``` r
+
 library(huerd)
 
 # Generate a palette of 5 colors
@@ -60,6 +62,7 @@ A key feature of `huerd` is the ability to include fixed “brand” colors
 in your palette while optimizing the remaining colors around them.
 
 ``` r
+
 # Generate a 6-color palette that must include a specific blue and orange
 brand_palette <- generate_palette(
   n = 6,
@@ -100,6 +103,7 @@ function provides a detailed, quantitative assessment of a palette’s
 properties.
 
 ``` r
+
 # Evaluate the brand palette we just created
 evaluation <- evaluate_palette(brand_palette)
 print(evaluation)
@@ -142,6 +146,7 @@ For a more visual analysis, the
 function creates a comprehensive dashboard.
 
 ``` r
+
 # Create the diagnostic dashboard
 plot_palette_analysis(brand_palette)
 ```
@@ -172,6 +177,7 @@ This function provides a simple, programmatic check to see if a palette
 meets a minimum threshold for CVD safety.
 
 ``` r
+
 is_cvd_safe(brand_palette)
 #> [1] TRUE
 ```
@@ -182,6 +188,7 @@ This function allows you to see how your palette would appear to
 individuals with different types of CVD.
 
 ``` r
+
 # Simulate the appearance for all CVD types
 cvd_simulation <- simulate_palette_cvd(brand_palette, cvd_type = "all")
 print(cvd_simulation)

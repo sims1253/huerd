@@ -48,8 +48,9 @@ export_palette(
 
 ## Value
 
-If `file` is `NULL`, returns the formatted palette as a character string
-(invisibly for `"hex"`). If `file` is specified, the function writes the
+If `file` is `NULL`: for `"hex"`, the palette as a character vector
+(returned invisibly); for all other formats, the formatted palette as a
+single character string. If `file` is specified, the function writes the
 formatted palette to the given file and (invisibly) returns the file
 path as a character string.
 
@@ -63,14 +64,14 @@ export_palette(pal)
 
 # CSS custom properties
 export_palette(pal, format = "css")
-#> [1] ":root {\n  --color_1: #005600;\n  --color_2: #FF005C;\n  --color_3: #FF8800;\n  --color_4: #AAD6B8;\n  --color_5: #00FF00;\n}"
+#> [1] ":root {\n  --color_1: #3400D8;\n  --color_2: #FF0000;\n  --color_3: #CB918B;\n  --color_4: #00D800;\n  --color_5: #FFF500;\n}"
 
 # With custom names
 export_palette(pal, format = "css",
                names = c("primary", "secondary", "accent", "bg", "text"))
-#> [1] ":root {\n  --primary: #005600;\n  --secondary: #FF005C;\n  --accent: #FF8800;\n  --bg: #AAD6B8;\n  --text: #00FF00;\n}"
+#> [1] ":root {\n  --primary: #3400D8;\n  --secondary: #FF0000;\n  --accent: #CB918B;\n  --bg: #00D800;\n  --text: #FFF500;\n}"
 
 # JSON for web applications
 export_palette(pal, format = "json")
-#> [1] "{\n    \"color_1\": \"#005600\",\n    \"color_2\": \"#FF005C\",\n    \"color_3\": \"#FF8800\",\n    \"color_4\": \"#AAD6B8\",\n    \"color_5\": \"#00FF00\"\n}"
+#> [1] "{\n    \"color_1\": \"#3400D8\",\n    \"color_2\": \"#FF0000\",\n    \"color_3\": \"#CB918B\",\n    \"color_4\": \"#00D800\",\n    \"color_5\": \"#FFF500\"\n}"
 ```

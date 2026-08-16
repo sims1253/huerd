@@ -21,6 +21,7 @@ Use
 when you have specific colors that must be included:
 
 ``` r
+
 library(huerd)
 
 # Client's brand colors
@@ -62,6 +63,7 @@ complementary colors.
 See your palette at a glance:
 
 ``` r
+
 plot(palette)
 ```
 
@@ -70,6 +72,7 @@ plot(palette)
 For client presentations, use the full analysis dashboard:
 
 ``` r
+
 plot_palette_analysis(palette)
 ```
 
@@ -81,6 +84,7 @@ For print materials, you may want to avoid very light or very dark
 colors:
 
 ``` r
+
 # Mid-range lightness for better print reproduction
 print_palette <- quick_palette(
   n = 6,
@@ -112,6 +116,7 @@ print(print_palette)
 Or specify custom bounds:
 
 ``` r
+
 # Very specific lightness range
 controlled_palette <- generate_palette(
   n = 6,
@@ -126,6 +131,7 @@ controlled_palette <- generate_palette(
 ### Human-Readable Quality Assessment
 
 ``` r
+
 quality <- interpret_palette_quality(palette)
 print(quality)
 #> 
@@ -148,6 +154,7 @@ This gives you language you can use directly in client presentations.
 For detailed documentation:
 
 ``` r
+
 evaluation <- evaluate_palette(palette)
 
 cat("=== Palette Quality Report ===\n\n")
@@ -174,6 +181,7 @@ cat("CVD-safe:", is_cvd_safe(palette), "\n")
 Show stakeholders how the palette appears to colorblind viewers:
 
 ``` r
+
 cvd_sim <- simulate_palette_cvd(palette, cvd_type = "all")
 print(cvd_sim)
 #> 
@@ -215,6 +223,7 @@ huerd can export to multiple formats for development handoff:
 ### CSS Custom Properties
 
 ``` r
+
 css_output <- export_palette(
   palette,
   format = "css",
@@ -234,6 +243,7 @@ cat(css_output)
 ### Sass Variables
 
 ``` r
+
 sass_output <- export_palette(
   palette,
   format = "sass",
@@ -251,6 +261,7 @@ cat(sass_output)
 ### JSON for Web Applications
 
 ``` r
+
 json_output <- export_palette(palette, format = "json")
 cat(json_output)
 #> {
@@ -266,6 +277,7 @@ cat(json_output)
 ### Save to Files
 
 ``` r
+
 # Export directly to files
 export_palette(palette, format = "css", file = "brand-colors.css")
 export_palette(palette, format = "sass", file = "_brand-colors.scss")
@@ -277,6 +289,7 @@ export_palette(palette, format = "json", file = "brand-colors.json")
 Every palette includes metadata for exact reproduction:
 
 ``` r
+
 # Original palette
 original <- generate_palette(
   n = 6,
@@ -295,6 +308,7 @@ identical(as.character(original), as.character(reproduced))
 ## Complete Design Workflow Example
 
 ``` r
+
 # 1. Define brand colors
 brand_colors <- c("#003366", "#FF6600")
 
@@ -328,6 +342,7 @@ plot_palette_analysis(final_palette)
 ![](designer-workflow_files/figure-html/unnamed-chunk-15-1.png)
 
 ``` r
+
 
 # 6. Export for development
 cat("\n=== CSS Export ===\n")

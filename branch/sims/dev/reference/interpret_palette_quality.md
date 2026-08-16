@@ -36,8 +36,8 @@ interpret_palette_quality(pal)
 #> 
 #> ── Palette Quality Assessment ──
 #> 
-#> This 6-color palette is highly optimized (60% of theoretical maximum).
-#> Excellent - colors are highly distinct and easy to differentiate
+#> This 6-color palette is well optimized (59% of theoretical maximum). Excellent
+#> - colors are highly distinct and easy to differentiate
 #> 
 #> 
 #> ── Distinctness 

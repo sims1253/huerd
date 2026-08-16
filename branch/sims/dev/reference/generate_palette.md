@@ -21,6 +21,7 @@ generate_palette(
   progress = interactive(),
   weights = NULL,
   optimizer = "nloptr_cobyla",
+  cvd_safe = TRUE,
   ...
 )
 ```
@@ -104,6 +105,16 @@ generate_palette(
   weights). The framework is designed to easily support additional
   optimizers in future versions.
 
+- cvd_safe:
+
+  Logical. If `TRUE` (default), the objective maximizes the minimum
+  perceptual distance in the worst case across deuteranopia, protanopia,
+  and tritanopia simulations, producing palettes that are
+  distinguishable for viewers with color vision deficiencies. If
+  `FALSE`, the objective maximizes the minimum perceptual distance for
+  normal vision only. Has no effect when `optimizer = "nlopt_lbfgs"`
+  because the smooth objectives are normal-vision only.
+
 - ...:
 
   Additional arguments reserved for future use.
@@ -126,7 +137,8 @@ The process:
 1.  Initialize free colors using k-means++ or harmony-based methods
 
 2.  Optimize using box-constrained nloptr to maximize the minimum
-    perceptual distance
+    perceptual distance (worst case across CVD simulations when
+    `cvd_safe = TRUE`, the default)
 
 3.  Sort final palette by OKLAB lightness for intuitive ordering
 
@@ -160,19 +172,19 @@ print(palette)
 #> 
 #> -- huerd Color Palette (5 colors) --
 #> Colors:
-#> [ 1] #150078
-#> [ 2] #670000
-#> [ 3] #000CF7
-#> [ 4] #EA0000
-#> [ 5] #5DE500
+#> [ 1] #5600AD
+#> [ 2] #F40000
+#> [ 3] #F853FF
+#> [ 4] #C7AA00
+#> [ 5] #00FF00
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.221
-#> * Optimizer Performance Ratio      : 53.9%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.209
+#> * Min. Perceptual Distance (OKLAB): 0.251
+#> * Optimizer Performance Ratio      : 61.1%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.122
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 419
+#> * Optimizer Iterations: 382
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Brand-constrained palette
@@ -232,9 +244,9 @@ logsumexp_palette <- generate_palette(
 # Evaluate quality
 evaluation <- evaluate_palette(brand_palette)
 cat("Min distance:", evaluation$distances$min, "\n")
-#> Min distance: 0.1606496 
+#> Min distance: 0.1237911 
 cat("Performance:", evaluation$distances$performance_ratio * 100, "%\n")
-#> Performance: 43.94939 %
+#> Performance: 33.86589 %
 
 # Comprehensive analysis
 plot_palette_analysis(brand_palette)

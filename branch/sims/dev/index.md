@@ -10,6 +10,7 @@ advanced color palette generation.
 You can install the development version of huerd from GitHub with:
 
 ``` r
+
 # install.packages("pak")
 pak::pak("sims1253/huerd")
 ```
@@ -20,6 +21,7 @@ Generate a palette with 8 colors using either the standard or quick
 method:
 
 ``` r
+
 library(huerd)
 
 set.seed(42)
@@ -75,6 +77,7 @@ print(quick_palette)
 Visualize your palette:
 
 ``` r
+
 library(huerd)
 
 set.seed(42)
@@ -89,6 +92,7 @@ plot(palette, type = "swatches")
 Use huerd palettes directly in your ggplot2 visualizations:
 
 ``` r
+
 library(ggplot2)
 library(huerd)
 
@@ -108,6 +112,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species)) +
 
 ``` r
 
+
 # Example with mtcars data using scale_fill_huerd()
 ggplot(mtcars, aes(x = factor(cyl), fill = factor(cyl))) +
   geom_bar() +
@@ -124,6 +129,7 @@ ggplot(mtcars, aes(x = factor(cyl), fill = factor(cyl))) +
 Access pre-made palettes and export options for different workflows:
 
 ``` r
+
 library(huerd)
 
 # Get a quick palette without generation
@@ -227,6 +233,7 @@ print(quality_info)
 Include specific colors while optimizing the remaining colors:
 
 ``` r
+
 library(huerd)
 
 set.seed(123)
@@ -263,6 +270,7 @@ print(palette)
 Choose from 5 different optimization algorithms based on your needs:
 
 ``` r
+
 library(huerd)
 
 set.seed(456)
@@ -301,6 +309,7 @@ The package includes a multi-objective optimization framework with both
 discrete and smooth optimization support:
 
 ``` r
+
 library(huerd)
 
 set.seed(789)
@@ -403,6 +412,7 @@ print(logsumexp_palette)
 Get a quick overview of your palette properties:
 
 ``` r
+
 library(huerd)
 
 set.seed(2024)
@@ -417,6 +427,7 @@ plot_palette_analysis(palette, force_font_scale = 0.6)
 Or look at the numerical evaluation results:
 
 ``` r
+
 library(huerd)
 
 set.seed(314)
@@ -437,6 +448,7 @@ cat("CVD worst case:", evaluation$cvd_safety$worst_case_min_distance, "\n")
 Fine-tune the generation process with advanced options:
 
 ``` r
+
 library(huerd)
 
 set.seed(271)
@@ -474,6 +486,7 @@ print(palette)
 ## Complete Workflow Example
 
 ``` r
+
 library(huerd)
 
 set.seed(161)
@@ -504,6 +517,7 @@ plot_palette_analysis(my_brand_palette, force_font_scale = 0.6)
 ![](reference/figures/README-workflow-1.png)
 
 ``` r
+
 
 # 3. Quality evaluation
 evaluation <- evaluate_palette(my_brand_palette)

@@ -32,9 +32,10 @@ quick_palette(
 
 - cvd_safe:
 
-  Logical. If `TRUE` (default), optimizes for color vision deficiency
-  safety. Currently this uses the default optimization which considers
-  CVD in its metrics.
+  Logical. If `TRUE` (default), the optimizer maximizes the worst-case
+  perceptual distance across color vision deficiency simulations
+  (deuteranopia, protanopia, tritanopia). If `FALSE`, it optimizes for
+  normal vision only.
 
 - quality:
 
@@ -79,19 +80,19 @@ quick_palette(5)
 #> 
 #> -- huerd Color Palette (5 colors) --
 #> Colors:
-#> [ 1] #7C0066
-#> [ 2] #C30000
-#> [ 3] #FF36FF
-#> [ 4] #00F8FF
-#> [ 5] #FADE00
+#> [ 1] #340900
+#> [ 2] #1D00A9
+#> [ 3] #2B9500
+#> [ 4] #FF00FF
+#> [ 5] #00FD00
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.204
-#> * Optimizer Performance Ratio      : 49.8%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.186
+#> * Min. Perceptual Distance (OKLAB): 0.294
+#> * Optimizer Performance Ratio      : 71.5%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.213
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 379
+#> * Optimizer Iterations: 339
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Include brand colors
@@ -99,20 +100,20 @@ quick_palette(6, brand_colors = c("#1f77b4", "#ff7f0e"))
 #> 
 #> -- huerd Color Palette (6 colors) --
 #> Colors:
-#> [ 1] #5D0039
-#> [ 2] #B80000
-#> [ 3] #1F77B4
-#> [ 4] #FF7F0E
-#> [ 5] #FFA8FF
-#> [ 6] #B6FD00
+#> [ 1] #6C3900
+#> [ 2] #1F77B4
+#> [ 3] #B59298
+#> [ 4] #00ADF7
+#> [ 5] #FF7F0E
+#> [ 6] #00E7FF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.218
-#> * Optimizer Performance Ratio      : 59.6%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.173
+#> * Min. Perceptual Distance (OKLAB): 0.160
+#> * Optimizer Performance Ratio      : 43.8%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.138
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 318
+#> * Optimizer Iterations: 366
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Fast generation for exploration
@@ -120,19 +121,19 @@ quick_palette(8, quality = "fast")
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #570000
-#> [ 2] #484D00
-#> [ 3] #0000F6
-#> [ 4] #686D00
-#> [ 5] #408572
-#> [ 6] #9369E7
-#> [ 7] #00B050
-#> [ 8] #FFB6C8
+#> [ 1] #003300
+#> [ 2] #3000B7
+#> [ 3] #006893
+#> [ 4] #8F00FF
+#> [ 5] #FF0000
+#> [ 6] #FF7697
+#> [ 7] #CDBBF2
+#> [ 8] #00FF00
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.114
-#> * Optimizer Performance Ratio      : 36.7%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.109
+#> * Min. Perceptual Distance (OKLAB): 0.161
+#> * Optimizer Performance Ratio      : 52.0%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.126
 #> 
 #> -- Generation Details --
 #> * Optimizer Iterations: 202
@@ -143,18 +144,18 @@ quick_palette(5, lightness = "light")
 #> 
 #> -- huerd Color Palette (5 colors) --
 #> Colors:
-#> [ 1] #CB00A1
-#> [ 2] #FF00FF
-#> [ 3] #FF9D00
-#> [ 4] #DEA6FF
-#> [ 5] #FFED00
+#> [ 1] #0000FF
+#> [ 2] #A872FF
+#> [ 3] #D771AA
+#> [ 4] #EE9BFF
+#> [ 5] #D3DFD4
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.166
-#> * Optimizer Performance Ratio      : 40.4%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.120
+#> * Min. Perceptual Distance (OKLAB): 0.144
+#> * Optimizer Performance Ratio      : 35.0%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.135
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 508
+#> * Optimizer Iterations: 552
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```

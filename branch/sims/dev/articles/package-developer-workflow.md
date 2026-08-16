@@ -30,6 +30,7 @@ Or for optional functionality:
 ### Automatic Palette Generation
 
 ``` r
+
 library(huerd)
 
 # Function that automatically generates palettes
@@ -74,6 +75,7 @@ print(result$palette)
 For scientific workflows, ensure reproducibility:
 
 ``` r
+
 # Set seed before generation
 set.seed(42)
 palette1 <- generate_palette(8, progress = FALSE)
@@ -89,6 +91,7 @@ identical(as.character(palette1), as.character(palette2))
 Or use the built-in reproduction:
 
 ``` r
+
 original <- generate_palette(8, progress = FALSE)
 reproduced <- reproduce_palette(original, progress = FALSE)
 
@@ -101,6 +104,7 @@ identical(as.character(original), as.character(reproduced))
 huerd palettes include rich metadata for logging and debugging:
 
 ``` r
+
 palette <- generate_palette(
   n = 8,
   return_metrics = TRUE,  # Include quality metrics
@@ -130,6 +134,7 @@ cat("Performance ratio:", metrics$distances$performance_ratio, "\n")
 Different optimizers suit different needs:
 
 ``` r
+
 # COBYLA (default) - Good balance, deterministic
 cobyla_pal <- generate_palette(6, optimizer = "nloptr_cobyla", progress = FALSE)
 
@@ -162,6 +167,7 @@ with `smooth_repulsion` for fastest optimization
 ### Single Color
 
 ``` r
+
 single <- generate_palette(1, progress = FALSE)
 print(single)
 #> 
@@ -184,6 +190,7 @@ length(single)
 ### Empty Palette
 
 ``` r
+
 empty <- generate_palette(0, progress = FALSE)
 print(empty)
 #> 
@@ -205,6 +212,7 @@ length(empty)
 ### Large Palettes
 
 ``` r
+
 # For many colors, consider limiting iterations for speed
 large <- generate_palette(
   n = 15,
@@ -247,6 +255,7 @@ Your package might want to compare huerd palettes against user-provided
 ones:
 
 ``` r
+
 # Evaluate any vector of hex colors
 viridis_colors <- c("#440154", "#3B528B", "#21918C", "#5DC863", "#FDE725")
 
@@ -275,6 +284,7 @@ cat("  CVD safety:", round(eval_huerd$cvd_safety$worst_case_min_distance, 3), "\
 huerd palettes work seamlessly as character vectors:
 
 ``` r
+
 palette <- generate_palette(5, progress = FALSE)
 
 # Standard vector operations
@@ -302,6 +312,7 @@ barplot(1:5, col = palette)
 If your package uses ggplot2, huerd provides native scales:
 
 ``` r
+
 library(ggplot2)
 
 # Automatic palette
@@ -313,6 +324,7 @@ ggplot(iris, aes(Sepal.Length, Sepal.Width, color = Species)) +
 ![](package-developer-workflow_files/figure-html/unnamed-chunk-12-1.png)
 
 ``` r
+
 
 # Pre-generated palette for consistency
 my_palette <- generate_palette(3, progress = FALSE)
@@ -329,6 +341,7 @@ ggplot(iris, aes(Sepal.Length, Sepal.Width, color = Species)) +
 If huerd is in `Suggests`, check for availability:
 
 ``` r
+
 my_plot_function <- function(data, ...) {
   n_groups <- length(unique(data$group))
   
@@ -346,6 +359,7 @@ my_plot_function <- function(data, ...) {
 ## Performance Considerations
 
 ``` r
+
 # Benchmark different configurations
 library(huerd)
 
@@ -355,7 +369,7 @@ system.time({
   fast <- generate_palette(8, max_iterations = 100, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   0.609   0.000   0.609
+#>   0.557   0.000   0.557
 
 # Default generation
 # Expected runtime: ~0.5-2.0 seconds (balanced iteration count for good quality)
@@ -363,7 +377,7 @@ system.time({
   default <- generate_palette(8, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   1.603   0.000   1.602
+#>   1.357   0.000   1.357
 
 # High quality generation
 # Expected runtime: ~2.0-8.0 seconds (high iterations for maximum quality)
@@ -371,7 +385,7 @@ system.time({
   quality <- generate_palette(8, max_iterations = 3000, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   1.107   0.000   1.108
+#>   0.952   0.000   0.952
 ```
 
 For performance-critical applications:

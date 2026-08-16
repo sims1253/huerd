@@ -20,6 +20,7 @@ For many use cases,
 is all you need:
 
 ``` r
+
 library(huerd)
 
 # Generate a 6-color accessible palette
@@ -48,6 +49,7 @@ print(palette)
 Want to include your brand colors? Just add them:
 
 ``` r
+
 brand_palette <- quick_palette(
   n = 6,
   brand_colors = c("#1f77b4", "#ff7f0e")  # Your blue and orange
@@ -79,6 +81,7 @@ huerd provides native ggplot2 integration. No more
 [`scale_color_manual()`](https://ggplot2.tidyverse.org/reference/scale_manual.html):
 
 ``` r
+
 library(ggplot2)
 
 # Simulate treatment outcome data
@@ -118,6 +121,7 @@ ggplot(treatment_data, aes(x = time_weeks, y = outcome, color = treatment)) +
 Include your brand colors directly in the scale:
 
 ``` r
+
 ggplot(treatment_data, aes(x = time_weeks, y = outcome, color = treatment)) +
   geom_smooth(method = "loess", se = FALSE) +
   scale_color_huerd(brand_colors = c("#1f77b4", "#ff7f0e")) +
@@ -139,6 +143,7 @@ ggplot(treatment_data, aes(x = time_weeks, y = outcome, color = treatment)) +
 For consistent colors across multiple plots, generate once and reuse:
 
 ``` r
+
 # Generate and save your palette
 my_palette <- generate_palette(
   n = 6,
@@ -173,6 +178,7 @@ Before finalizing your dashboard, verify accessibility:
 ### Quick Check
 
 ``` r
+
 is_cvd_safe(my_palette)
 #> [1] TRUE
 ```
@@ -180,6 +186,7 @@ is_cvd_safe(my_palette)
 ### Detailed Assessment
 
 ``` r
+
 interpret_palette_quality(my_palette)
 #> 
 #> ── Palette Quality Assessment ──
@@ -197,6 +204,7 @@ interpret_palette_quality(my_palette)
 ### Full Evaluation
 
 ``` r
+
 evaluation <- evaluate_palette(my_palette)
 
 # Key metrics for your accessibility report
@@ -213,6 +221,7 @@ cat("Performance ratio:", round(evaluation$distances$performance_ratio * 100, 1)
 For presentations or documentation, use the analysis dashboard:
 
 ``` r
+
 plot_palette_analysis(my_palette)
 ```
 
@@ -221,6 +230,7 @@ plot_palette_analysis(my_palette)
 Or the simple swatch view:
 
 ``` r
+
 plot(my_palette)
 ```
 

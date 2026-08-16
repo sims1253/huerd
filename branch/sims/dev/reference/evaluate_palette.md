@@ -38,23 +38,23 @@ print(metrics) # Uses custom print method
 #> -- huerd Palette Evaluation (5 colors) --
 #> 
 #> -- Perceptual Distances (OKLAB) --
-#> * Min distance       : 0.2931
-#> * Mean distance      : 0.4145
-#> * Median distance    : 0.3780
-#> * Std. Dev.          : 0.1133
+#> * Min distance       : 0.2615
+#> * Mean distance      : 0.4804
+#> * Median distance    : 0.4861
+#> * Std. Dev.          : 0.1425
 #> * Estimated Max Min  : 0.4108 (for unconstrained palette of this size)
-#> * Performance Ratio  : 71.4% (achieved min / estimated max)
+#> * Performance Ratio  : 63.7% (achieved min / estimated max)
 #> 
 #> -- CVD Safety (OKLAB distances under simulation) --
-#> * Worst-case min dist: 0.2580
-#>   Protanopia : min=0.258, preserved_ratio=0.88
-#>   Deuteranopia: min=0.290, preserved_ratio=0.99
-#>   Tritanopia : min=0.258, preserved_ratio=0.88
+#> * Worst-case min dist: 0.1753
+#>   Protanopia : min=0.175, preserved_ratio=0.67
+#>   Deuteranopia: min=0.176, preserved_ratio=0.67
+#>   Tritanopia : min=0.176, preserved_ratio=0.67
 #> 
 #> -- Color Distribution (OKLAB) --
-#> * Lightness (L)    : range=[0.23, 0.81], mean=0.55
-#> * Chroma (C)       : range=[0.051, 0.273], mean=0.157
-#> * Hue (degrees)    : circular_variance=0.753
+#> * Lightness (L)    : range=[0.34, 0.96], mean=0.67
+#> * Chroma (C)       : range=[0.061, 0.302], mean=0.223
+#> * Hue (degrees)    : circular_variance=0.981
 
 # The performance_ratio compares the achieved min distance to an
 # estimated maximum
