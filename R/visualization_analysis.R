@@ -20,9 +20,6 @@
 #' @param force_font_scale Allows to force a specific font scale
 #' @param ... Additional arguments reserved for future use.
 #' @return Invisibly returns the evaluation result from evaluate_palette.
-#' @importFrom grid gpar grid.rect grid.text grobTree textGrob rectGrob
-#' @importFrom gridExtra grid.arrange
-#' @importFrom grDevices hcl.colors adjustcolor
 #' @export
 #' @examples
 #' colors <- c("#ff0000", "#00ff00", "#0000ff")
@@ -244,7 +241,7 @@ create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
 
   # Create colored rectangles for the heatmap
   cell_size <- 0.8 / n # Available space for the matrix
-  colors <- hcl.colors(100, "Viridis")
+  colors <- grDevices::hcl.colors(100, "Viridis")
 
   # Normalize distances for color mapping
   max_dist <- max(dist_matrix, na.rm = TRUE)
@@ -662,7 +659,7 @@ create_comparative_palettes <- function(
 #' Get reference palette minimum distance
 #' @noRd
 get_ref_palette_distances <- function(palette_name, n) {
-  ref_colors <- hcl.colors(n, palette_name)
+  ref_colors <- grDevices::hcl.colors(n, palette_name)
 
   ref_oklab <- farver::convert_colour(
     farver::decode_colour(ref_colors),
