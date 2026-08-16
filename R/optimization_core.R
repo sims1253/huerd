@@ -625,10 +625,8 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
       iterations = as.integer(eval_f_env$iter),
       status_message = if (result$status == 0) {
         "Optimization converged"
-      } else if (!is.null(result$message)) {
-        result$message
       } else {
-        paste("Optimization status:", result$status)
+        result$message
       },
       sann_convergence = status_value,
       final_objective_value = objective_value
