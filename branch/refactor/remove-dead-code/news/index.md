@@ -21,6 +21,11 @@
   [`stats::setNames`](https://rdrr.io/r/stats/setNames.html),
   [`stats::var`](https://rdrr.io/r/stats/cor.html),
   [`grDevices::rgb`](https://rdrr.io/r/grDevices/rgb.html))
+- Removed all redundant NAMESPACE `importFrom` directives (every call
+  site uses explicit `pkg::` qualification); the last two unqualified
+  calls ([`dist()`](https://rdrr.io/r/stats/dist.html),
+  [`hcl.colors()`](https://rdrr.io/r/grDevices/palettes.html)) were
+  namespace-qualified
 
 ------------------------------------------------------------------------
 
