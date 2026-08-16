@@ -4,6 +4,17 @@
 
 ### Internal Changes
 
+- Deduplicated the five optimizer implementations
+  (`optimize_colors_constrained()`, `optimize_colors_sann()`,
+  `optimize_colors_nlopt_direct()`,
+  `optimize_colors_nlopt_neldermead()`, `optimize_colors_lbfgs()`) into
+  a single shared internal driver; roughly 1,000 lines removed with no
+  behavior change (verified byte-identical outputs across all
+  optimizers)
+- Removed the unreachable optimization-state-tracking machinery: the
+  `track_states`, `save_every`, and `return_states` parameters of the
+  optimizers and the corresponding `optimization_states` plumbing; no
+  public API or caller ever used them
 - Removed dead internal code: the unused `validate_color_input_smart()`
   / `validate_hex_colors()` / `validate_oklab_matrix()` validation
   subsystem, the legacy multi-objective
