@@ -263,11 +263,6 @@
   class(hex_colors) <- c("huerd_palette", class(hex_colors))
   attr(hex_colors, "optimization_details") <- opt_result$details
 
-  # Add optimization states if they exist
-  if ("optimization_states" %in% names(opt_result)) {
-    attr(hex_colors, "optimization_states") <- opt_result$optimization_states
-  }
-
   if (return_metrics) {
     # Use sorted colors for metrics if they exist, otherwise use original matrix
     colors_for_metrics <- if (
