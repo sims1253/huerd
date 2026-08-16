@@ -25,7 +25,7 @@ objective_smooth_repulsion <- function(colors_oklab, epsilon = 1e-8) {
   }
 
   # Calculate pairwise distances efficiently (lower triangle only)
-  distances <- dist(colors_oklab)
+  distances <- stats::dist(colors_oklab)
 
   # Calculate inverse square sum
   sum(1 / (distances^2 + epsilon))
@@ -57,7 +57,7 @@ objective_smooth_logsumexp <- function(colors_oklab, k = 10) {
   }
 
   # Calculate pairwise distances efficiently (lower triangle only)
-  distances <- dist(colors_oklab)
+  distances <- stats::dist(colors_oklab)
 
   # Calculate log-sum-exp with numerical stability trick
   neg_k_distances <- -k * distances
@@ -144,7 +144,7 @@ gradient_smooth_logsumexp <- function(colors_oklab, k = 10, epsilon = 1e-8) {
   gradient <- matrix(0, nrow = n_colors, ncol = n_dims)
 
   # Calculate distances and weights with numerical stability
-  distances <- as.matrix(dist(colors_oklab))
+  distances <- as.matrix(stats::dist(colors_oklab))
   neg_k_distances <- -k * distances
   diag(neg_k_distances) <- -Inf # Exclude self-distances (exp(-Inf) = 0)
 

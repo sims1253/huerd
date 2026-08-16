@@ -55,13 +55,6 @@ describe("Function Existence Tests", {
       )
     })
 
-    it("objective_function_aggregator is defined", {
-      expect_true(
-        exists("objective_function_aggregator", mode = "function"),
-        info = "objective_function_aggregator must be defined for multi-objective optimization"
-      )
-    })
-
     it("objective_min_perceptual_dist is defined", {
       expect_true(
         exists("objective_min_perceptual_dist", mode = "function"),

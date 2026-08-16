@@ -33,11 +33,5 @@
 # The following block is used by Roxygen to automatically manage imports
 # in the NAMESPACE file.
 ## usethis namespace: start
-#' @importFrom colorspace simulate_cvd
-#' @importFrom farver encode_colour decode_colour convert_colour
-#' @importFrom nloptr nloptr
-#' @importFrom stats runif dist optim var sd quantile median setNames
-#' @importFrom utils modifyList packageVersion head str
-#' @importFrom grDevices rgb col2rgb
 ## usethis namespace: end
 NULL

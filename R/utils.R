@@ -294,12 +294,6 @@ print.huerd_simulation_result <- function(x, ...) {
   cat(item_label, "\n", sep = "")
 }
 
-#' Print a single color item (with or without swatch)
-#' @noRd
-.print_color_item <- function(color_val, item_label) {
-  .print_color_with_swatch(color_val, item_label)
-}
-
 #' Internal helper to print a vector of colors with swatches
 #' @noRd
 print_color_vector <- function(colors_vec, indent = "  ") {
@@ -311,7 +305,7 @@ print_color_vector <- function(colors_vec, indent = "  ") {
   for (i in seq_along(colors_vec)) {
     color_val <- colors_vec[i]
     item_label <- sprintf("%s[%2d] %s", indent, i, color_val)
-    .print_color_item(color_val, item_label)
+    .print_color_with_swatch(color_val, item_label)
   }
 }
 
