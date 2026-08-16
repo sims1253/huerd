@@ -60,12 +60,12 @@ print(deutan_palette)
 #> 
 #> -- huerd CVD Simulation Result (Type: deutan, Severity: 1.00) --
 #> Palette for: deutan
-#>   [ 1] #241F03
-#>   [ 2] #0065F3
-#>   [ 3] #949492
-#>   [ 4] #A89626
-#>   [ 5] #84ABFE
-#>   [ 6] #E1D7B2
+#>   [ 1] #463D0A
+#>   [ 2] #A39000
+#>   [ 3] #748BC2
+#>   [ 4] #979BA8
+#>   [ 5] #93B3FD
+#>   [ 6] #CDC39C
 
 # See all CVD types and plot them
 if (interactive() && length(palette_ex) > 0) {

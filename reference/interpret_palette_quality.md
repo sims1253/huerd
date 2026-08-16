@@ -36,13 +36,13 @@ interpret_palette_quality(pal)
 #> 
 #> ── Palette Quality Assessment ──
 #> 
-#> This 6-color palette is well optimized (59% of theoretical maximum). Excellent
-#> - colors are highly distinct and easy to differentiate
+#> This 6-color palette is moderately optimized (37% of theoretical maximum). Good
+#> - colors are reasonably distinct for most uses
 #> 
 #> 
 #> ── Distinctness 
-#> Excellent - colors are highly distinct and easy to differentiate
+#> Good - colors are reasonably distinct for most uses
 #> 
 #> ── Accessibility 
-#> Excellent - palette is safe for most color vision deficiencies
+#> Good - palette should work for most viewers with CVD
 ```

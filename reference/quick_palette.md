@@ -80,19 +80,19 @@ quick_palette(5)
 #> 
 #> -- huerd Color Palette (5 colors) --
 #> Colors:
-#> [ 1] #340900
-#> [ 2] #1D00A9
-#> [ 3] #2B9500
-#> [ 4] #FF00FF
-#> [ 5] #00FD00
+#> [ 1] #6C0000
+#> [ 2] #A700FF
+#> [ 3] #009E00
+#> [ 4] #D09AFF
+#> [ 5] #C0FFFF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.294
-#> * Optimizer Performance Ratio      : 71.5%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.213
+#> * Min. Perceptual Distance (OKLAB): 0.247
+#> * Optimizer Performance Ratio      : 60.1%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.210
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 339
+#> * Optimizer Iterations: 352
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Include brand colors
@@ -100,20 +100,20 @@ quick_palette(6, brand_colors = c("#1f77b4", "#ff7f0e"))
 #> 
 #> -- huerd Color Palette (6 colors) --
 #> Colors:
-#> [ 1] #6C3900
+#> [ 1] #863400
 #> [ 2] #1F77B4
-#> [ 3] #B59298
-#> [ 4] #00ADF7
-#> [ 5] #FF7F0E
-#> [ 6] #00E7FF
+#> [ 3] #FF7F0E
+#> [ 4] #93A0FF
+#> [ 5] #64EDFF
+#> [ 6] #F5E17C
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.160
-#> * Optimizer Performance Ratio      : 43.8%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.138
+#> * Min. Perceptual Distance (OKLAB): 0.200
+#> * Optimizer Performance Ratio      : 54.6%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.167
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 366
+#> * Optimizer Iterations: 374
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 
 # Fast generation for exploration
@@ -121,19 +121,19 @@ quick_palette(8, quality = "fast")
 #> 
 #> -- huerd Color Palette (8 colors) --
 #> Colors:
-#> [ 1] #003300
-#> [ 2] #3000B7
-#> [ 3] #006893
-#> [ 4] #8F00FF
+#> [ 1] #002300
+#> [ 2] #760037
+#> [ 3] #5900B6
+#> [ 4] #5E8200
 #> [ 5] #FF0000
-#> [ 6] #FF7697
-#> [ 7] #CDBBF2
-#> [ 8] #00FF00
+#> [ 6] #009FFF
+#> [ 7] #FF9B00
+#> [ 8] #00EDFF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.161
-#> * Optimizer Performance Ratio      : 52.0%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.126
+#> * Min. Perceptual Distance (OKLAB): 0.215
+#> * Optimizer Performance Ratio      : 69.4%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.089
 #> 
 #> -- Generation Details --
 #> * Optimizer Iterations: 202
@@ -144,18 +144,18 @@ quick_palette(5, lightness = "light")
 #> 
 #> -- huerd Color Palette (5 colors) --
 #> Colors:
-#> [ 1] #0000FF
-#> [ 2] #A872FF
-#> [ 3] #D771AA
-#> [ 4] #EE9BFF
-#> [ 5] #D3DFD4
+#> [ 1] #C44500
+#> [ 2] #FF00F6
+#> [ 3] #DBACFF
+#> [ 4] #CDF700
+#> [ 5] #88FFFF
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.144
-#> * Optimizer Performance Ratio      : 35.0%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.135
+#> * Min. Perceptual Distance (OKLAB): 0.218
+#> * Optimizer Performance Ratio      : 53.0%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.125
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 552
+#> * Optimizer Iterations: 433
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```

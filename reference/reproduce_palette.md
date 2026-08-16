@@ -41,10 +41,10 @@ with the exact same parameters.
 
 Reproducibility depends on the optimizer used:
 
-- **Deterministic optimizers** ("nlopt_direct", "nloptr_cobyla",
-  "nlopt_neldermead", "nlopt_lbfgs"): Reproduction is always identical
-  regardless of the random seed, as these algorithms produce the same
-  results for the same inputs.
+- **Deterministic optimizers** ("nloptr_cobyla", "nlopt_neldermead",
+  "nlopt_lbfgs"): Reproduction is always identical regardless of the
+  random seed, as these algorithms produce the same results for the same
+  inputs.
 
 - **Stochastic optimizers** ("sann"): Reproduction requires restoring
   the random seed captured during the original generation. The seed is
@@ -64,7 +64,7 @@ set.seed(42)
 original_palette <- generate_palette(
   n = 5,
   include_colors = c("#FF0000"),
-  optimizer = "nlopt_direct",
+  optimizer = "nloptr_cobyla",
   progress = FALSE
 )
 

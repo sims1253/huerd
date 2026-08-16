@@ -2,6 +2,18 @@
 
 ## huerd (development version)
 
+### Deprecated
+
+- `optimizer = "nlopt_direct"` in
+  [`generate_palette()`](https://sims1253.github.io/huerd/reference/generate_palette.md)
+  is now deprecated and emits a warning; it will be removed in a future
+  release. The DIRECT algorithm’s center-lattice sampling cannot
+  reliably find configurations with all pairwise-separated colors in
+  this parameterization, so it returns degenerate palettes (all colors
+  collapsing to a single hex) for most palette sizes; increasing
+  `max_iterations` does not help. Use the default `"nloptr_cobyla"` or
+  `"nlopt_neldermead"` instead.
+
 ### Internal Changes
 
 - Deduplicated the five optimizer implementations
@@ -28,7 +40,7 @@
   errors with an “Invalid name” message instead of being silently
   ignored
 - Cleaned unused NAMESPACE imports
-  ([`colorspace::simulate_cvd`](https://colorspace.R-Forge.R-project.org/reference/simulate_cvd.html),
+  ([`colorspace::simulate_cvd`](https://rdrr.io/pkg/colorspace/man/simulate_cvd.html),
   [`stats::setNames`](https://rdrr.io/r/stats/setNames.html),
   [`stats::var`](https://rdrr.io/r/stats/cor.html),
   [`grDevices::rgb`](https://rdrr.io/r/grDevices/rgb.html))
