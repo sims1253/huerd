@@ -1,0 +1,12 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  data-scientist-workflow: data-scientist-workflow.html
+  designer-workflow: designer-workflow.html
+  introduction-to-huerd: introduction-to-huerd.html
+  package-developer-workflow: package-developer-workflow.html
+last_built: 2026-08-17T00:38Z
+urls:
+  reference: https://sims1253.github.io/huerd/branch/test/suite-hygiene/reference
+  article: https://sims1253.github.io/huerd/branch/test/suite-hygiene/articles
