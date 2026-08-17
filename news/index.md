@@ -16,6 +16,27 @@
 
 ### Internal Changes
 
+- `initialize_kmeans_plus_plus()` candidate-center distance computation
+  vectorized: the nested [`apply()`](https://rdrr.io/r/base/apply.html)
+  loops over candidates and centers are replaced by a per-center
+  [`rowSums()`](https://rdrr.io/r/base/colSums.html)/[`pmin()`](https://rdrr.io/r/base/Extremes.html)
+  accumulation. Results are bit-identical (verified with
+  [`identical()`](https://rdrr.io/r/base/identical.html) across 80 seed
+  x configuration combinations and at the
+  [`generate_palette()`](https://sims1253.github.io/huerd/reference/generate_palette.md)
+  level), with a large speedup for palettes with many free colors: the
+  `n_free = 100` tests drop the `helpers-init` file from ~224 s to ~4 s
+- Test suite pruned of non-behavioral slop: 65 tests removed
+  (function-existence and
+  [`formals()`](https://rdrr.io/r/base/formals.html) signature checks,
+  [`requireNamespace()`](https://rdrr.io/r/base/ns-load.html)-style
+  dependency checks, constant/export existence assertions, and a “gamut
+  penalty” test that re-implemented arithmetic from an implementation
+  that no longer exists); no behavioral coverage lost. The
+  `.merge_aesthetic_config()` version-mismatch snapshot now records an
+  input reachable through the public API (`config_version = 999`)
+  instead of a string version and an unknown key, both of which
+  `validate_inputs()` rejects before the merge ever sees them
 - Deduplicated the five optimizer implementations
   (`optimize_colors_constrained()`, `optimize_colors_sann()`,
   `optimize_colors_nlopt_direct()`,
@@ -40,7 +61,7 @@
   errors with an “Invalid name” message instead of being silently
   ignored
 - Cleaned unused NAMESPACE imports
-  ([`colorspace::simulate_cvd`](https://rdrr.io/pkg/colorspace/man/simulate_cvd.html),
+  ([`colorspace::simulate_cvd`](https://colorspace.R-Forge.R-project.org/reference/simulate_cvd.html),
   [`stats::setNames`](https://rdrr.io/r/stats/setNames.html),
   [`stats::var`](https://rdrr.io/r/stats/cor.html),
   [`grDevices::rgb`](https://rdrr.io/r/grDevices/rgb.html))
