@@ -525,12 +525,20 @@ initialize_kmeans_plus_plus <- function(
       break
     }
 
-    min_dists_sq <- apply(candidates, 1, function(cand_point) {
-      dist_sq_vec <- apply(current_centers_oklab, 1, function(center_row) {
-        sum((cand_point - center_row)^2)
-      })
-      min(dist_sq_vec)
-    })
+    # Squared distance from every remaining candidate to its closest
+    # already-chosen center. Vectorized over candidates; the center loop is
+    # at most n_fixed + n_free iterations. `rowSums()` accumulates the three
+    # squared differences in the same L/a/b order as `sum()` did, and `pmin()`
+    # against an `Inf` seed yields the same per-candidate minimum, so the
+    # sampled indices (and hence the RNG stream) are unchanged.
+    min_dists_sq <- rep(Inf, nrow(candidates))
+    for (center_idx in seq_len(nrow(current_centers_oklab))) {
+      center_row <- current_centers_oklab[center_idx, ]
+      d2 <- rowSums(
+        (candidates - matrix(center_row, nrow(candidates), 3, byrow = TRUE))^2
+      )
+      min_dists_sq <- pmin(min_dists_sq, d2)
+    }
 
     probs <- min_dists_sq
     if (sum(probs, na.rm = TRUE) == 0 || !any(is.finite(probs))) {
