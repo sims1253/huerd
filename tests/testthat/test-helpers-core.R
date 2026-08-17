@@ -162,20 +162,23 @@ describe(".merge_aesthetic_config()", {
   })
 
   it("merges user config with defaults", {
-    # Need to check what's in default config first
-    default_config <- .default_aesthetic_init_config
-    user_config <- list(test_param = 999)
+    # User config must only contain real keys: .validate_aesthetic_config()
+    # rejects unknown names before the merge runs via the public API
+    user_config <- list(kmeans_L_sd_multiplier = 2.5)
 
     result <- .merge_aesthetic_config(user_config)
     expect_true(is.list(result))
-    expect_equal(result$test_param, 999)
+    expect_equal(result$kmeans_L_sd_multiplier, 2.5)
     # Should still have default values for other parameters
     expect_true("config_version" %in% names(result))
+    expect_equal(result$kmeans_C_base_deviation, 0.05)
   })
 
   it("handles version mismatch warning", {
-    # Test version mismatch warning path
-    user_config <- list(config_version = "999.0", test_param = 123)
+    # Test version mismatch warning path (numeric wrong version; a string
+    # version or an unknown key would be rejected by
+    # .validate_aesthetic_config() before the merge ever sees them)
+    user_config <- list(config_version = 999)
 
     expect_snapshot(.merge_aesthetic_config(user_config))
   })

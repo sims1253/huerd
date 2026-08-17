@@ -795,6 +795,63 @@ describe("initialize_kmeans_plus_plus()", {
     expect_equal(colnames(result), c("L", "a", "b"))
   })
 
+  it("relaxes an over-restrictive chroma filter and returns an empty set", {
+    # The target chroma (5) is unreachable for OKLAB a/b within [-0.4, 0.4]
+    # (max chroma ~0.57), so the filter first triggers the relaxation
+    # fallback and then drops every candidate, yielding the empty-set return
+    result <- withr::with_seed(
+      42,
+      initialize_kmeans_plus_plus(
+        n_free = 3,
+        fixed_colors_oklab = NULL,
+        lightness_bounds = c(0.2, 0.8),
+        chroma_filter_params = list(
+          apply_filter = TRUE,
+          target_C_mean = 5,
+          max_C_deviation = 0.001,
+          relaxation_factor = 1.5
+        ),
+        base_init_lightness_bounds = c(0.1, 0.9)
+      )
+    )
+
+    expect_true(is.matrix(result))
+    expect_equal(nrow(result), 0)
+    expect_equal(ncol(result), 3)
+    expect_equal(colnames(result), c("L", "a", "b"))
+  })
+
+  it("stops early when chroma-filtered candidates run out", {
+    # A near-achromatic chroma window keeps only a couple of the candidate
+    # pool's ~2000 rows, so the selection loop breaks before n_free centers
+    # are found and fewer colors than requested are returned
+    result <- withr::with_seed(
+      42,
+      initialize_kmeans_plus_plus(
+        n_free = 5,
+        fixed_colors_oklab = NULL,
+        lightness_bounds = c(0.2, 0.8),
+        chroma_filter_params = list(
+          apply_filter = TRUE,
+          target_C_mean = 0,
+          max_C_deviation = 0.01,
+          relaxation_factor = 1.5
+        ),
+        base_init_lightness_bounds = c(0.1, 0.9)
+      )
+    )
+
+    expect_true(is.matrix(result))
+    expect_equal(ncol(result), 3)
+    expect_equal(colnames(result), c("L", "a", "b"))
+    expect_lt(nrow(result), 5)
+    if (nrow(result) > 0) {
+      chroma <- sqrt(result[, "a"]^2 + result[, "b"]^2)
+      expect_true(all(chroma <= 0.01 * 1.5))
+      expect_true(all(result[, "L"] >= 0.2 & result[, "L"] <= 0.8))
+    }
+  })
+
   # --- ERROR TESTS ---
   describe("initialize_kmeans_plus_plus() - error handling", {
     it("handles negative n_free", {
