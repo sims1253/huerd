@@ -84,7 +84,7 @@
   errors with an “Invalid name” message instead of being silently
   ignored
 - Cleaned unused NAMESPACE imports
-  ([`colorspace::simulate_cvd`](https://colorspace.R-Forge.R-project.org/reference/simulate_cvd.html),
+  ([`colorspace::simulate_cvd`](https://rdrr.io/pkg/colorspace/man/simulate_cvd.html),
   [`stats::setNames`](https://rdrr.io/r/stats/setNames.html),
   [`stats::var`](https://rdrr.io/r/stats/cor.html),
   [`grDevices::rgb`](https://rdrr.io/r/grDevices/rgb.html))
