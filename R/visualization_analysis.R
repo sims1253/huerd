@@ -33,102 +33,115 @@ plot_palette_analysis <- function(
     return(invisible(NULL))
   }
 
-  evaluation <- evaluate_palette(colors)
-  hex_colors <- if (is.character(colors)) {
-    colors
-  } else {
-    farver::encode_colour(colors, from = "oklab")
-  }
+  # Drawing the dashboard must not advance the user's RNG stream: the
+  # comparative panels jitter their points with runif(), so without
+  # preserving the seed a plot would silently change downstream random
+  # results.
+  withr::with_preserve_seed({
+    evaluation <- evaluate_palette(colors)
+    hex_colors <- if (is.character(colors)) {
+      colors
+    } else {
+      farver::encode_colour(colors, from = "oklab")
+    }
 
-  # Calculate min distance for current palette
-  current_oklab <- farver::convert_colour(
-    farver::decode_colour(hex_colors),
-    from = "rgb",
-    to = "oklab"
-  )
-
-  current_dist_matrix <- calculate_perceptual_distances(current_oklab)
-
-  if (!is.null(force_font_scale)) {
-    # If a scale is forced, use it directly.
-    font_scale <- force_font_scale
-  } else {
-    # Otherwise, use the automatic detection for interactive plots.
-    dev_width <- as.numeric(grid::convertWidth(grid::unit(1, "npc"), "inches"))
-    dev_height <- as.numeric(grid::convertHeight(
-      grid::unit(1, "npc"),
-      "inches"
-    ))
-
-    ref_width <- 4
-    ref_height <- 3
-
-    width_scale <- dev_width / ref_width
-    height_scale <- dev_height / ref_height
-    font_scale <- pmin(width_scale, height_scale, 1.5)
-  }
-
-  # Create all subplot grobs with scaled fonts
-  grob1 <- create_color_swatches(hex_colors, evaluation, font_scale)
-  grob2 <- create_color_space(hex_colors, font_scale)
-  grob3 <- create_distance_heatmap(hex_colors, evaluation, font_scale)
-  grob4 <- create_cvd_simulation(hex_colors, font_scale)
-
-  distance_data <- list(
-    "huerd" = current_dist_matrix,
-    "Protan" = calculate_perceptual_distances(.hex_to_oklab(colorspace::protan(
-      hex_colors
-    ))),
-    "Deutan" = calculate_perceptual_distances(.hex_to_oklab(colorspace::deutan(
-      hex_colors
-    ))),
-    "Tritan" = calculate_perceptual_distances(.hex_to_oklab(colorspace::tritan(
-      hex_colors
-    ))),
-    "Greyscale" = calculate_perceptual_distances(
-      .hex_to_oklab(colorspace::desaturate(hex_colors))
+    # Calculate min distance for current palette
+    current_oklab <- farver::convert_colour(
+      farver::decode_colour(hex_colors),
+      from = "rgb",
+      to = "oklab"
     )
-  )
 
-  grob5 <- create_comparative_palettes(
-    distance_data,
-    "Pairwise distances under CVD",
-    font_scale
-  )
+    current_dist_matrix <- calculate_perceptual_distances(current_oklab)
 
-  # Compare with reference palettes
-  if (length(colors) < 9) {
+    if (!is.null(force_font_scale)) {
+      # If a scale is forced, use it directly.
+      font_scale <- force_font_scale
+    } else {
+      # Otherwise, use the automatic detection for interactive plots.
+      dev_width <- as.numeric(grid::convertWidth(
+        grid::unit(1, "npc"),
+        "inches"
+      ))
+      dev_height <- as.numeric(grid::convertHeight(
+        grid::unit(1, "npc"),
+        "inches"
+      ))
+
+      ref_width <- 4
+      ref_height <- 3
+
+      width_scale <- dev_width / ref_width
+      height_scale <- dev_height / ref_height
+      font_scale <- pmin(width_scale, height_scale, 1.5)
+    }
+
+    # Create all subplot grobs with scaled fonts
+    grob1 <- create_color_swatches(hex_colors, evaluation, font_scale)
+    grob2 <- create_color_space(hex_colors, font_scale)
+    grob3 <- create_distance_heatmap(hex_colors, evaluation, font_scale)
+    grob4 <- create_cvd_simulation(hex_colors, font_scale)
+
     distance_data <- list(
       "huerd" = current_dist_matrix,
-      "batlow" = get_ref_palette_distances("batlow", length(hex_colors)),
-      "Viridis" = get_ref_palette_distances("viridis", length(hex_colors)),
-      "Set 2" = get_ref_palette_distances("set2", length(hex_colors))
+      "Protan" = calculate_perceptual_distances(.hex_to_oklab(
+        colorspace::protan(
+          hex_colors
+        )
+      )),
+      "Deutan" = calculate_perceptual_distances(.hex_to_oklab(
+        colorspace::deutan(
+          hex_colors
+        )
+      )),
+      "Tritan" = calculate_perceptual_distances(.hex_to_oklab(colorspace::tritan(
+        hex_colors
+      ))),
+      "Greyscale" = calculate_perceptual_distances(
+        .hex_to_oklab(colorspace::desaturate(hex_colors))
+      )
     )
-  } else {
-    distance_data <- list(
-      "huerd" = current_dist_matrix,
-      "batlow" = get_ref_palette_distances("batlow", length(hex_colors)),
-      "Viridis" = get_ref_palette_distances("viridis", length(hex_colors)),
-      "Harmonic" = get_ref_palette_distances("Harmonic", length(hex_colors))
+
+    grob5 <- create_comparative_palettes(
+      distance_data,
+      "Pairwise distances under CVD",
+      font_scale
     )
-  }
 
-  grob6 <- create_comparative_palettes(
-    distance_data,
-    "Comparison to other palettes",
-    font_scale
-  )
+    # Compare with reference palettes
+    if (length(colors) < 9) {
+      distance_data <- list(
+        "huerd" = current_dist_matrix,
+        "batlow" = get_ref_palette_distances("batlow", length(hex_colors)),
+        "Viridis" = get_ref_palette_distances("viridis", length(hex_colors)),
+        "Set 2" = get_ref_palette_distances("set2", length(hex_colors))
+      )
+    } else {
+      distance_data <- list(
+        "huerd" = current_dist_matrix,
+        "batlow" = get_ref_palette_distances("batlow", length(hex_colors)),
+        "Viridis" = get_ref_palette_distances("viridis", length(hex_colors)),
+        "Harmonic" = get_ref_palette_distances("Harmonic", length(hex_colors))
+      )
+    }
 
-  gridExtra::grid.arrange(
-    grob1,
-    grob2,
-    grob3,
-    grob4,
-    grob5,
-    grob6,
-    ncol = 3,
-    nrow = 2
-  )
+    grob6 <- create_comparative_palettes(
+      distance_data,
+      "Comparison to other palettes",
+      font_scale
+    )
+
+    gridExtra::grid.arrange(
+      grob1,
+      grob2,
+      grob3,
+      grob4,
+      grob5,
+      grob6,
+      ncol = 3,
+      nrow = 2
+    )
+  })
 
   invisible(evaluation)
 }
@@ -138,8 +151,8 @@ plot_palette_analysis <- function(
 create_color_swatches <- function(hex_colors, evaluation, font_scale = 0.8) {
   n <- length(hex_colors)
 
-  rgp_colors <- farver::decode_colour(hex_colors)
-  oklab_colors <- farver::convert_colour(rgp_colors, from = "rgb", to = "oklab")
+  rgb_colors <- farver::decode_colour(hex_colors)
+  oklab_colors <- farver::convert_colour(rgb_colors, from = "rgb", to = "oklab")
 
   # Create grobs for the color swatches
   grobs <- list()
@@ -243,11 +256,21 @@ create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
   cell_size <- 0.8 / n # Available space for the matrix
   colors <- grDevices::hcl.colors(100, "Viridis")
 
-  # Normalize distances for color mapping
-  max_dist <- max(dist_matrix, na.rm = TRUE)
+  # Fixed color scale across palettes: OKLAB distances within the sRGB
+  # gamut are bounded above by the black-white distance (~1.0), so cell
+  # colors encode absolute distances and are comparable between
+  # dashboards. Pairs below the distinctness threshold saturate at the
+  # dark end of the ramp.
+  max_dist <- .MAX_DISTANCE_THEORETICAL
   min_dist <- .MIN_DISTANCE_THRESHOLD
 
-  # TODO: Use fixed scale to compare palettes more effectively
+  # OKLAB lightness of the ramp colors, for text contrast decisions
+  ramp_l <- farver::convert_colour(
+    farver::decode_colour(colors),
+    from = "rgb",
+    to = "oklab"
+  )[, 1]
+
   for (i in seq_len(n)) {
     for (j in seq_len(n)) {
       x_pos <- 0.1 + (j - 0.5) * cell_size
@@ -257,11 +280,17 @@ create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
       if (i == j) {
         color_val <- "white" # Diagonal
       } else {
-        color_idx <- round(
-          99 * (dist_matrix[i, j] - min_dist) / (max_dist - min_dist)
-        ) +
-          1
-        color_val <- colors[max(1, min(100, color_idx))]
+        color_idx <- max(
+          1,
+          min(
+            100,
+            round(
+              99 * (dist_matrix[i, j] - min_dist) / (max_dist - min_dist)
+            ) +
+              1
+          )
+        )
+        color_val <- colors[color_idx]
       }
 
       grobs[[length(grobs) + 1]] <- grid::rectGrob(
@@ -280,16 +309,7 @@ create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
           y = y_pos,
           gp = grid::gpar(
             fontsize = .scale_font(9, font_scale),
-            col = ifelse(
-              farver::convert_colour(
-                farver::decode_colour(color_val),
-                from = "rgb",
-                to = "oklab"
-              )[1, 1] <
-                0.5,
-              "white",
-              "black"
-            )
+            col = ifelse(ramp_l[color_idx] < 0.5, "white", "black")
           )
         )
       }
@@ -508,8 +528,6 @@ create_comparative_palettes <- function(
   title,
   font_scale = 0.8
 ) {
-  # TODO this should be boxplots with the distances
-
   grobs <- list()
 
   for (i in seq_along(distance_data)) {

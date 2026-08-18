@@ -1,5 +1,14 @@
 # huerd (development version)
 
+## Bug Fixes
+
+- `plot_palette_analysis()` no longer advances the global random number generator state: the point jitter of the comparative panels is now drawn under `withr::with_preserve_seed()`, so rendering a dashboard no longer silently changes downstream random results
+
+## Improvements
+
+- The pairwise distance heatmap of the `plot_palette_analysis()` dashboard now colors cells on a fixed scale (from the distinctness threshold to the theoretical maximum OKLAB distance of ~1.0) instead of normalizing to each palette's own maximum; cell colors now encode absolute distances and are directly comparable across palettes and dashboards
+- The dashboard panel descriptions in the "Introduction to huerd" vignette now match the actual panels (the long-removed "Nearest Neighbor Distances" panel is no longer listed, and the two boxplot panels are described)
+
 ## Deprecated
 
 - `optimizer = "nlopt_direct"` in `generate_palette()` is now deprecated and emits a warning; it will be removed in a future release. The DIRECT algorithm's center-lattice sampling cannot reliably find configurations with all pairwise-separated colors in this parameterization, so it returns degenerate palettes (all colors collapsing to a single hex) for most palette sizes; increasing `max_iterations` does not help. Use the default `"nloptr_cobyla"` or `"nlopt_neldermead"` instead.

@@ -109,6 +109,43 @@ describe("Individual grob creation functions", {
     })
   })
 
+  it("create_distance_heatmap uses a fixed color scale across palettes", {
+    # The black/white pair sits at the theoretical maximum OKLAB distance
+    # (~1.0); the close greys are far below the distinctness threshold
+    far <- c("#000000", "#FFFFFF", "#FF0000")
+    near <- c("#808080", "#838383", "#7C7C7C")
+
+    ramp <- grDevices::hcl.colors(100, "Viridis")
+
+    offdiag_ramp_indices <- function(hex) {
+      n <- length(hex)
+      grob <- huerd:::create_distance_heatmap(hex, evaluate_palette(hex))
+      is_rect <- vapply(grob$children, inherits, logical(1), "rect")
+      fills <- vapply(
+        grob$children[is_rect],
+        function(g) g$gp$fill,
+        character(1)
+      )
+      expect_length(fills, n * n)
+
+      # Cells are drawn row-major with a white (unmatched) diagonal
+      cells <- matrix(match(fills, ramp), nrow = n)
+      cells[!diag(n)]
+    }
+
+    idx_far <- offdiag_ramp_indices(far)
+    idx_near <- offdiag_ramp_indices(near)
+
+    # A close palette saturates at the dark end of the ramp instead of
+    # stretching its own maximum to the top of the scale
+    expect_true(all(idx_near == 1))
+
+    # The black/white pair reaches the top of the fixed scale, and even
+    # the closest pair of the spread palette stays well above the floor
+    expect_true(max(idx_far) >= 99)
+    expect_true(min(idx_far) > 10)
+  })
+
   it("create_cvd_simulation handles edge cases", {
     # Test with single color
     colors <- c("#FF0000")
@@ -234,6 +271,17 @@ describe("Performance and robustness", {
     # Results should be identical for same input
     expect_equal(result1$n_colors, result2$n_colors)
     expect_equal(result1$distances$min, result2$distances$min)
+  })
+
+  it("plot_palette_analysis does not advance the RNG state", {
+    colors <- c("#FF0000", "#00FF00", "#0000FF", "#FFFF00")
+
+    # The comparative panels jitter points with runif(); drawing the
+    # dashboard must not shift the user's random stream
+    set.seed(1234)
+    seed_before <- .Random.seed
+    plot_palette_analysis(colors)
+    expect_identical(.Random.seed, seed_before)
   })
 })
 
