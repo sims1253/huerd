@@ -36,7 +36,7 @@ interpret_palette_quality(pal)
 #> 
 #> ── Palette Quality Assessment ──
 #> 
-#> This 6-color palette is moderately optimized (37% of theoretical maximum). Good
+#> This 6-color palette is moderately optimized (29% of theoretical maximum). Good
 #> - colors are reasonably distinct for most uses
 #> 
 #> 

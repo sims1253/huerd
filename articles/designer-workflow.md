@@ -96,20 +96,20 @@ print(print_palette)
 #> 
 #> -- huerd Color Palette (6 colors) --
 #> Colors:
-#> [ 1] #210000
-#> [ 2] #003366
-#> [ 3] #AB54FF
-#> [ 4] #FF6600
-#> [ 5] #7EC6FF
-#> [ 6] #FFDC87
+#> [ 1] #003366
+#> [ 2] #AA0000
+#> [ 3] #00688E
+#> [ 4] #BA3CFF
+#> [ 5] #FF6600
+#> [ 6] #00E6B3
 #> 
 #> -- Quality Metrics Summary --
-#> * Min. Perceptual Distance (OKLAB): 0.228
-#> * Optimizer Performance Ratio      : 62.4%
-#> * Min. CVD-Safe Distance (OKLAB)  : 0.204
+#> * Min. Perceptual Distance (OKLAB): 0.167
+#> * Optimizer Performance Ratio      : 45.7%
+#> * Min. CVD-Safe Distance (OKLAB)  : 0.165
 #> 
 #> -- Generation Details --
-#> * Optimizer Iterations: 524
+#> * Optimizer Iterations: 208
 #> * Optimizer Status: NLOPT_XTOL_REACHED: Optimization stopped because xtol_rel or xtol_abs (above) was reached.
 ```
 
@@ -321,7 +321,7 @@ print(quality_report)
 #> 
 #> ── Palette Quality Assessment ──
 #> 
-#> This 6-color palette is well optimized (49% of theoretical maximum). Excellent
+#> This 6-color palette is well optimized (53% of theoretical maximum). Excellent
 #> - colors are highly distinct and easy to differentiate
 #> 
 #> ── Distinctness
@@ -351,12 +351,12 @@ cat("\n=== CSS Export ===\n")
 cat(export_palette(final_palette, format = "css",
                    names = c("primary", "secondary", "accent1", "accent2", "accent3", "accent4")))
 #> :root {
-#>   --primary: #0E0020;
+#>   --primary: #001704;
 #>   --secondary: #003366;
-#>   --accent1: #6B0000;
-#>   --accent2: #A04700;
+#>   --accent1: #0000F8;
+#>   --accent2: #008EFF;
 #>   --accent3: #FF6600;
-#>   --accent4: #00DFD9;
+#>   --accent4: #BABCFB;
 #> }
 ```
 

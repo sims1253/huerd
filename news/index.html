@@ -41,6 +41,18 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="huerd-development-version">huerd (development version)<a class="anchor" aria-label="anchor" href="#huerd-development-version"></a></h2>
 <div class="section level3">
+<h3 id="bug-fixes-development-version">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<ul><li>
+<code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> no longer advances the global random number generator state: the point jitter of the comparative panels is now drawn under <code><a href="https://withr.r-lib.org/reference/with_seed.html" class="external-link">withr::with_preserve_seed()</a></code>, so rendering a dashboard no longer silently changes downstream random results</li>
+<li>
+<code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> now treats an OKLAB matrix input like the equivalent hex vector: the reference-palette panel selects by color count instead of <code><a href="https://rdrr.io/r/base/length.html" class="external-link">length()</a></code> of the matrix (3 cells per color previously pushed 3+ color matrices into the large-palette branch), and a single-row matrix now returns early like a single hex color. Undetermined (<code>NA</code>) pairwise distances render as neutral grey cells in the distance heatmap instead of transparent ones</li>
+</ul></div>
+<div class="section level3">
+<h3 id="improvements-development-version">Improvements<a class="anchor" aria-label="anchor" href="#improvements-development-version"></a></h3>
+<ul><li>The pairwise distance heatmap of the <code><a href="../reference/plot_palette_analysis.html">plot_palette_analysis()</a></code> dashboard now colors cells on a fixed scale (from the distinctness threshold to the theoretical maximum OKLAB distance of ~1.0) instead of normalizing to each palette’s own maximum; cell colors now encode absolute distances and are directly comparable across palettes and dashboards</li>
+<li>The dashboard panel descriptions in the “Introduction to huerd” vignette now match the actual panels (the long-removed “Nearest Neighbor Distances” panel is no longer listed, and the two boxplot panels are described)</li>
+</ul></div>
+<div class="section level3">
 <h3 id="deprecated-development-version">Deprecated<a class="anchor" aria-label="anchor" href="#deprecated-development-version"></a></h3>
 <ul><li>
 <code>optimizer = "nlopt_direct"</code> in <code><a href="../reference/generate_palette.html">generate_palette()</a></code> is now deprecated and emits a warning; it will be removed in a future release. The DIRECT algorithm’s center-lattice sampling cannot reliably find configurations with all pairwise-separated colors in this parameterization, so it returns degenerate palettes (all colors collapsing to a single hex) for most palette sizes; increasing <code>max_iterations</code> does not help. Use the default <code>"nloptr_cobyla"</code> or <code>"nlopt_neldermead"</code> instead.</li>
