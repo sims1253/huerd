@@ -283,6 +283,26 @@ describe("Performance and robustness", {
     plot_palette_analysis(colors)
     expect_identical(.Random.seed, seed_before)
   })
+
+  it("plot_palette_analysis accepts OKLAB matrices and a forced font scale", {
+    oklab <- farver::convert_colour(
+      farver::decode_colour(c("#FF0000", "#00FF00", "#0000FF")),
+      from = "rgb",
+      to = "oklab"
+    )
+    rownames(oklab) <- NULL
+
+    result <- plot_palette_analysis(oklab)
+    expect_s3_class(result, "huerd_evaluation")
+    expect_equal(result$n_colors, 3)
+
+    expect_no_error(
+      plot_palette_analysis(
+        c("#FF0000", "#00FF00", "#0000FF"),
+        force_font_scale = 0.6
+      )
+    )
+  })
 })
 
 describe("Grid graphics integration", {
