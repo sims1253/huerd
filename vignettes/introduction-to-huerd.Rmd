@@ -90,11 +90,11 @@ plot_palette_analysis(brand_palette)
 This dashboard provides six key visualizations:
 
 1.  **Color Swatches**: An overview of the palette with key metrics.
-2.  **Pairwise Distance Matrix**: A heatmap showing the perceptual distance between every pair of colors.
-3.  **Nearest Neighbor Distances**: A bar chart showing how distinct each color is from its closest neighbor.
-4.  **OKLAB Color Space**: A projection of the colors in the `a*b*` plane of the OKLAB space.
-5.  **CVD Simulation**: How the palette appears to individuals with the three most common types of color vision deficiency.
-6.  **Comparative Palettes**: A comparison of your palette's distance distribution against established palettes like Viridis and Set2.
+2.  **OKLAB Color Space**: A projection of the colors in the `a*b*` plane of the OKLAB space, with point size indicating lightness.
+3.  **Pairwise Distance Matrix**: A heatmap showing the perceptual distance between every pair of colors on a fixed scale, so cell colors are comparable across palettes.
+4.  **CVD Simulation**: How the palette appears to individuals with the three most common types of color vision deficiency, plus greyscale.
+5.  **Pairwise Distances under CVD**: The distribution of pairwise distances under each CVD simulation, compared with normal vision.
+6.  **Comparative Palettes**: A comparison of your palette's distance distribution against established palettes like Batlow, Viridis, and Set2.
 
 ## CVD Accessibility
 

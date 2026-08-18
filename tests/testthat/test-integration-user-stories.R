@@ -692,7 +692,10 @@ describe("Error Recovery: Reproducibility edge cases", {
     # Should use default FALSE progress when progress is not in metadata
     # (suppress the expected deprecation warning for nlopt_direct)
     expect_no_error({
-      reproduced <- suppressWarnings(reproduce_palette(palette, progress = NULL))
+      reproduced <- suppressWarnings(reproduce_palette(
+        palette,
+        progress = NULL
+      ))
     })
 
     expect_s3_class(reproduced, "huerd_palette")

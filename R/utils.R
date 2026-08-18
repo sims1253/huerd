@@ -338,5 +338,10 @@ print_color_vector <- function(colors_vec, indent = "  ") {
 #' @noRd
 .MIN_DISTANCE_THRESHOLD <- 0.08
 
+# Upper bound of pairwise OKLAB distances within the sRGB gamut: the
+# black-white distance is ~1.0 and no sRGB color pair is farther apart
+#' @noRd
+.MAX_DISTANCE_THEORETICAL <- 1.0
+
 #' @noRd
 .OKLAB_TOLERANCE <- 1e-6
