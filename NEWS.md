@@ -3,6 +3,7 @@
 ## Bug Fixes
 
 - `plot_palette_analysis()` no longer advances the global random number generator state: the point jitter of the comparative panels is now drawn under `withr::with_preserve_seed()`, so rendering a dashboard no longer silently changes downstream random results
+- `plot_palette_analysis()` now treats an OKLAB matrix input like the equivalent hex vector: the reference-palette panel selects by color count instead of `length()` of the matrix (3 cells per color previously pushed 3+ color matrices into the large-palette branch), and a single-row matrix now returns early like a single hex color. Undetermined (`NA`) pairwise distances render as neutral grey cells in the distance heatmap instead of transparent ones
 
 ## Improvements
 

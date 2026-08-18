@@ -146,6 +146,28 @@ describe("Individual grob creation functions", {
     expect_true(min(idx_far) > 10)
   })
 
+  it("create_distance_heatmap renders NA distances distinctly", {
+    # An NA color makes farver return all-NA OKLAB rows, so every
+    # off-diagonal distance is NA
+    colors <- c(NA, "#00FF00", "#0000FF")
+
+    grob <- huerd:::create_distance_heatmap(
+      colors,
+      evaluate_palette(colors)
+    )
+    is_rect <- vapply(grob$children, inherits, logical(1), "rect")
+    fills <- vapply(
+      grob$children[is_rect],
+      function(g) g$gp$fill,
+      character(1)
+    )
+
+    expect_length(fills, 9)
+    cells <- matrix(fills, nrow = 3)
+    expect_true(all(diag(cells) == "white"))
+    expect_true(all(cells[!diag(3)] == "grey50"))
+  })
+
   it("create_cvd_simulation handles edge cases", {
     # Test with single color
     colors <- c("#FF0000")
@@ -302,6 +324,51 @@ describe("Performance and robustness", {
         force_font_scale = 0.6
       )
     )
+  })
+
+  it("plot_palette_analysis treats OKLAB matrices like the hex equivalent", {
+    collect_labels <- function(g) {
+      if (inherits(g, "text")) {
+        return(g$label)
+      }
+      # gridExtra::grid.arrange() nests panels in a gtable ($grobs),
+      # plain gTrees keep their children in $children
+      kids <- if (inherits(g, "gtable")) g$grobs else g$children
+      unlist(lapply(kids, collect_labels), use.names = FALSE)
+    }
+
+    dashboard_labels <- function(cols) {
+      pdf(tempfile(fileext = ".pdf"))
+      on.exit(dev.off(), add = TRUE)
+      plot_palette_analysis(cols, force_font_scale = 0.6)
+      collect_labels(grid::grid.grab())
+    }
+
+    hex <- c("#FF0000", "#00FF00", "#0000FF")
+    oklab <- farver::convert_colour(
+      farver::decode_colour(hex),
+      from = "rgb",
+      to = "oklab"
+    )
+    rownames(oklab) <- NULL
+
+    # Three colors select the "Set 2" reference set in both encodings;
+    # the matrix path used to count 3 cells per color and pick "Harmonic"
+    expect_true("Set 2" %in% dashboard_labels(hex))
+    expect_true("Set 2" %in% dashboard_labels(oklab))
+    expect_false("Harmonic" %in% dashboard_labels(oklab))
+  })
+
+  it("plot_palette_analysis returns early for a single-color OKLAB matrix", {
+    oklab <- farver::convert_colour(
+      farver::decode_colour("#FF0000"),
+      from = "rgb",
+      to = "oklab"
+    )
+    rownames(oklab) <- NULL
+
+    # A 1x3 matrix has length 3 and used to bypass the guard
+    expect_null(plot_palette_analysis(oklab))
   })
 })
 

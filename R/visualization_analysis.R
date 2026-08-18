@@ -29,7 +29,9 @@ plot_palette_analysis <- function(
   force_font_scale = NULL,
   ...
 ) {
-  if (length(colors) < 2) {
+  # `colors` may be an OKLAB matrix, whose length() counts all cells
+  n_colors <- if (is.matrix(colors)) nrow(colors) else length(colors)
+  if (n_colors < 2) {
     return(invisible(NULL))
   }
 
@@ -37,7 +39,7 @@ plot_palette_analysis <- function(
   # comparative panels jitter their points with runif(), so without
   # preserving the seed a plot would silently change downstream random
   # results.
-  withr::with_preserve_seed({
+  evaluation <- withr::with_preserve_seed({
     evaluation <- evaluate_palette(colors)
     hex_colors <- if (is.character(colors)) {
       colors
@@ -109,7 +111,7 @@ plot_palette_analysis <- function(
     )
 
     # Compare with reference palettes
-    if (length(colors) < 9) {
+    if (length(hex_colors) < 9) {
       distance_data <- list(
         "huerd" = current_dist_matrix,
         "batlow" = get_ref_palette_distances("batlow", length(hex_colors)),
@@ -141,6 +143,8 @@ plot_palette_analysis <- function(
       ncol = 3,
       nrow = 2
     )
+
+    evaluation
   })
 
   invisible(evaluation)
@@ -279,6 +283,8 @@ create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
       # Map distance to color
       if (i == j) {
         color_val <- "white" # Diagonal
+      } else if (is.na(dist_matrix[i, j])) {
+        color_val <- "grey50" # Undetermined distance (e.g. an NA color)
       } else {
         color_idx <- max(
           1,
@@ -302,7 +308,7 @@ create_distance_heatmap <- function(hex_colors, evaluation, font_scale = 0.8) {
       )
 
       # Add distance text for small matrices
-      if (n <= 8 && i != j) {
+      if (n <= 8 && i != j && !is.na(dist_matrix[i, j])) {
         grobs[[length(grobs) + 1]] <- grid::textGrob(
           sprintf("%.2f", dist_matrix[i, j]),
           x = x_pos,
