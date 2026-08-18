@@ -10,6 +10,14 @@
   [`withr::with_preserve_seed()`](https://withr.r-lib.org/reference/with_seed.html),
   so rendering a dashboard no longer silently changes downstream random
   results
+- [`plot_palette_analysis()`](https://sims1253.github.io/huerd/branch/plot/dashboard-fixed-scale-rng/reference/plot_palette_analysis.md)
+  now treats an OKLAB matrix input like the equivalent hex vector: the
+  reference-palette panel selects by color count instead of
+  [`length()`](https://rdrr.io/r/base/length.html) of the matrix (3
+  cells per color previously pushed 3+ color matrices into the
+  large-palette branch), and a single-row matrix now returns early like
+  a single hex color. Undetermined (`NA`) pairwise distances render as
+  neutral grey cells in the distance heatmap instead of transparent ones
 
 ### Improvements
 
@@ -84,7 +92,7 @@
   errors with an “Invalid name” message instead of being silently
   ignored
 - Cleaned unused NAMESPACE imports
-  ([`colorspace::simulate_cvd`](https://rdrr.io/pkg/colorspace/man/simulate_cvd.html),
+  ([`colorspace::simulate_cvd`](https://colorspace.R-Forge.R-project.org/reference/simulate_cvd.html),
   [`stats::setNames`](https://rdrr.io/r/stats/setNames.html),
   [`stats::var`](https://rdrr.io/r/stats/cor.html),
   [`grDevices::rgb`](https://rdrr.io/r/grDevices/rgb.html))
