@@ -212,8 +212,8 @@
 
   # Currently supported optimizers. "nlopt_direct" is deprecated (it
   # produces degenerate palettes for most palette sizes; generate_palette()
-  # warns on use) and is only retained for backwards compatibility until it
-  # is removed in a future release.
+  # warns on use) and is retained only for backwards compatibility; it
+  # will be removed in a future release.
   valid_optimizers <- c(
     "nloptr_cobyla",
     "sann",
@@ -238,8 +238,8 @@
 
 #' Validate Input Parameters for generate_palette
 #'
-#' This helper function checks all user-provided parameters for correctness
-#' before the main `generate_palette` logic begins.
+#' This helper checks all user-provided parameters before the main
+#' `generate_palette` logic begins.
 #' @noRd
 validate_inputs <- function(
   n,
@@ -344,12 +344,12 @@ validate_inputs <- function(
 }
 
 
-#' Calculate Pairwise Perceptual Distances in OK LAB
+#' Calculate Pairwise Perceptual Distances in OKLAB
 #'
-#' Uses `stats::dist` for efficient calculation of the Euclidean distance
-#' between all pairs of colors in a matrix.
+#' Uses `stats::dist` to calculate the Euclidean distance between all pairs
+#' of colors in a matrix.
 #'
-#' @param colors_oklab Matrix of colors in OK LAB space (N x 3).
+#' @param colors_oklab Matrix of colors in OKLAB space (N x 3).
 #' @return A square distance matrix (N x N).
 #' @noRd
 calculate_perceptual_distances <- function(colors_oklab) {
@@ -396,9 +396,8 @@ calculate_perceptual_distances <- function(colors_oklab) {
 
 #' Infix helper for providing a default for NA/NULL/Inf
 #'
-#' A helper to provide a default value for NULL, NA, or non-finite
-#' numeric values, which is useful for preventing errors in metric and
-#' objective calculations.
+#' Provides a default value for NULL, NA, or non-finite numeric values,
+#' which prevents errors in metric and objective calculations.
 #'
 #' @param x The value to check.
 #' @param y The default value to return if `x` is invalid.

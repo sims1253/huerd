@@ -49,11 +49,11 @@ palette <- brand_palette(
 print(palette)
 ```
 
-The brand colors are preserved exactly, and huerd generates optimized complementary colors.
+huerd preserves the brand colors exactly and generates optimized complementary colors.
 
 ## Visualizing Your Palette
 
-See your palette at a glance:
+See your full palette in one view:
 
 ```{r, fig.width=7, fig.height=2}
 plot(palette)
@@ -67,7 +67,7 @@ plot_palette_analysis(palette)
 
 ## Controlling Lightness for Print
 
-For print materials, you may want to avoid very light or very dark colors:
+For print materials, avoid very light or very dark colors:
 
 ```{r}
 # Mid-range lightness for better print reproduction
@@ -122,7 +122,7 @@ cat("CVD-safe:", is_cvd_safe(palette), "\n")
 
 ## CVD Simulation for Compliance
 
-Show stakeholders how the palette appears to colorblind viewers:
+Show stakeholders how the palette appears to viewers with color vision deficiency:
 
 ```{r}
 cvd_sim <- simulate_palette_cvd(palette, cvd_type = "all")

@@ -10,9 +10,9 @@ is_cvd_safe(colors, min_cvd_distance = NULL, ...)
 \item{colors}{Character vector of hex colors or an OKLAB matrix.}
 
 \item{min_cvd_distance}{Numeric. The minimum acceptable perceptual distance
-(in OK LAB space) that any two colors in the palette should maintain
+(in OKLAB space) that any two colors in the palette should maintain
 under simulated deuteranopia, protanopia, and tritanopia. Defaults to
-the package-wide distinctness threshold (0.08). Recall JND is ~0.02.}
+the package-wide distinctness threshold (0.08). JND is ~0.02.}
 
 \item{...}{Additional arguments reserved for future use.}
 }
@@ -22,6 +22,6 @@ Logical. \code{TRUE} if the palette's \code{worst_case_min_distance} from
 \code{FALSE} otherwise. Returns \code{TRUE} if palette has fewer than 2 colors.
 }
 \description{
-Quick check if a palette's worst-case minimum inter-color distance under
-simulated common CVD conditions meets a specified threshold.
+Checks whether a palette's worst-case minimum distance between colors,
+under simulated common CVD conditions, meets a specified threshold.
 }
