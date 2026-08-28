@@ -29,12 +29,12 @@ Default is FALSE.}
 \value{
 A list with simulated palettes. If \code{cvd_type} is "all", the list
 contains elements \code{original}, \code{protan}, \code{deutan}, and \code{tritan}. For a
-single CVD type, the list contains a single element named after that
-type (e.g., \code{protan}). The output object also inherits from
+single CVD type, it contains one element named after that type (e.g.,
+\code{protan}). The output object also inherits from
 \code{huerd_simulation_result}.
 }
 \description{
-Shows how a color palette appears to individuals with different types
+Shows how a color palette appears to viewers with different types
 of color vision deficiency using physiologically accurate models from
 \code{farver}.
 }

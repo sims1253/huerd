@@ -3,21 +3,17 @@
   max(8, round(base_size * font_scale)) # Minimum font size of 8
 }
 
-#' Comprehensive Palette Analysis Dashboard
+#' Palette Analysis Dashboard
 #'
-#' Creates a scicomap-inspired comprehensive diagnostic dashboard for
-#' color palettes
-#' using the modern grid graphics system for robust cross-platform
-#' compatibility.
-#' This function generates six visualization panels to help assess palette
-#' quality,
-#' including perceptual distance analysis, CVD simulation, OKLAB space
-#' distribution,
+#' Creates a scicomap-inspired diagnostic dashboard for color palettes using
+#' the grid graphics system for robust cross-platform compatibility. The
+#' function generates six panels to help assess palette quality, including
+#' perceptual distance analysis, CVD simulation, OKLAB space distribution,
 #' and performance comparison against established scientific palettes.
 #'
 #' @param colors A character vector of hex colors or a matrix of colors in
 #'   OKLAB space.
-#' @param force_font_scale Allows to force a specific font scale
+#' @param force_font_scale Lets you force a specific font scale.
 #' @param ... Additional arguments reserved for future use.
 #' @return Invisibly returns the evaluation result from evaluate_palette.
 #' @export

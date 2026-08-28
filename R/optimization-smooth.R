@@ -1,9 +1,8 @@
 #' Smooth Differentiable Objective Function for Color Optimization
 #'
-#' Uses inverse square sum as a differentiable proxy for max-min distance
+#' Uses the inverse square sum as a differentiable proxy for max-min distance
 #' optimization.
-#' This function heavily penalizes small distances while remaining smooth
-#' and differentiable.
+#' The function penalizes small distances heavily while remaining smooth.
 #'
 #' @param colors_oklab Matrix of colors in OKLAB space (n x 3)
 #' @param epsilon Small constant to prevent division by zero (default: 1e-8)

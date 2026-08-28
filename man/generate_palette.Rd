@@ -76,8 +76,7 @@ with \code{smooth_repulsion} or \code{smooth_logsumexp} weights), and
 "nlopt_direct" (\strong{deprecated}) for deterministic global optimization
 via the DIRECT algorithm — produces degenerate palettes for most
 palette sizes and will be removed in a future release. The framework
-is designed to easily support additional optimizers in future
-versions.}
+can support additional optimizers in future versions.}
 
 \item{cvd_safe}{Logical. If \code{TRUE} (default), the objective maximizes
 the minimum perceptual distance in the worst case across deuteranopia,
@@ -95,16 +94,15 @@ automatically sorted by brightness (lightness). If
 \code{return_metrics = TRUE}, includes evaluation metrics as attributes.
 }
 \description{
-Creates a scientifically-grounded color palette that maximizes the minimum
-perceptual distance between any two colors using pure minimax optimization in
-OKLAB color space. Colors are automatically sorted by brightness and can
-include fixed brand colors.
+Creates a color palette that maximizes the minimum perceptual distance
+between any two colors, using pure minimax optimization in OKLAB color
+space. The function sorts the colors by brightness and can include fixed
+brand colors.
 }
 \details{
 This function implements pure minimax optimization to create color
 palettes with maximum worst-case perceptual distinguishability. The
-approach is scientifically grounded and focuses on a single, clear
-objective.
+approach focuses on a single, clear objective.
 
 The process:
 \enumerate{
@@ -117,8 +115,8 @@ perceptual distance (worst case across CVD simulations when
 }
 
 The pure minimax approach ensures optimal categorical color palettes
-without complex multi-objective trade-offs. Quality can be assessed
-using \code{evaluate_palette()} and visualized with \code{plot_palette_analysis()}.
+without complex multi-objective trade-offs. Assess quality with
+\code{evaluate_palette()} and visualize it with \code{plot_palette_analysis()}.
 }
 \section{Performance Tips}{
 
@@ -186,7 +184,7 @@ evaluation <- evaluate_palette(brand_palette)
 cat("Min distance:", evaluation$distances$min, "\n")
 cat("Performance:", evaluation$distances$performance_ratio * 100, "\%\n")
 
-# Comprehensive analysis
+# Full analysis
 plot_palette_analysis(brand_palette)
 
 }

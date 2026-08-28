@@ -262,9 +262,9 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
 #'
 #' Implements the validation prologue, iteration counting, bounds setup,
 #' solver invocation, error normalization, per-column clamping, and result
-#' assembly common to all palette optimizers. Method-specific behavior is
-#' selected via `method`: the objective function, the solver call, and the
-#' naming/ordering of the `details` fields.
+#' assembly common to all palette optimizers. `method` selects the
+#' method-specific behavior: the objective function, the solver call, and
+#' the naming/ordering of the `details` fields.
 #'
 #' @param method Character. One of "cobyla", "sann", "direct",
 #'   "neldermead", or "lbfgs".
@@ -651,12 +651,11 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
 
 #' Optimize Color Palette using Pure Minimax Box-Constrained Optimization
 #'
-#' This function takes an initial set of colors and optimizes positions of
-#' "free" colors to maximize the minimum perceptual distance between any
-#' two colors (pure minimax objective).
+#' Optimizes the positions of "free" colors to maximize the minimum
+#' perceptual distance between any two colors (pure minimax objective).
 #'
 #' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
-#'   in OK LAB space.
+#'   in OKLAB space.
 #' @param fixed_mask Logical vector indicating which rows in
 #'   `initial_colors_oklab` are fixed.
 #' @param max_iterations Integer. Maximum iterations for nloptr.
@@ -683,12 +682,12 @@ optimize_colors_constrained <- function(
 
 #' Optimize Color Palette using Simulated Annealing
 #'
-#' This function takes an initial set of colors and optimizes positions of
-#' "free" colors to maximize the minimum perceptual distance between any
-#' two colors using simulated annealing from stats::optim.
+#' Optimizes the positions of "free" colors to maximize the minimum
+#' perceptual distance between any two colors, using simulated annealing
+#' from stats::optim.
 #'
 #' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
-#'   in OK LAB space.
+#'   in OKLAB space.
 #' @param fixed_mask Logical vector indicating which rows in
 #'   `initial_colors_oklab` are fixed.
 #' @param max_iterations Integer. Maximum iterations for simulated annealing.
@@ -715,9 +714,9 @@ optimize_colors_sann <- function(
 
 #' Optimize Color Palette using NLopt DIRECT Algorithm
 #'
-#' This function takes an initial set of colors and optimizes positions of
-#' "free" colors to maximize the minimum perceptual distance between any
-#' two colors using DIRECT (Dividing Rectangles) global optimization algorithm.
+#' Optimizes the positions of "free" colors to maximize the minimum
+#' perceptual distance between any two colors, using the DIRECT (Dividing
+#' Rectangles) global optimization algorithm.
 #'
 #' Deprecated: exposed via `optimizer = "nlopt_direct"` in
 #' `generate_palette()`, which warns on use. DIRECT's center-lattice
@@ -726,7 +725,7 @@ optimize_colors_sann <- function(
 #' sizes. Retained only for backwards compatibility.
 #'
 #' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
-#'   in OK LAB space.
+#'   in OKLAB space.
 #' @param fixed_mask Logical vector indicating which rows in
 #'   `initial_colors_oklab` are fixed.
 #' @param max_iterations Integer. Maximum iterations for nloptr DIRECT.
@@ -753,14 +752,14 @@ optimize_colors_nlopt_direct <- function(
 
 #' Optimize Color Palette using NLopt Nelder-Mead Algorithm
 #'
-#' This function takes an initial set of colors and optimizes positions of
-#' "free" colors to maximize the minimum perceptual distance between any
-#' two colors using Nelder-Mead simplex algorithm from NLopt. This is a
-#' local optimization method that is derivative-free and robust for non-smooth
-#' objective functions, making it a good alternative to COBYLA algorithm.
+#' Optimizes the positions of "free" colors to maximize the minimum
+#' perceptual distance between any two colors, using the Nelder-Mead
+#' simplex algorithm from NLopt. Nelder-Mead is a local method that is
+#' derivative-free and robust for non-smooth objective functions, making it
+#' a good alternative to COBYLA.
 #'
 #' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
-#'   in OK LAB space.
+#'   in OKLAB space.
 #' @param fixed_mask Logical vector indicating which rows in
 #'   `initial_colors_oklab` are fixed.
 #' @param max_iterations Integer. Maximum iterations for nloptr Nelder-Mead.
@@ -787,16 +786,16 @@ optimize_colors_nlopt_neldermead <- function(
 
 #' L-BFGS Optimization Implementation
 #'
-#' High-performance gradient-based optimization using L-BFGS algorithm
+#' High-performance gradient-based optimization using the L-BFGS algorithm
 #' paired with smooth differentiable objective functions.
 #'
 #' @param initial_colors_oklab Initial color matrix in OKLAB space.
 #' @param fixed_mask Logical vector indicating which colors are fixed.
 #' @param max_iterations Maximum optimization iterations.
 #' @param weights Named numeric vector specifying which smooth objective to use.
-#'   If contains "smooth_logsumexp" with positive value, uses log-sum-exp
-#'   objective. Otherwise uses smooth repulsion objective. Default is NULL
-#'   (uses repulsion).
+#'   If it contains "smooth_logsumexp" with a positive value, it uses the
+#'   log-sum-exp objective; otherwise it uses the smooth repulsion objective.
+#'   Default is NULL (repulsion).
 #' @return List with optimized palette and details
 #' @noRd
 optimize_colors_lbfgs <- function(

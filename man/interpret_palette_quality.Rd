@@ -19,9 +19,8 @@ A list with class \code{huerd_interpretation} containing:
 }
 }
 \description{
-Provides a human-readable assessment of a palette's quality, translating
-technical metrics into understandable language suitable for presentations
-or documentation.
+Assesses a palette's quality and translates the metrics into plain
+language for presentations or documentation.
 }
 \examples{
 pal <- generate_palette(6, progress = FALSE)

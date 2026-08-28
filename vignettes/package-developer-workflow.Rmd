@@ -24,7 +24,7 @@ You're developing an R package that includes visualization functions. You want t
 - **Provide quality metrics** to users
 - **Minimize dependencies** and runtime overhead
 
-This vignette demonstrates how to integrate huerd into your package.
+This vignette shows how to integrate huerd into your package.
 
 ## Adding huerd as a Dependency
 
@@ -97,7 +97,7 @@ identical(as.character(original), as.character(reproduced))
 
 ## Accessing Optimization Metadata
 
-huerd palettes include rich metadata for logging and debugging:
+huerd palettes include metadata for logging and debugging:
 
 ```{r}
 palette <- generate_palette(
@@ -178,7 +178,7 @@ print(large)
 
 ## Evaluating External Palettes
 
-Your package might want to compare huerd palettes against user-provided ones:
+To compare huerd palettes with user-provided ones:
 
 ```{r}
 # Evaluate any vector of hex colors
@@ -199,7 +199,7 @@ cat("  CVD safety:", round(eval_huerd$cvd_safety$worst_case_min_distance, 3), "\
 
 ## Palette Objects as Character Vectors
 
-huerd palettes work seamlessly as character vectors:
+huerd palettes work as character vectors:
 
 ```{r}
 palette <- generate_palette(5, progress = FALSE)
@@ -300,4 +300,4 @@ For package developers, huerd provides:
 7. **ggplot2 scales** - Native `scale_color_huerd()` integration
 8. **External evaluation** - `evaluate_palette()` works on any colors
 
-This makes huerd suitable for both interactive use and integration into automated pipelines.
+This makes huerd suitable for interactive use and for integration into automated pipelines.

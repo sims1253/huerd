@@ -16,8 +16,8 @@ quick_palette(
 \item{n}{Number of colors to generate.}
 
 \item{brand_colors}{Optional character vector of hex colors that must be
-included in the palette. These colors will be preserved exactly as
-provided, and additional colors will be optimized around them.}
+included in the palette. The optimizer preserves these colors exactly
+as provided and optimizes the additional colors around them.}
 
 \item{cvd_safe}{Logical. If \code{TRUE} (default), the optimizer maximizes
 the worst-case perceptual distance across color vision deficiency
@@ -46,9 +46,9 @@ A \code{huerd_palette} object (character vector of hex colors with
 additional attributes).
 }
 \description{
-A simplified interface to \code{\link[=generate_palette]{generate_palette()}} that uses intuitive parameter
-names and sensible defaults. This function is designed for users who want
-good results without understanding optimization details.
+A simplified interface to \code{\link[=generate_palette]{generate_palette()}} with intuitive parameter
+names and sensible defaults. Use it when you want good results without
+understanding optimization details.
 }
 \examples{
 # Simple 5-color palette

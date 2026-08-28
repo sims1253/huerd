@@ -3,18 +3,16 @@
 
 #' Evaluate Palette Quality
 #'
-#' Provides a comprehensive evaluation of a color palette's
-#' perceptual properties, including its distinguishability, CVD safety,
-#' and color distribution.
+#' Evaluates a color palette's perceptual properties, including
+#' distinguishability, CVD safety, and color distribution.
 #' Returns raw metrics without subjective scoring for post-hoc analysis.
 #'
 #' @param colors A character vector of hex colors, or a matrix of colors
-#'   in OK LAB space.
+#'   in OKLAB space.
 #' @param ... Additional arguments reserved for future use.
 #' @return A list of evaluation metrics with class `huerd_evaluation`.
-#'         Contains raw metrics including distances, CVD safety, and
-#'         distribution for objective analysis without subjective
-#'         heuristic scoring.
+#'         Contains raw metrics (distances, CVD safety, distribution)
+#'         for analysis without subjective heuristic scoring.
 #' @export
 #' @examples
 #' pal <- generate_palette(5, progress = FALSE)

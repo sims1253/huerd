@@ -32,12 +32,13 @@ scale_fill_huerd(
 }
 \arguments{
 \item{palette}{A \code{huerd_palette} object (from \code{\link[=generate_palette]{generate_palette()}}) to use.
-If \code{NULL}, a palette will be generated automatically based on the number
-of levels in your data.}
+If \code{NULL}, the scale generates a palette automatically based on the
+number of levels in your data.}
 
 \item{brand_colors}{Character vector of hex colors that must be included
-in the palette. Only used when \code{palette = NULL}. These colors will be
-preserved and additional colors optimized around them.}
+in the palette. Only used when \code{palette = NULL}. The optimizer
+preserves these colors and optimizes the additional colors around
+them.}
 
 \item{...}{Additional arguments passed to \code{\link[=generate_palette]{generate_palette()}} when
 generating palettes on-the-fly, or to \code{\link[ggplot2:discrete_scale]{ggplot2::discrete_scale()}}.}
@@ -52,20 +53,19 @@ and \code{"fill"} for \code{scale_fill_huerd()}.}
 A ggplot2 scale object.
 }
 \description{
-These scales provide perceptually optimized color palettes for ggplot2
-visualizations. Colors are generated using minimax optimization in the
-OKLAB color space to maximize perceptual distinctness.
+These scales apply huerd palettes to ggplot2 visualizations. Minimax
+optimization in the OKLAB color space maximizes the perceptual distinctness
+of the colors.
 }
 \details{
 There are two ways to use these scales:
 
 \enumerate{
 \item \strong{Pre-generated palette}: Pass a \code{huerd_palette} object to the
-\code{palette} argument. This is useful when you want to reuse the same
-palette across multiple plots or need fine control over generation
-parameters.
+\code{palette} argument to reuse the same palette across multiple plots or to
+fine-tune generation parameters.
 \item \strong{On-the-fly generation}: Leave \code{palette = NULL} and the
-scale will automatically generate an optimized palette based on the
+scale automatically generates an optimized palette based on the
 number of levels in your data. Use \code{brand_colors} to include specific
 colors.
 }
