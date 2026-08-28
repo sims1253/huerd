@@ -266,10 +266,10 @@ validate_inputs <- function(
 #'
 #' @param n Total number of colors originally requested.
 #' @param include_colors The vector of fixed colors.
-#' @param optimize_for The optimization target string.
 #' @param return_metrics Logical, whether metrics should be calculated.
 #' @param progress Logical, whether to show `cli` messages.
 #' @param status_msg A message explaining why optimization was skipped.
+#' @param generation_metadata Optional list of generation metadata to attach.
 #' @return A `huerd_palette` object.
 #' @noRd
 .handle_no_free_colors <- function(

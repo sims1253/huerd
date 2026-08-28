@@ -265,23 +265,7 @@ print.huerd_simulation_result <- function(x, ...) {
     grepl("^#[0-9A-Fa-f]{6}$", color_val, ignore.case = TRUE)
 }
 
-#' Calculate sRGB luminance for color contrast
-#' @param color_val A hex color string
-#' @return Numeric luminance value between 0 and 1
-#' @noRd
-.calculate_luminance <- function(color_val) {
-  col_rgb <- grDevices::col2rgb(color_val)
-  srgb_red_weight <- 0.2126
-  srgb_green_weight <- 0.7152
-  srgb_blue_weight <- 0.0722
-  (srgb_red_weight *
-    col_rgb[1, 1] +
-    srgb_green_weight * col_rgb[2, 1] +
-    srgb_blue_weight * col_rgb[3, 1]) /
-    255.0
-}
-
-#' Print a single color with swatch
+#' Print a single labeled color entry
 #' @param color_val A hex color string
 #' @param item_label Label text to display
 #' @noRd
@@ -294,7 +278,7 @@ print.huerd_simulation_result <- function(x, ...) {
   cat(item_label, "\n", sep = "")
 }
 
-#' Internal helper to print a vector of colors with swatches
+#' Internal helper to print a vector of colors as labeled text entries
 #' @noRd
 print_color_vector <- function(colors_vec, indent = "  ") {
   if (length(colors_vec) == 0) {
