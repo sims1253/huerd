@@ -55,11 +55,12 @@
 ### Internal Changes
 
 - Removed more dead internal code and doc drift: the unused
-  `.calculate_luminance()` helper and the empty `R/data.R`;
-  `.print_color_with_swatch()` / `print_color_vector()` roxygen no
-  longer claims swatches (text labels only); `.handle_no_free_colors()`
-  roxygen documents `generation_metadata` and drops the nonexistent
-  `optimize_for`
+  `.calculate_luminance()` helper and the empty `R/data.R`; the
+  text-only color print helper is renamed `.print_color_with_swatch()`
+  -\> `.print_color_label()` and its roxygen (plus
+  `print_color_vector()`’s) no longer claims swatches;
+  `.handle_no_free_colors()` roxygen documents `generation_metadata` and
+  drops the nonexistent `optimize_for`
 - `initialize_kmeans_plus_plus()` candidate-center distance computation
   vectorized: the nested [`apply()`](https://rdrr.io/r/base/apply.html)
   loops over candidates and centers are replaced by a per-center
