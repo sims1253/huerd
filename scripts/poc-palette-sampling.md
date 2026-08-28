@@ -86,6 +86,28 @@ CVD-first  (cvd 3 : dist 1 : chroma 0.5): top draw cvd_safe 0.199, min_dist 0.48
 Balanced   (1 : 1 : 1 : 1):               top draw cvd_safe 0.154, min_dist 0.617
 ```
 
+## The WebGL manifold explorer
+
+For a more fluid experience than Shiny can offer,
+`scripts/build-palette-manifold.R` generates
+`scripts/palette-manifold.html`: a **single self-contained file**
+(three.js r128 inlined, ~1 MB, opens offline in any browser) with all
+1200 draws embedded. Everything runs client-side at 60 fps:
+
+* glowing additive-blended particle cloud over a live-computed
+  wireframe **density carpet** (client-side 2D histogram + blur over
+  the current X/Z axes),
+* weight sliders recolor/rescale points and re-rank the top-8 palette
+  cards instantly -- no server round-trip, unlike the Shiny app,
+* X/Y/Z axis dropdowns over every metric and PC1-3 with eased
+  position-lerp transitions between axis choices,
+* orbit/zoom/pan (auto-spinning until first interaction), hover
+  tooltips with palette previews, click-to-pin detail cards with hex
+  codes, and a `?selftest` mode that asserts the data, scoring,
+  ranking, carpet, reweighting and axis-switch logic inside a real
+  browser (verified in headless Chrome; screenshot at
+  `scripts/palette-posterior/manifold-explorer.png`).
+
 ## Interactive chooser
 
 `scripts/palette-chooser-app.R` (shiny): weight sliders over the four

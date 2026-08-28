@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>huerd palette manifold</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0d12;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif; color: #dfe6f1; }
+  #scene { position: absolute; inset: 0; }
+  .panel { position: absolute; z-index: 5; background: rgba(13, 17, 26, 0.82);
+    border: 1px solid rgba(120, 150, 200, 0.22); border-radius: 12px;
+    backdrop-filter: blur(8px); padding: 14px 16px; }
+  #controls { top: 16px; left: 16px; width: 250px; }
+  #controls h1 { font-size: 14px; margin: 0 0 2px; letter-spacing: 0.4px; }
+  #controls .sub { font-size: 11px; color: #8b98ad; margin-bottom: 10px; }
+  .slider-row { margin: 7px 0; }
+  .slider-row label { display: flex; justify-content: space-between;
+    font-size: 11px; color: #aebccd; margin-bottom: 2px; }
+  .slider-row label .val { color: #ffd166; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: #7cc4ff; height: 18px; }
+  select { background: #151b27; color: #dfe6f1; border: 1px solid #2c3950;
+    border-radius: 6px; font-size: 11px; padding: 3px 5px; width: 100%; }
+  .axes { display: grid; grid-template-columns: 18px 1fr; gap: 4px 8px;
+    align-items: center; font-size: 11px; color: #8b98ad; margin-top: 6px; }
+  #legend { bottom: 16px; left: 16px; font-size: 11px; color: #8b98ad; }
+  #bar { width: 200px; height: 8px; border-radius: 4px; margin: 6px 0 4px;
+    background: linear-gradient(90deg, #f6e86e, #dd6f6f, #8c2ea6, #170233); }
+  #hint { bottom: 16px; right: 16px; font-size: 11px; color: #8b98ad;
+    text-align: right; line-height: 1.5; }
+  #top { top: 16px; right: 16px; width: 300px; max-height: 82vh; overflow-y: auto; }
+  #top h2 { font-size: 12px; margin: 0 0 8px; color: #aebccd; }
+  .chip { border-radius: 8px; padding: 6px 8px; margin-bottom: 6px; cursor: pointer;
+    border: 1px solid rgba(120,150,200,0.15); transition: transform .25s ease,
+    border-color .25s ease; background: rgba(20, 26, 38, 0.6); }
+  .chip:hover { transform: translateX(-4px); border-color: rgba(124, 196, 255, 0.6); }
+  .chip .strip { display: flex; height: 26px; border-radius: 5px; overflow: hidden; }
+  .chip .strip div { flex: 1; }
+  .chip .meta { font-size: 10px; color: #8b98ad; margin-top: 4px;
+    display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+  .chip .meta b { color: #dfe6f1; font-weight: 600; }
+  #tooltip { position: absolute; z-index: 9; pointer-events: none; display: none;
+    background: rgba(13, 17, 26, 0.92); border: 1px solid rgba(124, 196, 255, 0.4);
+    border-radius: 8px; padding: 8px; font-size: 10px; }
+  #tooltip .strip { display: flex; height: 20px; width: 150px;
+    border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
+  #tooltip .strip div { flex: 1; }
+  #detail { display: none; bottom: 60px; left: 16px; width: 260px; }
+  #detail .strip { display: flex; height: 34px; border-radius: 6px;
+    overflow: hidden; margin: 8px 0; }
+  #detail .strip div { flex: 1; }
+  #detail .hexes { font-size: 10px; color: #8b98ad; line-height: 1.6;
+    font-family: ui-monospace, monospace; }
+  button { background: #1b2433; color: #dfe6f1; border: 1px solid #2c3950;
+    border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; }
+  button:hover { border-color: #7cc4ff; }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div class="panel" id="controls">
+  <h1>PALETTE MANIFOLD</h1>
+  <div class="sub">__NDRAWS__ posterior draws &middot; huerd / Stan-style HMC</div>
+
+  <div class="slider-row" id="weight-sliders"></div>
+
+  <div style="font-size:11px;color:#8b98ad;margin-top:10px">axes</div>
+  <div class="axes">
+    <span>X</span><select id="ax-x"></select>
+    <span>Y</span><select id="ax-y"></select>
+    <span>Z</span><select id="ax-z"></select>
+  </div>
+  <div style="margin-top:10px;display:flex;gap:6px">
+    <button id="btn-reset">reset view</button>
+    <button id="btn-spin">spin: on</button>
+  </div>
+</div>
+
+<div class="panel" id="legend">
+  weighted score
+  <div id="bar"></div>
+  <span id="score-range"></span>
+</div>
+
+<div class="panel" id="hint">
+  drag: orbit &middot; scroll: zoom &middot; right-drag: pan<br>
+  hover a point: preview &middot; click: pin palette
+</div>
+
+<div class="panel" id="top">
+  <h2>top palettes under current weights</h2>
+  <div id="chips"></div>
+</div>
+
+<div class="panel" id="detail"></div>
+<div id="tooltip"></div>
+
+<script>/*__THREE__*/</script>
+<script>/*__ORBIT__*/</script>
+<script>
+const DATA = /*__DATA__*/;
+
+// ---------------------------------------------------------------- helpers
+const METRICS = ["min_dist", "cvd_safe", "min_deutan", "min_protan",
+  "min_tritan", "mean_chroma", "lightness_spread"];
+const PC_NAMES = ["pc1", "pc2", "pc3"];
+const AXES = METRICS.concat(PC_NAMES);
+const AXIS_LABEL = {
+  min_dist: "min dist (normal)", cvd_safe: "CVD-safe dist",
+  min_deutan: "deutan min", min_protan: "protan min", min_tritan: "tritan min",
+  mean_chroma: "mean chroma", lightness_spread: "L spread",
+  pc1: "PC1", pc2: "PC2", pc3: "PC3"
+};
+const WEIGHTED = ["cvd_safe", "min_dist", "mean_chroma", "lightness_spread"];
+const W_DEFAULT = { cvd_safe: 2, min_dist: 1, mean_chroma: 1, lightness_spread: 0.5 };
+
+const clamp01 = v => Math.max(0, Math.min(1, v));
+function rescale01(arr) {
+  let lo = Infinity, hi = -Infinity;
+  for (const v of arr) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  const span = hi - lo < 1e-12 ? 1 : hi - lo;
+  return arr.map(v => (v - lo) / span);
+}
+// magma-like ramp: t in [0,1] -> rgb
+function magma(t) {
+  t = clamp01(t);
+  const stops = [
+    [0.000, [23, 2, 51]], [0.25, [85, 15, 109]], [0.50, [188, 55, 84]],
+    [0.75, [249, 133, 50]], [1.000, [246, 232, 110]]
+  ];
+  let a = stops[0], b = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (t >= stops[i][0] && t <= stops[i + 1][0]) { a = stops[i]; b = stops[i + 1]; break; }
+  }
+  const f = (t - a[0]) / Math.max(1e-9, b[0] - a[0]);
+  return [0, 1, 2].map(i => a[1][i] + f * (b[1][i] - a[1][i]));
+}
+
+// ---------------------------------------------------------------- scoring
+const N = DATA.length;
+const scaledCache = {};
+function scaled(metric) {
+  if (!(metric in scaledCache)) scaledCache[metric] = rescale01(DATA.map(d => d[metric]));
+  return scaledCache[metric];
+}
+let weights = Object.assign({}, W_DEFAULT);
+function scores() {
+  const s = new Float64Array(N);
+  let wsum = 0;
+  for (const m of WEIGHTED) wsum += weights[m];
+  if (wsum <= 0) { weights = Object.assign({}, W_DEFAULT); wsum = 1; for (const m of WEIGHTED) wsum += weights[m]; }
+  for (const m of WEIGHTED) {
+    if (weights[m] === 0) continue;
+    const z = scaled(m);
+    for (let i = 0; i < N; i++) s[i] += weights[m] * z[i];
+  }
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 0; i < N; i++) { if (s[i] < lo) lo = s[i]; if (s[i] > hi) hi = s[i]; }
+  const span = hi - lo < 1e-12 ? 1 : hi - lo;
+  for (let i = 0; i < N; i++) s[i] = (s[i] - lo) / span;
+  return s;
+}
+
+// ---------------------------------------------------------------- scene
+const container = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(innerWidth, innerHeight);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0d12);
+scene.fog = new THREE.Fog(0x0b0d12, 6, 18);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.01, 100);
+camera.position.set(2.6, 1.8, 3.2);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.6;
+
+scene.add(new THREE.AmbientLight(0x8899bb, 0.6));
+const key = new THREE.DirectionalLight(0xffffff, 0.7);
+key.position.set(2, 4, 2);
+scene.add(key);
+
+// glowing dot sprite texture
+function dotTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d");
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, "rgba(255,255,255,1)");
+  grad.addColorStop(0.35, "rgba(255,255,255,0.9)");
+  grad.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+const geometry = new THREE.BufferGeometry();
+const positions = new Float32Array(N * 3);
+const colors = new Float32Array(N * 3);
+const sizes = new Float32Array(N);
+geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+const sprite = dotTexture();
+const material = new THREE.PointsMaterial({
+  size: 0.075, map: sprite, vertexColors: true, transparent: true,
+  depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true
+});
+const points = new THREE.Points(geometry, material);
+scene.add(points);
+
+// axis extent normalization to [-1, 1]
+function normAxis(metric) {
+  const z = scaled(metric);
+  return z.map(v => v * 2 - 1);
+}
+let currentAxes = { x: "min_dist", y: "cvd_safe", z: "mean_chroma" };
+let targets = new Float32Array(N * 3);
+let froms = new Float32Array(N * 3);
+let animT = 1;
+
+function setAxes(axes, animate = true) {
+  currentAxes = axes;
+  const X = normAxis(axes.x), Y = normAxis(axes.y), Z = normAxis(axes.z);
+  froms.set(positions);
+  for (let i = 0; i < N; i++) {
+    targets[i * 3] = X[i];
+    targets[i * 3 + 1] = Y[i];
+    targets[i * 3 + 2] = Z[i];
+  }
+  if (animate) animT = 0;
+  else { positions.set(targets); animT = 1; }
+  buildCarpet();
+  layoutAxisLabels();
+}
+
+function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+function recolor() {
+  const s = scores();
+  for (let i = 0; i < N; i++) {
+    const c = magma(0.08 + 0.92 * Math.pow(s[i], 1.35));
+    const dim = 0.35 + 0.65 * s[i];
+    colors[i * 3] = c[0] / 255 * dim;
+    colors[i * 3 + 1] = c[1] / 255 * dim;
+    colors[i * 3 + 2] = c[2] / 255 * dim;
+  }
+  geometry.attributes.color.needsUpdate = true;
+  renderChips(s);
+  const hi = WEIGHTED.map(m => weights[m]);
+  document.getElementById("score-range").textContent =
+    "weights: " + WEIGHTED.map((m, i) => weights[m].toFixed(1)).join(" / ");
+}
+
+// ---------------------------------------------------------------- carpet
+let carpet = null, carpetGrid = null;
+function buildCarpet() {
+  // 2D histogram over current X/Z axes, blurred -> density surface below cloud
+  const W = 48;
+  const grid = new Float32Array(W * W);
+  const X = normAxis(currentAxes.x), Z = normAxis(currentAxes.z);
+  for (let i = 0; i < N; i++) {
+    const gx = Math.min(W - 1, Math.max(0, Math.round((X[i] + 1) / 2 * (W - 1))));
+    const gz = Math.min(W - 1, Math.max(0, Math.round((Z[i] + 1) / 2 * (W - 1))));
+    grid[gz * W + gx] += 1;
+  }
+  // separable box blur x3 (approx gaussian)
+  for (let pass = 0; pass < 3; pass++) {
+    const tmp = new Float32Array(W * W);
+    for (let r = 0; r < W; r++) for (let c = 0; c < W; c++) {
+      let s = 0, k = 0;
+      for (let d = -2; d <= 2; d++) { const cc = c + d; if (cc >= 0 && cc < W) { s += grid[r * W + cc]; k++; } }
+      tmp[r * W + c] = s / k;
+    }
+    for (let r = 0; r < W; r++) for (let c = 0; c < W; c++) {
+      let s = 0, k = 0;
+      for (let d = -2; d <= 2; d++) { const rr = r + d; if (rr >= 0 && rr < W) { s += tmp[rr * W + c]; k++; } }
+      grid[r * W + c] = s / k;
+    }
+  }
+  let mx = 0;
+  for (const v of grid) mx = Math.max(mx, v);
+  for (let i = 0; i < grid.length; i++) grid[i] /= mx;
+  carpetGrid = grid;
+
+  if (carpet) { scene.remove(carpet); carpet.geometry.dispose(); }
+  const geo = new THREE.PlaneGeometry(2.6, 2.6, W - 1, W - 1);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position;
+  const cols = new Float32Array(pos.count * 3);
+  for (let r = 0; r < W; r++) for (let c = 0; c < W; c++) {
+    const idx = r * W + c + 0; // vertex ordering: rows
+    const v = pos.getX(r * W + c), h = grid[r * W + c];
+    pos.setY(r * W + c, -1.35 + h * 0.5);
+    const t = h;
+    cols[(r * W + c) * 3] = 0.10 + 0.25 * t;
+    cols[(r * W + c) * 3 + 1] = 0.16 + 0.38 * t;
+    cols[(r * W + c) * 3 + 2] = 0.28 + 0.55 * t;
+  }
+  geo.setAttribute("color", new THREE.BufferAttribute(cols, 3));
+  const mat = new THREE.MeshBasicMaterial({
+    vertexColors: true, wireframe: true, transparent: true, opacity: 0.30
+  });
+  carpet = new THREE.Mesh(geo, mat);
+  scene.add(carpet);
+}
+
+// ---------------------------------------------------------------- labels
+let labelGroup = new THREE.Group();
+scene.add(labelGroup);
+function textSprite(text) {
+  const c = document.createElement("canvas");
+  c.width = 256; c.height = 64;
+  const g = c.getContext("2d");
+  g.font = "600 26px Inter, system-ui, sans-serif";
+  g.fillStyle = "#9fb6d9";
+  g.textAlign = "center";
+  g.fillText(text, 128, 40);
+  const tex = new THREE.CanvasTexture(c);
+  const m = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.9 });
+  const s = new THREE.Sprite(m);
+  s.scale.set(0.9, 0.225, 1);
+  return s;
+}
+function layoutAxisLabels() {
+  labelGroup.clear();
+  const lx = textSprite(AXIS_LABEL[currentAxes.x] + " \u2192");
+  lx.position.set(1.3, -1.25, 0.4);
+  lx.scale.set(0.75, 0.19, 1);
+  labelGroup.add(lx);
+  const lz = textSprite("\u2191 " + AXIS_LABEL[currentAxes.z]);
+  lz.position.set(0.4, -1.25, 1.3);
+  lz.scale.set(0.75, 0.19, 1)
+  labelGroup.add(lz);
+  const ly = textSprite("\u2191 " + AXIS_LABEL[currentAxes.y]);
+  ly.position.set(-1.15, 0.35, -1.15);
+  ly.scale.set(0.75, 0.19, 1)
+  labelGroup.add(ly);
+}
+
+// ---------------------------------------------------------------- ui
+const sliders = document.getElementById("weight-sliders");
+for (const m of WEIGHTED) {
+  const row = document.createElement("div");
+  row.className = "slider-row";
+  row.innerHTML =
+    "<label>" + m.replace(/_/g, " ") +
+    ' <span class="val" id="wval-' + m + '">' + W_DEFAULT[m].toFixed(1) + "</span></label>" +
+    '<input type="range" min="0" max="3" step="0.1" value="' + W_DEFAULT[m] +
+    '" id="w-' + m + '">';
+  sliders.appendChild(row);
+  row.querySelector("input").addEventListener("input", e => {
+    weights[m] = parseFloat(e.target.value);
+    document.getElementById("wval-" + m).textContent = weights[m].toFixed(1);
+    recolor();
+  });
+}
+
+for (const dim of ["x", "y", "z"]) {
+  const sel = document.getElementById("ax-" + dim);
+  for (const a of AXES) {
+    const o = document.createElement("option");
+    o.value = a; o.textContent = AXIS_LABEL[a];
+    sel.appendChild(o);
+  }
+  sel.value = currentAxes[dim];
+  sel.addEventListener("change", () => {
+    const axes = {
+      x: document.getElementById("ax-x").value,
+      y: document.getElementById("ax-y").value,
+      z: document.getElementById("ax-z").value
+    };
+    setAxes(axes, true);
+  });
+}
+
+document.getElementById("btn-reset").addEventListener("click", () => {
+  camera.position.set(2.6, 1.8, 3.2);
+  controls.target.set(0, 0, 0);
+});
+const spinBtn = document.getElementById("btn-spin");
+spinBtn.addEventListener("click", () => {
+  controls.autoRotate = !controls.autoRotate;
+  spinBtn.textContent = "spin: " + (controls.autoRotate ? "on" : "off");
+});
+
+function chipHTML(d, s, rank) {
+  const strip = d.hex.map(h => '<div style="background:' + h + '"></div>').join("");
+  const hexes = d.hex.join(" ");
+  return '<div class="chip" data-i="' + d.i + '">' +
+    '<div class="strip">' + strip + "</div>" +
+    '<div class="meta"><span>#' + rank + " \u00b7 score <b>" + s.toFixed(3) +
+    "</b></span><span>cvd <b>" + d.cvd_safe.toFixed(3) + "</b> dist <b>" +
+    d.min_dist.toFixed(3) + "</b> chroma <b>" + d.mean_chroma.toFixed(2) + "</b></span></div></div>";
+}
+function renderChips(s) {
+  const idx = Array.from({ length: N }, (_, i) => i);
+  idx.sort((a, b) => s[b] - s[a]);
+  const top = idx.slice(0, 8);
+  document.getElementById("chips").innerHTML =
+    top.map((i, r) => chipHTML(DATA[i], s[i], r + 1)).join("");
+  document.querySelectorAll(".chip").forEach(el => {
+    el.addEventListener("click", () => showDetail(+el.dataset.i));
+  });
+}
+
+const tooltip = document.getElementById("tooltip");
+const detail = document.getElementById("detail");
+const raycaster = new THREE.Raycaster();
+raycaster.params.Points.threshold = 0.03;
+let mouse = null;
+let hoverI = -1;
+let pinnedI = -1;
+
+renderer.domElement.addEventListener("pointermove", e => {
+  mouse = {
+    x: (e.clientX / innerWidth) * 2 - 1,
+    y: -(e.clientY / innerHeight) * 2 + 1
+  };
+  tooltip.style.left = e.clientX + 16 + "px";
+  tooltip.style.top = e.clientY + 10 + "px";
+});
+renderer.domElement.addEventListener("pointerdown", () => {
+  controls.autoRotate = false;
+  spinBtn.textContent = "spin: off";
+});
+renderer.domElement.addEventListener("click", () => {
+  if (hoverI >= 0) showDetail(hoverI);
+});
+function showDetail(i) {
+  pinnedI = i;
+  const d = DATA[i];
+  const strip = d.hex.map(h => '<div style="background:' + h + '"></div>').join("");
+  detail.style.display = "block";
+  detail.innerHTML = "<b>palette " + (i + 1) + "</b> (chain " + d.chain +
+    ", draw " + d.draw + ")<div class='strip'>" + strip + "</div>" +
+    '<div class="hexes">' + d.hex.map(h => '<span style="color:' + h + '">\u25a0</span> ' + h).join("<br>") + "</div>" +
+    '<div class="meta" style="font-size:10px;color:#8b98ad;margin-top:6px">' +
+    "min dist " + d.min_dist.toFixed(3) + " \u00b7 cvd " + d.cvd_safe.toFixed(3) +
+    " \u00b7 deutan " + d.min_deutan.toFixed(3) + " \u00b7 protan " + d.min_protan.toFixed(3) +
+    " \u00b7 tritan " + d.min_tritan.toFixed(3) + "<br>chroma " + d.mean_chroma.toFixed(3) +
+    " \u00b7 L spread " + d.lightness_spread.toFixed(3) + "</div>" +
+    '<button style="margin-top:8px" onclick="document.getElementById(\'detail\').style.display=\'none\'">close</button>';
+}
+
+function updateHover() {
+  if (!mouse) return;
+  raycaster.setFromCamera({ x: mouse.x, y: mouse.y }, camera);
+  const hits = raycaster.intersectObject(points);
+  if (hits.length && hits[0].index < N) {
+    hoverI = hits[0].index;
+    const d = DATA[hoverI];
+    tooltip.style.display = "block";
+    tooltip.innerHTML = '<div class="strip">' +
+      d.hex.map(h => '<div style="background:' + h + '"></div>').join("") +
+      "</div>cvd " + d.cvd_safe.toFixed(3) + " \u00b7 dist " + d.min_dist.toFixed(3);
+  } else {
+    hoverI = -1;
+    tooltip.style.display = "none";
+  }
+}
+
+window.addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ---------------------------------------------------------------- loop
+function animate(t) {
+  requestAnimationFrame(animate);
+  if (animT < 1) {
+    animT = Math.min(1, animT + 0.025);
+    const e = easeInOut(animT);
+    for (let i = 0; i < positions.length; i++) {
+      positions[i] = froms[i] + (targets[i] - froms[i]) * e;
+    }
+    geometry.attributes.position.needsUpdate = true;
+  }
+  controls.update();
+  updateHover();
+  renderer.render(scene, camera);
+}
+
+setAxes(currentAxes, false);
+recolor();
+animate();
+
+// headless self-test: load with ?selftest and read document.title
+if (location.search.indexOf("selftest") >= 0) {
+  const results = [];
+  const s = scores();
+  results.push("data:" + (DATA.length === 1200));
+  results.push("hex:" + DATA.every(d => d.hex.length === 6 &&
+    d.hex.every(h => /^#[0-9A-F]{6}$/.test(h))));
+  results.push("scores:" + (Math.max(...s) === 1 && Math.min(...s) >= 0));
+  const chips = document.querySelectorAll(".chip");
+  let orderOK = chips.length === 8;
+  const sArr = Array.from(s);
+  orderOK = orderOK && +chips[0].dataset.i === sArr.indexOf(Math.max(...sArr));
+  results.push("chips:" + orderOK);
+  const carpetVerts = carpet.geometry.attributes.position.count;
+  results.push("carpet:" + (carpetVerts === 48 * 48));
+  // simulate a weight change through the slider event path
+  const slider = document.getElementById("w-mean_chroma");
+  slider.value = "3";
+  slider.dispatchEvent(new Event("input"));
+  const s2 = scores();
+  results.push("reweight:" + (document.getElementById("wval-mean_chroma").textContent === "3.0"));
+  // axis switch retargets positions
+  setAxes({ x: "pc1", y: "pc2", z: "pc3" }, false);
+  results.push("axes:" + (Math.abs(targets[0] - normAxis("pc1")[0]) < 1e-6));
+  document.title = "SELFTEST " + results.join(" ");
+}
+</script>
+</body>
+</html>
