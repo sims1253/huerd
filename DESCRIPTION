@@ -1,5 +1,5 @@
 Package: huerd
-Title: Color Palette Optimization with fixed colors
+Title: Color Palette Optimization with Fixed Colors
 Version: 0.6.2.9000
 Date: 2026-08-16
 Authors@R: person("Maximilian", "Scholz", email = "dev.scholz@mailbox.org", role = c("aut", "cre"))

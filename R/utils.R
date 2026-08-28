@@ -265,27 +265,11 @@ print.huerd_simulation_result <- function(x, ...) {
     grepl("^#[0-9A-Fa-f]{6}$", color_val, ignore.case = TRUE)
 }
 
-#' Calculate sRGB luminance for color contrast
-#' @param color_val A hex color string
-#' @return Numeric luminance value between 0 and 1
-#' @noRd
-.calculate_luminance <- function(color_val) {
-  col_rgb <- grDevices::col2rgb(color_val)
-  srgb_red_weight <- 0.2126
-  srgb_green_weight <- 0.7152
-  srgb_blue_weight <- 0.0722
-  (srgb_red_weight *
-    col_rgb[1, 1] +
-    srgb_green_weight * col_rgb[2, 1] +
-    srgb_blue_weight * col_rgb[3, 1]) /
-    255.0
-}
-
-#' Print a single color with swatch
+#' Print a single labeled color entry
 #' @param color_val A hex color string
 #' @param item_label Label text to display
 #' @noRd
-.print_color_with_swatch <- function(color_val, item_label) {
+.print_color_label <- function(color_val, item_label) {
   if (!.is_valid_hex_color(color_val)) {
     cat(item_label, " (invalid/NA color)\n", sep = "")
     return()
@@ -294,7 +278,7 @@ print.huerd_simulation_result <- function(x, ...) {
   cat(item_label, "\n", sep = "")
 }
 
-#' Internal helper to print a vector of colors with swatches
+#' Internal helper to print a vector of colors as labeled text entries
 #' @noRd
 print_color_vector <- function(colors_vec, indent = "  ") {
   if (length(colors_vec) == 0) {
@@ -305,7 +289,7 @@ print_color_vector <- function(colors_vec, indent = "  ") {
   for (i in seq_along(colors_vec)) {
     color_val <- colors_vec[i]
     item_label <- sprintf("%s[%2d] %s", indent, i, color_val)
-    .print_color_with_swatch(color_val, item_label)
+    .print_color_label(color_val, item_label)
   }
 }
 
@@ -335,6 +319,9 @@ print_color_vector <- function(colors_vec, indent = "  ") {
 #' @noRd
 .CANDIDATE_POOL_BASE <- 2000
 
+# Minimum pairwise OKLAB distance for two colors to count as distinct; also
+# the default CVD-safety threshold in is_cvd_safe() and the lower bound of the
+# dashboard heatmap color scale
 #' @noRd
 .MIN_DISTANCE_THRESHOLD <- 0.08
 
