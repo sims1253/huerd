@@ -48,7 +48,7 @@ simulated common CVD conditions meets a specified threshold.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">is_cvd_safe</span><span class="op">(</span><span class="va">colors</span>, min_cvd_distance <span class="op">=</span> <span class="fl">0.08</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">is_cvd_safe</span><span class="op">(</span><span class="va">colors</span>, min_cvd_distance <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,8 +62,8 @@ simulated common CVD conditions meets a specified threshold.</p>
 <dt id="arg-min-cvd-distance">min_cvd_distance<a class="anchor" aria-label="anchor" href="#arg-min-cvd-distance"></a></dt>
 <dd><p>Numeric. The minimum acceptable perceptual distance
 (in OK LAB space) that any two colors in the palette should maintain
-under simulated deuteranopia, protanopia, and tritanopia. Default is 0.08.
-Recall JND is ~0.02.</p></dd>
+under simulated deuteranopia, protanopia, and tritanopia. Defaults to
+the package-wide distinctness threshold (0.08). Recall JND is ~0.02.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

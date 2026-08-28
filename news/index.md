@@ -32,6 +32,13 @@
   vignette now match the actual panels (the long-removed “Nearest
   Neighbor Distances” panel is no longer listed, and the two boxplot
   panels are described)
+- [`is_cvd_safe()`](https://sims1253.github.io/huerd/reference/is_cvd_safe.md)’s
+  `min_cvd_distance` default now derives from the package-wide
+  distinctness threshold constant instead of a duplicated `0.08`
+  literal, so the two can no longer drift apart silently (default value
+  unchanged)
+- The `DESCRIPTION` `Title` is now in title case, resolving an
+  `R CMD check --as-cran` NOTE
 
 ### Deprecated
 
@@ -47,6 +54,13 @@
 
 ### Internal Changes
 
+- Removed more dead internal code and doc drift: the unused
+  `.calculate_luminance()` helper and the empty `R/data.R`; the
+  text-only color print helper is renamed `.print_color_with_swatch()`
+  -\> `.print_color_label()` and its roxygen (plus
+  `print_color_vector()`’s) no longer claims swatches;
+  `.handle_no_free_colors()` roxygen documents `generation_metadata` and
+  drops the nonexistent `optimize_for`
 - `initialize_kmeans_plus_plus()` candidate-center distance computation
   vectorized: the nested [`apply()`](https://rdrr.io/r/base/apply.html)
   loops over candidates and centers are replaced by a per-center
