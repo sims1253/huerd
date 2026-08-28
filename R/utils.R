@@ -335,6 +335,9 @@ print_color_vector <- function(colors_vec, indent = "  ") {
 #' @noRd
 .CANDIDATE_POOL_BASE <- 2000
 
+# Minimum pairwise OKLAB distance for two colors to count as distinct; also
+# the default CVD-safety threshold in is_cvd_safe() and the lower bound of the
+# dashboard heatmap color scale
 #' @noRd
 .MIN_DISTANCE_THRESHOLD <- 0.08
 

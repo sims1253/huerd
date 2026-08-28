@@ -232,15 +232,18 @@ plot_cvd_comparison <- function(palette_list) {
 #' @param colors Character vector of hex colors or an OKLAB matrix.
 #' @param min_cvd_distance Numeric. The minimum acceptable perceptual distance
 #'   (in OK LAB space) that any two colors in the palette should maintain
-#'   under simulated deuteranopia, protanopia, and tritanopia. Default is 0.08.
-#'   Recall JND is ~0.02.
+#'   under simulated deuteranopia, protanopia, and tritanopia. Defaults to
+#'   the package-wide distinctness threshold (0.08). Recall JND is ~0.02.
 #' @param ... Additional arguments reserved for future use.
 #'
 #' @return Logical. `TRUE` if the palette's `worst_case_min_distance` from
 #'   `evaluate_palette()` is greater than or equal to `min_cvd_distance`,
 #'   `FALSE` otherwise. Returns `TRUE` if palette has fewer than 2 colors.
 #' @export
-is_cvd_safe <- function(colors, min_cvd_distance = 0.08, ...) {
+is_cvd_safe <- function(colors, min_cvd_distance = NULL, ...) {
+  if (is.null(min_cvd_distance)) {
+    min_cvd_distance <- .MIN_DISTANCE_THRESHOLD
+  }
   if (!is.numeric(min_cvd_distance) || min_cvd_distance <= 0) {
     stop("min_cvd_distance must be a positive number.")
   }
