@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization_analysis.R
 \name{plot_palette_analysis}
 \alias{plot_palette_analysis}
-\title{Comprehensive Palette Analysis Dashboard}
+\title{Palette Analysis Dashboard}
 \usage{
 plot_palette_analysis(colors, force_font_scale = NULL, ...)
 }

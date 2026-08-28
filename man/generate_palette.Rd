@@ -184,7 +184,7 @@ evaluation <- evaluate_palette(brand_palette)
 cat("Min distance:", evaluation$distances$min, "\n")
 cat("Performance:", evaluation$distances$performance_ratio * 100, "\%\n")
 
-# Comprehensive analysis
+# Full analysis
 plot_palette_analysis(brand_palette)
 
 }

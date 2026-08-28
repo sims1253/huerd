@@ -3,7 +3,7 @@
   max(8, round(base_size * font_scale)) # Minimum font size of 8
 }
 
-#' Comprehensive Palette Analysis Dashboard
+#' Palette Analysis Dashboard
 #'
 #' Creates a scicomap-inspired diagnostic dashboard for color palettes using
 #' the grid graphics system for robust cross-platform compatibility. The

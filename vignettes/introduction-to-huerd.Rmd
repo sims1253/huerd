@@ -80,7 +80,7 @@ This function returns detailed information, including:
 
 ### `plot_palette_analysis()`
 
-For a more visual analysis, `plot_palette_analysis()` creates a comprehensive dashboard.
+For a more visual analysis, `plot_palette_analysis()` creates a diagnostic dashboard.
 
 ```{r, fig.width=10, fig.height=6}
 # Create the diagnostic dashboard
@@ -120,4 +120,4 @@ print(cvd_simulation)
 
 ## Conclusion
 
-This vignette has covered the core functionality of the `huerd` package. By combining pure minimax optimization with comprehensive analysis tools, `huerd` creates high-quality, accessible color palettes.
+This vignette has covered the core functionality of the `huerd` package. By combining pure minimax optimization with its analysis tools, `huerd` creates high-quality, accessible color palettes.
