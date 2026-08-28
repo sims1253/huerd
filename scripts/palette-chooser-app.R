@@ -50,7 +50,7 @@ swatch_ggplot <- function(pal, title = NULL, text_size = 3.5) {
 rescale01 <- function(x) {
   rng <- range(x, na.rm = TRUE)
   if (diff(rng) < 1e-12) return(rep(0.5, length(x)))
-  (x - rng[1]) / rng[1]
+  (x - rng[1]) / diff(rng)
 }
 
 #' Build the chooser shiny app
@@ -120,7 +120,10 @@ build_palette_chooser <- function(
       ggplot2::ggplot(r, ggplot2::aes(min_dist, cvd_safe)) +
         ggplot2::geom_point(
           ggplot2::aes(color = .score),
-          size = ifelse(r$.score == max(r$.score), 3, 1.2),
+          size = ifelse(
+            !is.na(r$.score) & r$.score == max(r$.score, na.rm = TRUE),
+            3, 1.2
+          ),
           alpha = 0.6
         ) +
         ggplot2::scale_color_viridis_c(option = "magma", name = "weighted score") +
