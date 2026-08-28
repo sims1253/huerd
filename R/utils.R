@@ -269,7 +269,7 @@ print.huerd_simulation_result <- function(x, ...) {
 #' @param color_val A hex color string
 #' @param item_label Label text to display
 #' @noRd
-.print_color_with_swatch <- function(color_val, item_label) {
+.print_color_label <- function(color_val, item_label) {
   if (!.is_valid_hex_color(color_val)) {
     cat(item_label, " (invalid/NA color)\n", sep = "")
     return()
@@ -289,7 +289,7 @@ print_color_vector <- function(colors_vec, indent = "  ") {
   for (i in seq_along(colors_vec)) {
     color_val <- colors_vec[i]
     item_label <- sprintf("%s[%2d] %s", indent, i, color_val)
-    .print_color_with_swatch(color_val, item_label)
+    .print_color_label(color_val, item_label)
   }
 }
 
