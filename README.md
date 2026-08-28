@@ -16,9 +16,9 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 <!-- badges: end -->
 
 A discrete color palette generator with support for fixed colors,
-optimized for color vision deficient viewers. Features different
-optimization algorithms and a multi-objective optimization framework for
-advanced color palette generation.
+optimized for color vision deficient viewers. It includes several
+optimization algorithms and a multi-objective framework for advanced
+palette generation.
 
 ## Installation
 
@@ -31,8 +31,7 @@ pak::pak("sims1253/huerd")
 
 ## Basic Usage
 
-Generate a palette with 8 colors using either the standard or quick
-method:
+Generate a palette with 8 colors using the standard or quick method:
 
 ``` r
 library(huerd)
@@ -275,8 +274,8 @@ print(palette)
 
 ## Multi-Optimizer Support
 
-Choose from 4 different optimization algorithms based on your needs (a
-fifth, `"nlopt_direct"`, is deprecated and slated for removal):
+Choose from 4 optimization algorithms (a fifth, `"nlopt_direct"`, is
+deprecated and will be removed):
 
 ``` r
 library(huerd)
@@ -308,8 +307,8 @@ cat("L-BFGS:", paste(lbfgs_palette, collapse = ", "), "\n")
 
 ## Multi-Objective Framework
 
-The package includes a multi-objective optimization framework with both
-discrete and smooth optimization support:
+The package includes a multi-objective framework that supports both
+discrete and smooth optimization:
 
 ``` r
 library(huerd)
@@ -600,8 +599,7 @@ print(my_brand_palette)
 
 ## Workflow Guides
 
-The huerd package includes comprehensive vignettes for different user
-needs:
+The huerd package includes vignettes for different user needs:
 
   - **[Data Scientist
     Workflow](https://sims1253.github.io/huerd/articles/data-scientist-workflow.html)**:
@@ -611,7 +609,7 @@ needs:
   - **[Designer
     Workflow](https://sims1253.github.io/huerd/articles/designer-workflow.html)**:
     Integrate brand colors into cohesive palettes and export them in
-    various formats (CSS, Sass, JSON) for web development.
+    CSS, Sass, or JSON for web development.
 
   - **[Package Developer
     Workflow](https://sims1253.github.io/huerd/articles/package-developer-workflow.html)**:

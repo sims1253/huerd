@@ -1,9 +1,9 @@
 #' huerd: Constrained Color Palette Generation with Aesthetic Guidance
 #'
 #' The huerd package provides tools for generating perceptually distinct color
-#' palettes with constraints. The main feature is the ability to specify fixed
-#' colors that must be included in the final palette unchanged. Generated
-#' colors are optimized for distinctness and CVD safety, and can optionally
+#' palettes with constraints. Its main feature lets you specify fixed colors
+#' that must appear in the final palette unchanged. The optimizer tunes the
+#' remaining colors for distinctness and CVD safety; they can optionally
 #' adhere to the aesthetic "vibe" (Lightness and Chroma profile) of the
 #' fixed colors.
 #'
@@ -16,16 +16,16 @@
 #' }
 #'
 #' @section Color Spaces:
-#' The package uses the OK LAB color space by default for its perceptual
+#' The package uses the OKLAB color space by default for its perceptual
 #' uniformity.
-#' Euclidean distance in OK LAB corresponds well to perceived color differences.
-#' A Just Noticeable Difference (JND) in OK LAB is approximately 0.02.
+#' Euclidean distance in OKLAB corresponds well to perceived color differences.
+#' A Just Noticeable Difference (JND) in OKLAB is approximately 0.02.
 #'
 #' @section Optimization Method:
-#' `huerd` treats palette generation as a box-constrained optimization problem,
-#' handled by the `nloptr` package. The goal is to find an arrangement of
-#' colors that maximizes a score based on perceptual distance, CVD safety, and
-#' optional penalties for aesthetic or gamut deviations.
+#' `huerd` treats palette generation as a box-constrained optimization problem
+#' and solves it with the `nloptr` package. The goal is to find an arrangement
+#' of colors that maximizes a score based on perceptual distance, CVD safety,
+#' and optional penalties for aesthetic or gamut deviations.
 #'
 #' @keywords internal
 "_PACKAGE"

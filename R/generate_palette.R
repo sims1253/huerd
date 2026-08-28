@@ -290,10 +290,10 @@
 
 #' Generate Optimal Color Palette using Pure Minimax Optimization
 #'
-#' Creates a scientifically-grounded color palette that maximizes the minimum
-#' perceptual distance between any two colors using pure minimax optimization in
-#' OKLAB color space. Colors are automatically sorted by brightness and can
-#' include fixed brand colors.
+#' Creates a color palette that maximizes the minimum perceptual distance
+#' between any two colors, using pure minimax optimization in OKLAB color
+#' space. The function sorts the colors by brightness and can include fixed
+#' brand colors.
 #'
 #' @param n Integer. Total number of colors in the palette.
 #' @param include_colors Character vector. Hex colors that must be included
@@ -338,8 +338,7 @@
 #'   "nlopt_direct" (**deprecated**) for deterministic global optimization
 #'   via the DIRECT algorithm — produces degenerate palettes for most
 #'   palette sizes and will be removed in a future release. The framework
-#'   is designed to easily support additional optimizers in future
-#'   versions.
+#'   can support additional optimizers in future versions.
 #' @param cvd_safe Logical. If `TRUE` (default), the objective maximizes
 #'   the minimum perceptual distance in the worst case across deuteranopia,
 #'   protanopia, and tritanopia simulations, producing palettes that are
@@ -356,8 +355,7 @@
 #' @details
 #' This function implements pure minimax optimization to create color
 #' palettes with maximum worst-case perceptual distinguishability. The
-#' approach is scientifically grounded and focuses on a single, clear
-#' objective.
+#' approach focuses on a single, clear objective.
 #'
 #' The process:
 #' 1. Initialize free colors using k-means++ or harmony-based methods
@@ -368,8 +366,8 @@
 #' 4. Apply gamut compensation during brightness sorting
 #'
 #' The pure minimax approach ensures optimal categorical color palettes
-#' without complex multi-objective trade-offs. Quality can be assessed
-#' using `evaluate_palette()` and visualized with `plot_palette_analysis()`.
+#' without complex multi-objective trade-offs. Assess quality with
+#' `evaluate_palette()` and visualize it with `plot_palette_analysis()`.
 #'
 #' @section Performance Tips:
 #' \itemize{
@@ -610,7 +608,7 @@ generate_palette <- function(
 #' @details
 #' This function reads the generation metadata stored in the
 #' `generation_metadata` attribute of a huerd_palette object and
-#' re-runs `generate_palette()` with the exact same parameters.
+#' re-runs `generate_palette()` with the same parameters.
 #'
 #' Reproducibility depends on the optimizer used:
 #' \itemize{

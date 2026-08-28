@@ -18,7 +18,7 @@
 Invisibly returns the palette.
 }
 \description{
-Display a visual representation of a huerd palette. By default shows color
+Displays a huerd palette. By default shows color
 swatches; use \code{type = "analysis"} for the full diagnostic dashboard.
 }
 \examples{

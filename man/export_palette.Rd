@@ -28,19 +28,17 @@ colors are named \code{color_1}, \code{color_2}, etc.}
 
 \item{file}{Optional file path to write the output. If \code{NULL}, returns the
 formatted string. If specified, the function writes the formatted palette
-to the given file path and (invisibly) returns the file path as a
-character string.}
+to the file and (invisibly) returns the file path.}
 }
 \value{
 If \code{file} is \code{NULL}: for \code{"hex"}, the palette as a character
 vector (returned invisibly); for all other formats, the formatted
 palette as a single character string. If \code{file} is specified, the
-function writes the formatted palette to the given file and
-(invisibly) returns the file path as a character string.
+function writes the formatted palette to the file and (invisibly)
+returns the file path.
 }
 \description{
-Export a huerd palette to common formats used in design and development
-workflows.
+Export a huerd palette to common design and development formats.
 }
 \examples{
 pal <- generate_palette(5, progress = FALSE)

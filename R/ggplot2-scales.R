@@ -1,7 +1,7 @@
 # ggplot2 Scale Functions for huerd Palettes
 #
-# This file provides ggplot2 integration for huerd palettes, allowing users to
-# easily use optimized color palettes in their visualizations.
+# This file integrates huerd palettes with ggplot2 so users can use
+# optimized color palettes directly in their visualizations.
 
 # Palette generator function for ggplot2 scales
 #
@@ -42,16 +42,17 @@
 
 #' Discrete color scale using huerd palettes
 #'
-#' These scales provide perceptually optimized color palettes for ggplot2
-#' visualizations. Colors are generated using minimax optimization in the
-#' OKLAB color space to maximize perceptual distinctness.
+#' These scales apply huerd palettes to ggplot2 visualizations. Minimax
+#' optimization in the OKLAB color space maximizes the perceptual distinctness
+#' of the colors.
 #'
 #' @param palette A `huerd_palette` object (from [generate_palette()]) to use.
-#'   If `NULL`, a palette will be generated automatically based on the number
-#'   of levels in your data.
+#'   If `NULL`, the scale generates a palette automatically based on the
+#'   number of levels in your data.
 #' @param brand_colors Character vector of hex colors that must be included
-#'   in the palette. Only used when `palette = NULL`. These colors will be
-#'   preserved and additional colors optimized around them.
+#'   in the palette. Only used when `palette = NULL`. The optimizer
+#'   preserves these colors and optimizes the additional colors around
+#'   them.
 #' @param ... Additional arguments passed to [generate_palette()] when
 #'   generating palettes on-the-fly, or to [ggplot2::discrete_scale()].
 #' @param aesthetics Character string or vector of aesthetic names to apply
@@ -66,11 +67,10 @@
 #'
 #' \enumerate{
 #' \item \strong{Pre-generated palette}: Pass a `huerd_palette` object to the
-#'   `palette` argument. This is useful when you want to reuse the same
-#'   palette across multiple plots or need fine control over generation
-#'   parameters.
+#'   `palette` argument to reuse the same palette across multiple plots or to
+#'   fine-tune generation parameters.
 #' \item \strong{On-the-fly generation}: Leave `palette = NULL` and the
-#'   scale will automatically generate an optimized palette based on the
+#'   scale automatically generates an optimized palette based on the
 #'   number of levels in your data. Use `brand_colors` to include specific
 #'   colors.
 #' }
