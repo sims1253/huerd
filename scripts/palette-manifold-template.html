@@ -127,7 +127,8 @@
 <script>/*__THREE__*/</script>
 <script>/*__ORBIT__*/</script>
 <script>
-const DATA = /*__DATA__*/;
+let DATA = /*__DATA__*/;
+// (let: the Shiny palette-studio app replaces the sample at runtime)
 
 // ---------------------------------------------------------------- helpers
 const METRICS = ["min_dist", "cvd_safe", "min_deutan", "min_protan",
@@ -166,7 +167,7 @@ function magma(t) {
 }
 
 // ---------------------------------------------------------------- scoring
-const N = DATA.length;
+let N = DATA.length;
 const scaledCache = {};
 function scaled(metric) {
   if (metric === "score") return Array.from(scores()); // live: depends on weights
@@ -194,9 +195,11 @@ function scores() {
 }
 
 // Pareto front over the four weighted metrics (all maximized): draws that
-// no other draw weakly dominates. Computed once, independent of weights.
-const PARETO = [];
-{
+// no other draw weakly dominates. Independent of weights; recomputed
+// whenever the sample is replaced.
+let PARETO = [];
+function computePareto() {
+  PARETO = [];
   const cols = WEIGHTED.map(m => DATA.map(d => d[m]));
   for (let i = 0; i < N; i++) {
     let dominated = false;
@@ -251,20 +254,11 @@ function dotTexture() {
   return new THREE.CanvasTexture(c);
 }
 
-const geometry = new THREE.BufferGeometry();
-const positions = new Float32Array(N * 3);
-const colors = new Float32Array(N * 3);
-const sizes = new Float32Array(N);
-geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
 const sprite = dotTexture();
 const material = new THREE.PointsMaterial({
   size: 0.075, map: sprite, vertexColors: true, transparent: true,
   depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true
 });
-const points = new THREE.Points(geometry, material);
-scene.add(points);
 
 // stroked-ring sprite texture for Pareto markers and the selection spotlight
 function ringTexture() {
@@ -279,14 +273,31 @@ function ringTexture() {
   return new THREE.CanvasTexture(c);
 }
 
-const paretoGeo = new THREE.BufferGeometry();
-paretoGeo.setAttribute("position",
-  new THREE.BufferAttribute(new Float32Array(PARETO.length * 3), 3));
-const paretoPts = new THREE.Points(paretoGeo, new THREE.PointsMaterial({
+const paretoMaterial = new THREE.PointsMaterial({
   size: 0.15, map: ringTexture(), color: 0xffffff, transparent: true,
   opacity: 0.55, depthWrite: false, sizeAttenuation: true
-}));
-scene.add(paretoPts);
+});
+
+// buffers sized to the current sample; rebuilt by loadData() when the
+// Shiny studio app streams in a fresh posterior
+let geometry, positions, colors, points;
+let paretoGeo, paretoPts;
+function rebuildCloud() {
+  if (points) { scene.remove(points); geometry.dispose(); }
+  if (paretoPts) { scene.remove(paretoPts); paretoGeo.dispose(); }
+  positions = new Float32Array(N * 3);
+  colors = new Float32Array(N * 3);
+  geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  points = new THREE.Points(geometry, material);
+  scene.add(points);
+  paretoGeo = new THREE.BufferGeometry();
+  paretoGeo.setAttribute("position",
+    new THREE.BufferAttribute(new Float32Array(PARETO.length * 3), 3));
+  paretoPts = new THREE.Points(paretoGeo, paretoMaterial);
+  scene.add(paretoPts);
+}
 function syncPareto() {
   const p = paretoGeo.attributes.position.array;
   for (let k = 0; k < PARETO.length; k++) {
@@ -482,18 +493,13 @@ for (const m of WEIGHTED) {
 // ineligible draws fade out and leave the ranked list. (What the sample
 // contains is decided at sampling time -- see the pastel-variant build,
 // which re-samples with chroma/lightness targets in the log density.)
-const chromaRange = [
-  Math.floor(Math.min(...DATA.map(d => d.mean_chroma)) * 100) / 100,
-  Math.ceil(Math.max(...DATA.map(d => d.mean_chroma)) * 100) / 100
-];
-const Lrange = [
-  Math.floor(Math.min(...DATA.map(d => d.mean_L)) * 100) / 100,
-  Math.ceil(Math.max(...DATA.map(d => d.mean_L)) * 100) / 100
-];
-const cons = { chromaMax: chromaRange[1], Llo: Lrange[0], Lhi: Lrange[1] };
-let elig = new Array(N).fill(true);
-let eligCount = N;
+let chromaRange = [0, 1];
+let Lrange = [0, 1];
+const cons = { chromaMax: 1, Llo: 0, Lhi: 1 };
+let elig = [];
+let eligCount = 0;
 function computeElig() {
+  elig = new Array(N);
   eligCount = 0;
   for (let i = 0; i < N; i++) {
     const d = DATA[i];
@@ -521,18 +527,34 @@ function conSlider(labelText, min, max, value, fmt, onInput) {
 // a slider sitting at its no-op end reads "off", so "no constraint" is
 // distinguishable from "constrained at the data maximum"
 const atEnd = (v, end) => Math.abs(v - end) < 1e-9;
-const chromaSl = conSlider("mean chroma \u2264", chromaRange[0], chromaRange[1],
-  cons.chromaMax,
-  v => atEnd(v, chromaRange[1]) ? "off" : (+v).toFixed(2),
-  v => { cons.chromaMax = v; computeElig(); recolor(); });
-const LloSl = conSlider("mean lightness \u2265", Lrange[0], Lrange[1],
-  cons.Llo,
-  v => atEnd(v, Lrange[0]) ? "off" : (+v).toFixed(2),
-  v => { cons.Llo = Math.min(v, cons.Lhi); computeElig(); recolor(); });
-const LhiSl = conSlider("mean lightness \u2264", Lrange[0], Lrange[1],
-  cons.Lhi,
-  v => atEnd(v, Lrange[1]) ? "off" : (+v).toFixed(2),
-  v => { cons.Lhi = Math.max(v, cons.Llo); computeElig(); recolor(); });
+let chromaSl, LloSl, LhiSl;
+function buildConsSliders() {
+  chromaRange = [
+    Math.floor(Math.min(...DATA.map(d => d.mean_chroma)) * 100) / 100,
+    Math.ceil(Math.max(...DATA.map(d => d.mean_chroma)) * 100) / 100
+  ];
+  Lrange = [
+    Math.floor(Math.min(...DATA.map(d => d.mean_L)) * 100) / 100,
+    Math.ceil(Math.max(...DATA.map(d => d.mean_L)) * 100) / 100
+  ];
+  cons.chromaMax = chromaRange[1];
+  cons.Llo = Lrange[0];
+  cons.Lhi = Lrange[1];
+  document.getElementById("cons-sliders").innerHTML = "";
+  chromaSl = conSlider("mean chroma \u2264", chromaRange[0], chromaRange[1],
+    cons.chromaMax,
+    v => atEnd(v, chromaRange[1]) ? "off" : (+v).toFixed(2),
+    v => { cons.chromaMax = v; computeElig(); recolor(); });
+  LloSl = conSlider("mean lightness \u2265", Lrange[0], Lrange[1],
+    cons.Llo,
+    v => atEnd(v, Lrange[0]) ? "off" : (+v).toFixed(2),
+    v => { cons.Llo = Math.min(v, cons.Lhi); computeElig(); recolor(); });
+  LhiSl = conSlider("mean lightness \u2264", Lrange[0], Lrange[1],
+    cons.Lhi,
+    v => atEnd(v, Lrange[1]) ? "off" : (+v).toFixed(2),
+    v => { cons.Lhi = Math.max(v, cons.Llo); computeElig(); recolor(); });
+  computeElig();
+}
 function consSummary() {
   const parts = [];
   if (cons.chromaMax < chromaRange[1] - 1e-9)
@@ -741,13 +763,17 @@ function animate(t) {
 
 // URL-parameter scripting (reproducible viewpoints for reports/tests):
 //   ?axes=min_dist,cvd_safe,mean_chroma & w=2,1,1,0.5 & cam=35,25,4.4 & spin=0
-(function applyUrlParams() {
+// Runs after loadData; changing axes/weights therefore re-applies them on
+// top of the loaded sample.
+function applyUrlParams() {
   const qs = new URLSearchParams(location.search);
+  let axesChanged = false, wChanged = false;
   const ax = qs.get("axes");
   if (ax) {
     const parts = ax.split(",");
     if (parts.length === 3 && parts.every(p => AXES.includes(p))) {
       currentAxes = { x: parts[0], y: parts[1], z: parts[2] };
+      axesChanged = true;
       for (const dim of ["x", "y", "z"]) {
         document.getElementById("ax-" + dim).value = currentAxes[dim];
       }
@@ -764,6 +790,7 @@ function animate(t) {
         const vl = document.getElementById("wval-" + m);
         if (vl) vl.textContent = parts[i].toFixed(1);
       });
+      wChanged = true;
     }
   }
   const cam = qs.get("cam");
@@ -800,14 +827,59 @@ function animate(t) {
     }
   }
   if (cq !== null || Lq) { setConsSliders(); computeElig(); }
+  if (axesChanged) setAxes(currentAxes, false);
+  if (axesChanged || wChanged) recolor();
   const pin = qs.get("pin");
   if (pin !== null && DATA[+pin]) showDetail(+pin);
-})();
+}
 
-document.getElementById("pareto-n").textContent = PARETO.length;
-setAxes(currentAxes, false);
-recolor();
+// ---------------------------------------------------------------- init
+// Install (or replace) a posterior sample: buffers, caches, Pareto front,
+// constraint ranges, chips. Called once here and again whenever the Shiny
+// palette-studio app streams in a freshly sampled posterior.
+function loadData(data) {
+  DATA = data;
+  N = DATA.length;
+  for (const k in scaledCache) delete scaledCache[k];
+  pinnedI = -1;
+  spotRing.visible = false;
+  detail.style.display = "none";
+  computePareto();
+  document.getElementById("pareto-n").textContent = PARETO.length;
+  rebuildCloud();
+  targets = new Float32Array(N * 3);
+  froms = new Float32Array(N * 3);
+  buildConsSliders();
+  setAxes(currentAxes, false);
+  recolor();
+}
+
+loadData(DATA);
+applyUrlParams();
 animate();
+
+// Shiny palette-studio wiring: the server re-samples the posterior with
+// user-supplied parameters (beta, targets, locked colors, ...) and streams
+// replacement draws in the same shape as the embedded DATA
+if (window.Shiny) {
+  Shiny.addCustomMessageHandler("manifoldData", function(msg) {
+    // Shiny may deliver the payload pre-parsed (object) or as a JSON string
+    // depending on version/size -- accept both
+    const draws = typeof msg.payload === "string"
+      ? JSON.parse(msg.payload) : msg.payload;
+    loadData(draws);
+    if (msg.subtitle) {
+      document.querySelector("#controls .sub").textContent = msg.subtitle;
+      document.title = "huerd palette studio" + msg.subtitle;
+    }
+    const st = document.getElementById("studio-status");
+    if (st) st.textContent = "idle";
+  });
+  Shiny.addCustomMessageHandler("manifoldStatus", function(msg) {
+    const st = document.getElementById("studio-status");
+    if (st) st.textContent = msg;
+  });
+}
 
 // headless self-test: load with ?selftest and read document.title
 if (location.search.indexOf("selftest") >= 0) {
@@ -863,6 +935,16 @@ if (location.search.indexOf("selftest") >= 0) {
   clearConstraints();
   results.push("consoff:" +
     (document.querySelector("#cons-sliders .val").textContent === "off"));
+  // sample replacement (the Shiny studio loop): loadData on a different
+  // draw set must rebuild buffers, Pareto front, constraint ranges, chips
+  const orig = DATA;
+  loadData(orig.filter((_, k) => k % 2 === 0));
+  const reloadOK = N === 600 &&
+    document.getElementById("elig-n").textContent.indexOf("600") >= 0 &&
+    document.querySelectorAll(".chip").length === 8 &&
+    PARETO.length > 0 && PARETO.length < N;
+  results.push("reload:" + reloadOK);
+  loadData(orig);
   document.title = "SELFTEST " + results.join(" ");
 }
 </script>
