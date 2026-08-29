@@ -1,6 +1,6 @@
 #' Simulate Palette Under Color Vision Deficiency
 #'
-#' Shows how a color palette appears to individuals with different types
+#' Shows how a color palette appears to viewers with different types
 #' of color vision deficiency using physiologically accurate models from
 #' `farver`.
 #'
@@ -15,8 +15,8 @@
 #'
 #' @return A list with simulated palettes. If `cvd_type` is "all", the list
 #'   contains elements `original`, `protan`, `deutan`, and `tritan`. For a
-#'   single CVD type, the list contains a single element named after that
-#'   type (e.g., `protan`). The output object also inherits from
+#'   single CVD type, it contains one element named after that type (e.g.,
+#'   `protan`). The output object also inherits from
 #'   `huerd_simulation_result`.
 #'
 #' @examples
@@ -226,14 +226,14 @@ plot_cvd_comparison <- function(palette_list) {
 
 #' Check Palette CVD Safety
 #'
-#' Quick check if a palette's worst-case minimum inter-color distance under
-#' simulated common CVD conditions meets a specified threshold.
+#' Checks whether a palette's worst-case minimum distance between colors,
+#' under simulated common CVD conditions, meets a specified threshold.
 #'
 #' @param colors Character vector of hex colors or an OKLAB matrix.
 #' @param min_cvd_distance Numeric. The minimum acceptable perceptual distance
-#'   (in OK LAB space) that any two colors in the palette should maintain
+#'   (in OKLAB space) that any two colors in the palette should maintain
 #'   under simulated deuteranopia, protanopia, and tritanopia. Defaults to
-#'   the package-wide distinctness threshold (0.08). Recall JND is ~0.02.
+#'   the package-wide distinctness threshold (0.08). JND is ~0.02.
 #' @param ... Additional arguments reserved for future use.
 #'
 #' @return Logical. `TRUE` if the palette's `worst_case_min_distance` from

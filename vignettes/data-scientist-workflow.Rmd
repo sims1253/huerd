@@ -23,11 +23,11 @@ You're a data scientist creating a dashboard to visualize patient outcomes acros
 treatment groups. Your requirements are:
 
 - **6 distinct colors** for different treatment groups
-- **Colorblind-safe** for accessibility compliance  
+- **CVD-safe** for accessibility compliance  
 - **Include company brand colors** (a specific blue and orange)
 - **Easy integration** with ggplot2
 
-This vignette walks through how huerd makes this workflow simple and reliable.
+This vignette shows how huerd makes this workflow simple and reliable.
 
 ## Quick Start: The Simple Path
 
@@ -52,7 +52,7 @@ print(brand_palette)
 
 ## Using Palettes with ggplot2
 
-huerd provides native ggplot2 integration. No more `scale_color_manual()`:
+huerd integrates natively with ggplot2, so you no longer need `scale_color_manual()`:
 
 ```{r}
 library(ggplot2)
@@ -183,6 +183,6 @@ For data scientists, huerd provides:
 2. **`scale_color_huerd()` / `scale_fill_huerd()`** - Native ggplot2 integration
 3. **`is_cvd_safe()`** - Quick accessibility verification
 4. **`interpret_palette_quality()`** - Human-readable quality assessment
-5. **`plot_palette_analysis()`** - Comprehensive visual diagnostics
+5. **`plot_palette_analysis()`** - Full visual diagnostics
 
-This workflow ensures your visualizations are both beautiful and accessible.
+This workflow ensures your visualizations are beautiful and accessible.

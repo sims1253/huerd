@@ -7,8 +7,8 @@
 brand_palette(brand_colors, n_total, cvd_safe = TRUE)
 }
 \arguments{
-\item{brand_colors}{Character vector of hex colors representing your brand
-colors. These will be preserved exactly in the output.}
+\item{brand_colors}{Character vector of hex colors for your brand.
+These colors appear exactly as provided in the output.}
 
 \item{n_total}{Total number of colors needed in the final palette. Must be
 at least as large as the number of brand colors.}
@@ -23,9 +23,9 @@ A \code{huerd_palette} object containing the brand colors plus
 optimized complementary colors.
 }
 \description{
-Convenience function specifically for creating palettes that incorporate
-brand or corporate colors. This is a common use case where specific colors
-must be preserved while generating complementary colors.
+Creates palettes that include brand or corporate colors. This is a common
+use case: specific colors must be preserved while huerd generates
+complementary colors.
 }
 \examples{
 # Corporate palette with 2 brand colors expanded to 6

@@ -1,19 +1,19 @@
 # Convenience Functions for huerd
 #
-# User-friendly wrapper functions that provide simpler interfaces to huerd's
-# core functionality. These functions prioritize ease of use over fine-grained
+# User-friendly wrapper functions with simpler interfaces to huerd's
+# core functionality. They prioritize ease of use over fine-grained
 # control.
 
 #' Quick palette generation with sensible defaults
 #'
-#' A simplified interface to [generate_palette()] that uses intuitive parameter
-#' names and sensible defaults. This function is designed for users who want
-#' good results without understanding optimization details.
+#' A simplified interface to [generate_palette()] with intuitive parameter
+#' names and sensible defaults. Use it when you want good results without
+#' understanding optimization details.
 #'
 #' @param n Number of colors to generate.
 #' @param brand_colors Optional character vector of hex colors that must be
-#'   included in the palette. These colors will be preserved exactly as
-#'   provided, and additional colors will be optimized around them.
+#'   included in the palette. The optimizer preserves these colors exactly
+#'   as provided and optimizes the additional colors around them.
 #' @param cvd_safe Logical. If `TRUE` (default), the optimizer maximizes
 #'   the worst-case perceptual distance across color vision deficiency
 #'   simulations (deuteranopia, protanopia, tritanopia). If `FALSE`, it
@@ -104,12 +104,12 @@ quick_palette <- function(
 
 #' Create a palette with brand colors
 #'
-#' Convenience function specifically for creating palettes that incorporate
-#' brand or corporate colors. This is a common use case where specific colors
-#' must be preserved while generating complementary colors.
+#' Creates palettes that include brand or corporate colors. This is a common
+#' use case: specific colors must be preserved while huerd generates
+#' complementary colors.
 #'
-#' @param brand_colors Character vector of hex colors representing your brand
-#'   colors. These will be preserved exactly in the output.
+#' @param brand_colors Character vector of hex colors for your brand.
+#'   These colors appear exactly as provided in the output.
 #' @param n_total Total number of colors needed in the final palette. Must be
 #'   at least as large as the number of brand colors.
 #' @param cvd_safe Logical. If `TRUE` (default), the optimizer maximizes
@@ -155,8 +155,7 @@ brand_palette <- function(brand_colors, n_total, cvd_safe = TRUE) {
 
 #' Export palette to various formats
 #'
-#' Export a huerd palette to common formats used in design and development
-#' workflows.
+#' Export a huerd palette to common design and development formats.
 #'
 #' @param palette A `huerd_palette` object or character vector of hex colors.
 #' @param format Output format. One of:
@@ -169,14 +168,13 @@ brand_palette <- function(brand_colors, n_total, cvd_safe = TRUE) {
 #'   colors are named `color_1`, `color_2`, etc.
 #' @param file Optional file path to write the output. If `NULL`, returns the
 #'   formatted string. If specified, the function writes the formatted palette
-#'   to the given file path and (invisibly) returns the file path as a
-#'   character string.
+#'   to the file and (invisibly) returns the file path.
 #'
 #' @return If `file` is `NULL`: for `"hex"`, the palette as a character
 #'   vector (returned invisibly); for all other formats, the formatted
 #'   palette as a single character string. If `file` is specified, the
-#'   function writes the formatted palette to the given file and
-#'   (invisibly) returns the file path as a character string.
+#'   function writes the formatted palette to the file and (invisibly)
+#'   returns the file path.
 #' @examples
 #' pal <- generate_palette(5, progress = FALSE)
 #'
@@ -279,9 +277,8 @@ export_palette <- function(
 
 #' Interpret palette quality in plain language
 #'
-#' Provides a human-readable assessment of a palette's quality, translating
-#' technical metrics into understandable language suitable for presentations
-#' or documentation.
+#' Assesses a palette's quality and translates the metrics into plain
+#' language for presentations or documentation.
 #'
 #' @param palette A `huerd_palette` object or character vector of hex colors.
 #'
@@ -429,7 +426,7 @@ print.huerd_interpretation <- function(x, ...) {
 
 #' Plot method for huerd palettes
 #'
-#' Display a visual representation of a huerd palette. By default shows color
+#' Displays a huerd palette. By default shows color
 #' swatches; use `type = "analysis"` for the full diagnostic dashboard.
 #'
 #' @param x A `huerd_palette` object.

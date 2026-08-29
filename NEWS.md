@@ -11,6 +11,7 @@
 - The dashboard panel descriptions in the "Introduction to huerd" vignette now match the actual panels (the long-removed "Nearest Neighbor Distances" panel is no longer listed, and the two boxplot panels are described)
 - `is_cvd_safe()`'s `min_cvd_distance` default now derives from the package-wide distinctness threshold constant instead of a duplicated `0.08` literal, so the two can no longer drift apart silently (default value unchanged)
 - The `DESCRIPTION` `Title` is now in title case, resolving an `R CMD check --as-cran` NOTE
+- Documentation copy-edited throughout for clarity (Orwell/STE pass: active voice, shorter sentences, consistent terminology, "OK LAB" unified to "OKLAB") across the README, all four vignettes, the DESCRIPTION, and the roxygen reference docs; no code, API, or documented behavior changed
 
 ## Deprecated
 

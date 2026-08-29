@@ -27,7 +27,7 @@ huerd_palette object using stored generation metadata.
 \details{
 This function reads the generation metadata stored in the
 \code{generation_metadata} attribute of a huerd_palette object and
-re-runs \code{generate_palette()} with the exact same parameters.
+re-runs \code{generate_palette()} with the same parameters.
 
 Reproducibility depends on the optimizer used:
 \itemize{

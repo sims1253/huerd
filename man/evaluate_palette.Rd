@@ -8,20 +8,18 @@ evaluate_palette(colors, ...)
 }
 \arguments{
 \item{colors}{A character vector of hex colors, or a matrix of colors
-in OK LAB space.}
+in OKLAB space.}
 
 \item{...}{Additional arguments reserved for future use.}
 }
 \value{
 A list of evaluation metrics with class \code{huerd_evaluation}.
-Contains raw metrics including distances, CVD safety, and
-distribution for objective analysis without subjective
-heuristic scoring.
+Contains raw metrics (distances, CVD safety, distribution)
+for analysis without subjective heuristic scoring.
 }
 \description{
-Provides a comprehensive evaluation of a color palette's
-perceptual properties, including its distinguishability, CVD safety,
-and color distribution.
+Evaluates a color palette's perceptual properties, including
+distinguishability, CVD safety, and color distribution.
 Returns raw metrics without subjective scoring for post-hoc analysis.
 }
 \examples{

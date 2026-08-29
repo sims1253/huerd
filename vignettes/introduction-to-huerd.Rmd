@@ -17,9 +17,9 @@ set.seed(42)
 
 ## Introduction
 
-The `huerd` package provides a scientifically-grounded approach to generating categorical color palettes. It uses a pure minimax optimization algorithm in the perceptually uniform OKLAB color space to create palettes with maximally distinct colors.
+The `huerd` package generates categorical color palettes with pure minimax optimization in the perceptually uniform OKLAB color space, so the colors are maximally distinct.
 
-This vignette will walk you through the core features of `huerd`, from basic palette generation to in-depth analysis.
+This vignette covers the core features of `huerd`, from basic palette generation to in-depth analysis.
 
 ## Installation
 
@@ -32,7 +32,7 @@ You can install the development version of `huerd` from GitHub with:
 
 ## Basic Palette Generation
 
-The simplest way to use `huerd` is with the `generate_palette()` function. By default, it will create a palette of the specified size with colors that are as distinct as possible.
+The simplest way to use `huerd` is with the `generate_palette()` function. By default, it creates a palette of the specified size with colors as distinct as possible.
 
 ```{r}
 library(huerd)
@@ -42,11 +42,11 @@ palette <- generate_palette(5, progress = FALSE)
 print(palette)
 ```
 
-All palettes are automatically sorted by brightness (lightness in the OKLAB space), making them intuitive to use.
+huerd automatically sorts every palette by brightness (OKLAB lightness).
 
 ## Constrained Palettes
 
-A key feature of `huerd` is the ability to include fixed "brand" colors in your palette while optimizing the remaining colors around them.
+You can include fixed "brand" colors in your palette while `huerd` optimizes the remaining colors around them.
 
 ```{r}
 # Generate a 6-color palette that must include a specific blue and orange
@@ -60,11 +60,11 @@ print(brand_palette)
 
 ## Palette Analysis
 
-`huerd` includes powerful tools for analyzing the quality of your palettes.
+`huerd` includes tools for analyzing the quality of your palettes.
 
 ### `evaluate_palette()`
 
-The `evaluate_palette()` function provides a detailed, quantitative assessment of a palette's properties.
+`evaluate_palette()` gives a detailed, quantitative assessment of a palette's properties.
 
 ```{r}
 # Evaluate the brand palette we just created
@@ -72,7 +72,7 @@ evaluation <- evaluate_palette(brand_palette)
 print(evaluation)
 ```
 
-This function returns a wealth of information, including:
+This function returns detailed information, including:
 
 *   **Perceptual Distances**: Minimum, mean, and other statistics about the distances between colors.
 *   **CVD Safety**: How the palette performs under simulated color vision deficiency.
@@ -80,7 +80,7 @@ This function returns a wealth of information, including:
 
 ### `plot_palette_analysis()`
 
-For a more visual analysis, the `plot_palette_analysis()` function creates a comprehensive dashboard.
+For a more visual analysis, `plot_palette_analysis()` creates a diagnostic dashboard.
 
 ```{r, fig.width=10, fig.height=6}
 # Create the diagnostic dashboard
@@ -90,9 +90,9 @@ plot_palette_analysis(brand_palette)
 This dashboard provides six key visualizations:
 
 1.  **Color Swatches**: An overview of the palette with key metrics.
-2.  **OKLAB Color Space**: A projection of the colors in the `a*b*` plane of the OKLAB space, with point size indicating lightness.
-3.  **Pairwise Distance Matrix**: A heatmap showing the perceptual distance between every pair of colors on a fixed scale, so cell colors are comparable across palettes.
-4.  **CVD Simulation**: How the palette appears to individuals with the three most common types of color vision deficiency, plus greyscale.
+2.  **OKLAB Color Space**: A projection of the colors in the `a*b*` plane; point size indicates lightness.
+3.  **Pairwise Distance Matrix**: A heatmap of the perceptual distance between every pair of colors, on a fixed scale so cell colors are comparable across palettes.
+4.  **CVD Simulation**: How the palette appears to viewers with the three most common types of color vision deficiency, plus greyscale.
 5.  **Pairwise Distances under CVD**: The distribution of pairwise distances under each CVD simulation, compared with normal vision.
 6.  **Comparative Palettes**: A comparison of your palette's distance distribution against established palettes like Batlow, Viridis, and Set2.
 
@@ -102,7 +102,7 @@ This dashboard provides six key visualizations:
 
 ### `is_cvd_safe()`
 
-This function provides a simple, programmatic check to see if a palette meets a minimum threshold for CVD safety.
+This function checks programmatically whether a palette meets a minimum threshold for CVD safety.
 
 ```{r}
 is_cvd_safe(brand_palette)
@@ -110,7 +110,7 @@ is_cvd_safe(brand_palette)
 
 ### `simulate_palette_cvd()`
 
-This function allows you to see how your palette would appear to individuals with different types of CVD.
+This function shows how your palette would appear to viewers with different types of CVD.
 
 ```{r}
 # Simulate the appearance for all CVD types
@@ -120,4 +120,4 @@ print(cvd_simulation)
 
 ## Conclusion
 
-This vignette has covered the core functionality of the `huerd` package. By combining pure minimax optimization with comprehensive analysis tools, `huerd` provides a powerful and flexible solution for creating high-quality, accessible color palettes.
+This vignette has covered the core functionality of the `huerd` package. By combining pure minimax optimization with its analysis tools, `huerd` creates high-quality, accessible color palettes.
