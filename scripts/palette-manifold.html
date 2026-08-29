@@ -23,8 +23,13 @@
   .axes { display: grid; grid-template-columns: 18px 1fr; gap: 4px 8px;
     align-items: center; font-size: 11px; color: #8b98ad; margin-top: 6px; }
   #legend { bottom: 16px; left: 16px; font-size: 11px; color: #8b98ad; }
-  #bar { width: 200px; height: 8px; border-radius: 4px; margin: 6px 0 4px;
-    background: linear-gradient(90deg, #f6e86e, #dd6f6f, #8c2ea6, #170233); }
+  #bar { width: 200px; height: 8px; border-radius: 4px; margin: 6px 0 2px;
+    background: linear-gradient(90deg, #f6e86e, #dd6f6f, #8c2ea6, #3f0a58); }
+  #legend .ticks { display: flex; justify-content: space-between; width: 200px;
+    font-variant-numeric: tabular-nums; color: #aebccd; }
+  #legend #score-range { display: block; margin-top: 3px; color: #aebccd;
+    font-variant-numeric: tabular-nums; }
+  #legend #pareto-line { margin-top: 3px; color: #aebccd; }
   #hint { bottom: 16px; right: 16px; font-size: 11px; color: #8b98ad;
     text-align: right; line-height: 1.5; }
   #top { top: 16px; right: 16px; width: 300px; max-height: 82vh; overflow-y: auto; }
@@ -33,21 +38,25 @@
     border: 1px solid rgba(120,150,200,0.15); transition: transform .25s ease,
     border-color .25s ease; background: rgba(20, 26, 38, 0.6); }
   .chip:hover { transform: translateX(-4px); border-color: rgba(124, 196, 255, 0.6); }
-  .chip .strip { display: flex; height: 26px; border-radius: 5px; overflow: hidden; }
-  .chip .strip div { flex: 1; }
+  .chip.winner { border-color: rgba(255, 209, 102, 0.85);
+    background: rgba(255, 209, 102, 0.07); }
+  .chip .strip { display: flex; gap: 2px; height: 28px; border-radius: 5px;
+    overflow: hidden; padding: 2px; background: rgba(5, 8, 14, 0.85); }
+  .chip .strip div { flex: 1; border-radius: 2px; }
   .chip .meta { font-size: 10px; color: #8b98ad; margin-top: 4px;
     display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
   .chip .meta b { color: #dfe6f1; font-weight: 600; }
   #tooltip { position: absolute; z-index: 9; pointer-events: none; display: none;
     background: rgba(13, 17, 26, 0.92); border: 1px solid rgba(124, 196, 255, 0.4);
     border-radius: 8px; padding: 8px; font-size: 10px; }
-  #tooltip .strip { display: flex; height: 20px; width: 150px;
-    border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
-  #tooltip .strip div { flex: 1; }
+  #tooltip .strip { display: flex; gap: 2px; height: 22px; width: 150px;
+    border-radius: 4px; overflow: hidden; padding: 2px; margin-bottom: 5px;
+    background: rgba(5, 8, 14, 0.85); }
+  #tooltip .strip div { flex: 1; border-radius: 2px; }
   #detail { display: none; bottom: 60px; left: 16px; width: 260px; }
-  #detail .strip { display: flex; height: 34px; border-radius: 6px;
-    overflow: hidden; margin: 8px 0; }
-  #detail .strip div { flex: 1; }
+  #detail .strip { display: flex; gap: 2px; height: 36px; border-radius: 6px;
+    overflow: hidden; padding: 2px; margin: 8px 0; background: rgba(5, 8, 14, 0.85); }
+  #detail .strip div { flex: 1; border-radius: 3px; }
   #detail .hexes { font-size: 10px; color: #8b98ad; line-height: 1.6;
     font-family: ui-monospace, monospace; }
   button { background: #1b2433; color: #dfe6f1; border: 1px solid #2c3950;
@@ -79,7 +88,9 @@
 <div class="panel" id="legend">
   weighted score
   <div id="bar"></div>
+  <div class="ticks"><span id="s-lo"></span><span id="s-hi"></span></div>
   <span id="score-range"></span>
+  <div id="pareto-line">&#9675; Pareto front &middot; <span id="pareto-n"></span> draws</div>
 </div>
 
 <div class="panel" id="hint">
@@ -1193,6 +1204,7 @@ function scaled(metric) {
   return scaledCache[metric];
 }
 let weights = Object.assign({}, W_DEFAULT);
+let rawScoreRange = [0, 1];
 function scores() {
   const s = new Float64Array(N);
   let wsum = 0;
@@ -1205,9 +1217,30 @@ function scores() {
   }
   let lo = Infinity, hi = -Infinity;
   for (let i = 0; i < N; i++) { if (s[i] < lo) lo = s[i]; if (s[i] > hi) hi = s[i]; }
+  rawScoreRange = [lo, hi];
   const span = hi - lo < 1e-12 ? 1 : hi - lo;
   for (let i = 0; i < N; i++) s[i] = (s[i] - lo) / span;
   return s;
+}
+
+// Pareto front over the four weighted metrics (all maximized): draws that
+// no other draw weakly dominates. Computed once, independent of weights.
+const PARETO = [];
+{
+  const cols = WEIGHTED.map(m => DATA.map(d => d[m]));
+  for (let i = 0; i < N; i++) {
+    let dominated = false;
+    for (let j = 0; j < N && !dominated; j++) {
+      if (j === i) continue;
+      let ge = true, gt = false;
+      for (let k = 0; k < cols.length; k++) {
+        if (cols[k][j] < cols[k][i]) { ge = false; break; }
+        if (cols[k][j] > cols[k][i]) gt = true;
+      }
+      dominated = ge && gt;
+    }
+    if (!dominated) PARETO.push(i);
+  }
 }
 
 // ---------------------------------------------------------------- scene
@@ -1263,6 +1296,45 @@ const material = new THREE.PointsMaterial({
 const points = new THREE.Points(geometry, material);
 scene.add(points);
 
+// stroked-ring sprite texture for Pareto markers and the selection spotlight
+function ringTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d");
+  g.strokeStyle = "rgba(255,255,255,1)";
+  g.lineWidth = 5;
+  g.beginPath();
+  g.arc(32, 32, 24, 0, 2 * Math.PI);
+  g.stroke();
+  return new THREE.CanvasTexture(c);
+}
+
+const paretoGeo = new THREE.BufferGeometry();
+paretoGeo.setAttribute("position",
+  new THREE.BufferAttribute(new Float32Array(PARETO.length * 3), 3));
+const paretoPts = new THREE.Points(paretoGeo, new THREE.PointsMaterial({
+  size: 0.15, map: ringTexture(), color: 0xffffff, transparent: true,
+  opacity: 0.55, depthWrite: false, sizeAttenuation: true
+}));
+scene.add(paretoPts);
+function syncPareto() {
+  const p = paretoGeo.attributes.position.array;
+  for (let k = 0; k < PARETO.length; k++) {
+    const j = PARETO[k] * 3;
+    p[k * 3] = positions[j];
+    p[k * 3 + 1] = positions[j + 1];
+    p[k * 3 + 2] = positions[j + 2];
+  }
+  paretoGeo.attributes.position.needsUpdate = true;
+}
+
+const spotRing = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: ringTexture(), color: 0xffd166, transparent: true, opacity: 0.95,
+  depthTest: false
+}));
+spotRing.visible = false;
+scene.add(spotRing);
+
 // axis extent normalization to [-1, 1]
 function normAxis(metric) {
   const z = scaled(metric);
@@ -1293,17 +1365,19 @@ function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2)
 function recolor() {
   const s = scores();
   for (let i = 0; i < N; i++) {
-    const c = magma(0.08 + 0.92 * Math.pow(s[i], 1.35));
-    const dim = 0.35 + 0.65 * s[i];
+    const c = magma(0.16 + 0.84 * Math.pow(s[i], 1.25));
+    let dim = 0.55 + 0.45 * s[i];
+    if (pinnedI >= 0 && i !== pinnedI) dim *= 0.3;
     colors[i * 3] = c[0] / 255 * dim;
     colors[i * 3 + 1] = c[1] / 255 * dim;
     colors[i * 3 + 2] = c[2] / 255 * dim;
   }
   geometry.attributes.color.needsUpdate = true;
   renderChips(s);
-  const hi = WEIGHTED.map(m => weights[m]);
   document.getElementById("score-range").textContent =
     "weights: " + WEIGHTED.map((m, i) => weights[m].toFixed(1)).join(" / ");
+  document.getElementById("s-lo").textContent = rawScoreRange[0].toFixed(2);
+  document.getElementById("s-hi").textContent = rawScoreRange[1].toFixed(2);
 }
 
 // ---------------------------------------------------------------- carpet
@@ -1366,12 +1440,12 @@ function textSprite(text) {
   const c = document.createElement("canvas");
   c.width = 256; c.height = 64;
   const g = c.getContext("2d");
-  g.font = "600 26px Inter, system-ui, sans-serif";
+  g.font = "600 22px Inter, system-ui, sans-serif";
   g.fillStyle = "#9fb6d9";
   g.textAlign = "center";
   g.fillText(text, 128, 40);
   const tex = new THREE.CanvasTexture(c);
-  const m = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.9 });
+  const m = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.55 });
   const s = new THREE.Sprite(m);
   s.scale.set(0.9, 0.225, 1);
   return s;
@@ -1379,16 +1453,16 @@ function textSprite(text) {
 function layoutAxisLabels() {
   labelGroup.clear();
   const lx = textSprite(AXIS_LABEL[currentAxes.x] + " \u2192");
-  lx.position.set(1.3, -1.25, 0.4);
-  lx.scale.set(0.75, 0.19, 1);
+  lx.position.set(1.05, -1.32, 0.3);
+  lx.scale.set(0.6, 0.15, 1);
   labelGroup.add(lx);
   const lz = textSprite("\u2191 " + AXIS_LABEL[currentAxes.z]);
-  lz.position.set(0.4, -1.25, 1.3);
-  lz.scale.set(0.75, 0.19, 1)
+  lz.position.set(0.3, -1.32, 1.05);
+  lz.scale.set(0.6, 0.15, 1)
   labelGroup.add(lz);
   const ly = textSprite("\u2191 " + AXIS_LABEL[currentAxes.y]);
   ly.position.set(-1.15, 0.35, -1.15);
-  ly.scale.set(0.75, 0.19, 1)
+  ly.scale.set(0.6, 0.15, 1)
   labelGroup.add(ly);
 }
 
@@ -1438,21 +1512,50 @@ spinBtn.addEventListener("click", () => {
   spinBtn.textContent = "spin: " + (controls.autoRotate ? "on" : "off");
 });
 
-function chipHTML(d, s, rank) {
+function chipHTML(d, s, rank, winner) {
   const strip = d.hex.map(h => '<div style="background:' + h + '"></div>').join("");
-  const hexes = d.hex.join(" ");
-  return '<div class="chip" data-i="' + d.i + '">' +
+  return '<div class="chip' + (winner ? " winner" : "") + '" data-i="' + d.i + '">' +
     '<div class="strip">' + strip + "</div>" +
-    '<div class="meta"><span>#' + rank + " \u00b7 score <b>" + s.toFixed(3) +
-    "</b></span><span>cvd <b>" + d.cvd_safe.toFixed(3) + "</b> dist <b>" +
+    '<div class="meta"><span>' + (winner ? "\u2605 " : "#") + rank + " \u00b7 score <b>" +
+    s.toFixed(3) + "</b></span><span>cvd <b>" + d.cvd_safe.toFixed(3) + "</b> dist <b>" +
     d.min_dist.toFixed(3) + "</b> chroma <b>" + d.mean_chroma.toFixed(2) + "</b></span></div></div>";
 }
+
+// order-invariant palette distance: mean nearest-color rgb distance, both ways
+function hexRgb(h) {
+  return [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255,
+    parseInt(h.slice(5, 7), 16) / 255];
+}
+function paletteDist(a, b) {
+  const A = a.hex.map(hexRgb), B = b.hex.map(hexRgb);
+  const oneWay = (xs, ys) => {
+    let sum = 0;
+    for (const x of xs) {
+      let m = 1e9;
+      for (const y of ys) {
+        const dd = Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]);
+        if (dd < m) m = dd;
+      }
+      sum += m;
+    }
+    return sum / xs.length;
+  };
+  return (oneWay(A, B) + oneWay(B, A)) / 2;
+}
+const DUP_THRESHOLD = 0.10;
+
 function renderChips(s) {
   const idx = Array.from({ length: N }, (_, i) => i);
   idx.sort((a, b) => s[b] - s[a]);
-  const top = idx.slice(0, 8);
+  const top = [];
+  for (const i of idx) {
+    let dup = false;
+    for (const j of top) if (paletteDist(DATA[i], DATA[j]) < DUP_THRESHOLD) { dup = true; break; }
+    if (!dup) top.push(i);
+    if (top.length === 8) break;
+  }
   document.getElementById("chips").innerHTML =
-    top.map((i, r) => chipHTML(DATA[i], s[i], r + 1)).join("");
+    top.map((i, r) => chipHTML(DATA[i], s[i], r + 1, r === 0)).join("");
   document.querySelectorAll(".chip").forEach(el => {
     el.addEventListener("click", () => showDetail(+el.dataset.i));
   });
@@ -1480,22 +1583,33 @@ renderer.domElement.addEventListener("pointerdown", () => {
 });
 renderer.domElement.addEventListener("click", () => {
   if (hoverI >= 0) showDetail(hoverI);
+  else hideDetail();
 });
 function showDetail(i) {
   pinnedI = i;
+  spotRing.visible = true;
   const d = DATA[i];
   const strip = d.hex.map(h => '<div style="background:' + h + '"></div>').join("");
   detail.style.display = "block";
   detail.innerHTML = "<b>palette " + (i + 1) + "</b> (chain " + d.chain +
-    ", draw " + d.draw + ")<div class='strip'>" + strip + "</div>" +
+    ", draw " + d.draw + ")" + (PARETO.indexOf(i) >= 0 ? ' <span style="color:#ffd166">\u25cb Pareto</span>' : "") +
+    '<div class="strip">' + strip + "</div>" +
     '<div class="hexes">' + d.hex.map(h => '<span style="color:' + h + '">\u25a0</span> ' + h).join("<br>") + "</div>" +
     '<div class="meta" style="font-size:10px;color:#8b98ad;margin-top:6px">' +
     "min dist " + d.min_dist.toFixed(3) + " \u00b7 cvd " + d.cvd_safe.toFixed(3) +
     " \u00b7 deutan " + d.min_deutan.toFixed(3) + " \u00b7 protan " + d.min_protan.toFixed(3) +
     " \u00b7 tritan " + d.min_tritan.toFixed(3) + "<br>chroma " + d.mean_chroma.toFixed(3) +
     " \u00b7 L spread " + d.lightness_spread.toFixed(3) + "</div>" +
-    '<button style="margin-top:8px" onclick="document.getElementById(\'detail\').style.display=\'none\'">close</button>';
+    '<button style="margin-top:8px" onclick="hideDetail()">close</button>';
+  recolor();
 }
+function hideDetail() {
+  pinnedI = -1;
+  spotRing.visible = false;
+  detail.style.display = "none";
+  recolor();
+}
+window.hideDetail = hideDetail;
 
 function updateHover() {
   if (!mouse) return;
@@ -1531,11 +1645,70 @@ function animate(t) {
     }
     geometry.attributes.position.needsUpdate = true;
   }
+  syncPareto();
+  if (spotRing.visible && pinnedI >= 0) {
+    spotRing.position.set(positions[pinnedI * 3], positions[pinnedI * 3 + 1],
+      positions[pinnedI * 3 + 2]);
+    const p = 0.20 + 0.035 * Math.sin((t || 0) / 180);
+    spotRing.scale.set(p, p, 1);
+  }
   controls.update();
   updateHover();
   renderer.render(scene, camera);
 }
 
+// URL-parameter scripting (reproducible viewpoints for reports/tests):
+//   ?axes=min_dist,cvd_safe,mean_chroma & w=2,1,1,0.5 & cam=35,25,4.4 & spin=0
+(function applyUrlParams() {
+  const qs = new URLSearchParams(location.search);
+  const ax = qs.get("axes");
+  if (ax) {
+    const parts = ax.split(",");
+    if (parts.length === 3 && parts.every(p => AXES.includes(p))) {
+      currentAxes = { x: parts[0], y: parts[1], z: parts[2] };
+      for (const dim of ["x", "y", "z"]) {
+        document.getElementById("ax-" + dim).value = currentAxes[dim];
+      }
+    }
+  }
+  const wq = qs.get("w");
+  if (wq) {
+    const parts = wq.split(",").map(Number);
+    if (parts.length === 4 && parts.every(v => isFinite(v))) {
+      WEIGHTED.forEach((m, i) => {
+        weights[m] = parts[i];
+        const el = document.getElementById("w-" + m);
+        if (el) el.value = String(parts[i]);
+        const vl = document.getElementById("wval-" + m);
+        if (vl) vl.textContent = parts[i].toFixed(1);
+      });
+    }
+  }
+  const cam = qs.get("cam");
+  if (cam) {
+    const parts = cam.split(",").map(Number);
+    if (parts.length === 3 && parts.every(v => isFinite(v))) {
+      const az = parts[0] * Math.PI / 180;
+      const elv = parts[1] * Math.PI / 180;
+      const r = parts[2];
+      camera.position.set(
+        r * Math.cos(elv) * Math.sin(az),
+        r * Math.sin(elv),
+        r * Math.cos(elv) * Math.cos(az)
+      );
+      controls.target.set(0, 0, 0);
+    }
+  }
+  if (qs.get("spin") === "0") {
+    controls.autoRotate = false;
+    const b = document.getElementById("btn-spin");
+    if (b) b.textContent = "spin: off";
+  }
+  const pin = qs.get("pin");
+  if (pin !== null && DATA[+pin]) showDetail(+pin);
+})();
+
+document.getElementById("pareto-n").textContent = PARETO.length;
 setAxes(currentAxes, false);
 recolor();
 animate();
@@ -1555,6 +1728,19 @@ if (location.search.indexOf("selftest") >= 0) {
   results.push("chips:" + orderOK);
   const carpetVerts = carpet.geometry.attributes.position.count;
   results.push("carpet:" + (carpetVerts === 48 * 48));
+  // Pareto front exists and is a small subset of all draws
+  results.push("pareto:" + (PARETO.length > 0 && PARETO.length < N));
+  // top-8 chips are pairwise distinct palettes
+  const chipIs = Array.from(document.querySelectorAll(".chip")).map(el => +el.dataset.i);
+  let dup = false;
+  for (let a = 0; a < chipIs.length && !dup; a++)
+    for (let b = a + 1; b < chipIs.length && !dup; b++)
+      if (paletteDist(DATA[chipIs[a]], DATA[chipIs[b]]) < DUP_THRESHOLD) dup = true;
+  results.push("dedupe:" + (chipIs.length === 8 && !dup));
+  // selection link: pinning spotlights the draw in the cloud
+  showDetail(0);
+  results.push("spot:" + (pinnedI === 0 && spotRing.visible));
+  hideDetail();
   // simulate a weight change through the slider event path
   const slider = document.getElementById("w-mean_chroma");
   slider.value = "3";
