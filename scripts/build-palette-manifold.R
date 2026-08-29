@@ -8,11 +8,19 @@
 # 60 fps; nothing re-runs the sampler.
 #
 # Run from the repo root of the poc/stan-lbfgs worktree:
-#   Rscript scripts/build-palette-manifold.R
+#   Rscript scripts/build-palette-manifold.R [art_dir [out_html [variant_label]]]
+#
+# Defaults build the standard posterior page; e.g. the pastel variant:
+#   Rscript scripts/build-palette-manifold.R scripts/palette-posterior-pastel \
+#     scripts/palette-manifold-pastel.html " &middot; chroma/L-targeted"
+
+args <- commandArgs(trailingOnly = TRUE)
+art <- if (length(args) >= 1) args[1] else "scripts/palette-posterior"
+out_html <- if (length(args) >= 2) args[2] else "scripts/palette-manifold.html"
+variant <- if (length(args) >= 3) args[3] else ""
 
 stopifnot(requireNamespace("jsonlite", quietly = TRUE))
 
-art <- "scripts/palette-posterior"
 post <- readRDS(file.path(art, "palette-posterior.rds"))
 met <- post$met
 
@@ -32,6 +40,7 @@ draws <- lapply(seq_len(nrow(met)), function(i) {
   pal <- met$palette[[i]]
   hex <- palette_hex(pal)
   row <- as.list(round(met[i, metric_cols], 5))
+  row$mean_L <- round(mean(pal[, 1]), 5) # mean OKLAB lightness
   row$pc1 <- round(pcs[i, 1], 5)
   row$pc2 <- round(pcs[i, 2], 5)
   row$pc3 <- round(pcs[i, 3], 5)
@@ -66,9 +75,10 @@ html <- inject(html, "/*__THREE__*/", paste(three, collapse = "\n"))
 html <- inject(html, "/*__ORBIT__*/", paste(orbit, collapse = "\n"))
 html <- inject(html, "/*__DATA__*/", data_json)
 html <- inject(html, "__NDRAWS__", as.character(length(draws)))
+html <- inject(html, "__VARIANT__", variant)
 
-writeLines(html, "scripts/palette-manifold.html")
+writeLines(html, out_html)
 cat(sprintf(
-  "wrote scripts/palette-manifold.html (%.1f MB, %d draws)\n",
-  file.size("scripts/palette-manifold.html") / 1e6, length(draws)
+  "wrote %s (%.1f MB, %d draws)\n",
+  out_html, file.size(out_html) / 1e6, length(draws)
 ))

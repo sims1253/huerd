@@ -51,7 +51,11 @@
 #' @param quality_weights Named numeric with elements "normal", "cvd",
 #'   "lightness_spread", "mean_chroma" (defaults 1, 1, 0, 0). The
 #'   soft-min terms are maximized; the aesthetic terms are scaled to
-#'   roughly [0, 1].
+#'   roughly [0, 1]. Additionally accepts `chroma_target` / `l_target`
+#'   (numeric targets for mean OKLAB chroma / lightness) and
+#'   `target_weight` (default 8): soft quadratic penalties that pull
+#'   palettes toward a desired saturation/brightness instead of letting
+#'   separation push every color to the gamut edge.
 #' @param k Soft-min temperature passed to the objective.
 #' @return List with `value` (log density) and `gradient` (wrt u).
 #' @noRd
@@ -77,7 +81,10 @@ palette_log_density <- function(
   full[!fixed_mask, ] <- x
 
   qw <- modifyList(
-    list(normal = 1, cvd = 1, lightness_spread = 0, mean_chroma = 0),
+    list(
+      normal = 1, cvd = 1, lightness_spread = 0, mean_chroma = 0,
+      chroma_target = NULL, l_target = NULL, target_weight = 8
+    ),
     quality_weights
   )
   quality <- 0
@@ -109,6 +116,22 @@ palette_log_density <- function(
     grad_chroma <- cbind(0, full[, 2] / chroma, full[, 3] / chroma) / (0.4 * nrow(full))
     grad_chroma[chroma == 0, ] <- 0
     dquality <- dquality + qw$mean_chroma * grad_chroma
+  }
+  if (!is.null(qw$chroma_target)) {
+    # soft saturation target: -w * ((mean chroma - t) / 0.4)^2
+    chroma <- sqrt(full[, 2]^2 + full[, 3]^2)
+    dev <- (mean(chroma) - qw$chroma_target) / 0.4
+    quality <- quality - qw$target_weight * dev^2
+    grad_t <- cbind(0, full[, 2] / chroma, full[, 3] / chroma) / nrow(full)
+    grad_t[chroma == 0, ] <- 0
+    dquality <- dquality - 2 * qw$target_weight * dev / 0.4 * grad_t
+  }
+  if (!is.null(qw$l_target)) {
+    # soft brightness target on mean OKLAB lightness
+    dev <- (mean(full[, 1]) - qw$l_target) / 0.998
+    quality <- quality - qw$target_weight * dev^2
+    dquality[, 1] <- dquality[, 1] -
+      2 * qw$target_weight * dev / 0.998 / nrow(full)
   }
 
   # log density: beta * Q(u) + log |dx/du| (the Stan sampling rule:

@@ -49,6 +49,16 @@
   #tooltip { position: absolute; z-index: 9; pointer-events: none; display: none;
     background: rgba(13, 17, 26, 0.92); border: 1px solid rgba(124, 196, 255, 0.4);
     border-radius: 8px; padding: 8px; font-size: 10px; }
+  .axlabel { position: absolute; z-index: 4; pointer-events: none;
+    font-size: 11px; color: #93a7c4; white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    transform: translate(-50%, -50%); }
+  .constrain-row { margin: 6px 0; }
+  .constrain-row label { display: flex; justify-content: space-between;
+    font-size: 11px; color: #aebccd; margin-bottom: 2px; }
+  .constrain-row label .val { color: #7ce8c9; font-variant-numeric: tabular-nums; }
+  #elig-n { font-size: 11px; color: #7ce8c9; margin-top: 4px;
+    font-variant-numeric: tabular-nums; }
   #tooltip .strip { display: flex; gap: 2px; height: 22px; width: 150px;
     border-radius: 4px; overflow: hidden; padding: 2px; margin-bottom: 5px;
     background: rgba(5, 8, 14, 0.85); }
@@ -69,7 +79,7 @@
 
 <div class="panel" id="controls">
   <h1>PALETTE MANIFOLD</h1>
-  <div class="sub">__NDRAWS__ posterior draws &middot; huerd / Stan-style HMC</div>
+  <div class="sub">__NDRAWS__ posterior draws &middot; huerd / Stan-style HMC__VARIANT__</div>
 
   <div class="slider-row" id="weight-sliders"></div>
 
@@ -79,9 +89,15 @@
     <span>Y</span><select id="ax-y"></select>
     <span>Z</span><select id="ax-z"></select>
   </div>
+
+  <div style="font-size:11px;color:#8b98ad;margin-top:12px">constraints</div>
+  <div id="cons-sliders"></div>
+  <div id="elig-n"></div>
+
   <div style="margin-top:10px;display:flex;gap:6px">
     <button id="btn-reset">reset view</button>
     <button id="btn-spin">spin: on</button>
+    <button id="btn-clear-cons">clear cons</button>
   </div>
 </div>
 
@@ -115,12 +131,12 @@ const DATA = /*__DATA__*/;
 const METRICS = ["min_dist", "cvd_safe", "min_deutan", "min_protan",
   "min_tritan", "mean_chroma", "lightness_spread"];
 const PC_NAMES = ["pc1", "pc2", "pc3"];
-const AXES = METRICS.concat(PC_NAMES);
+const AXES = METRICS.concat(PC_NAMES, ["score"]);
 const AXIS_LABEL = {
   min_dist: "min dist (normal)", cvd_safe: "CVD-safe dist",
   min_deutan: "deutan min", min_protan: "protan min", min_tritan: "tritan min",
   mean_chroma: "mean chroma", lightness_spread: "L spread",
-  pc1: "PC1", pc2: "PC2", pc3: "PC3"
+  pc1: "PC1", pc2: "PC2", pc3: "PC3", score: "weighted score"
 };
 const WEIGHTED = ["cvd_safe", "min_dist", "mean_chroma", "lightness_spread"];
 const W_DEFAULT = { cvd_safe: 2, min_dist: 1, mean_chroma: 1, lightness_spread: 0.5 };
@@ -151,6 +167,7 @@ function magma(t) {
 const N = DATA.length;
 const scaledCache = {};
 function scaled(metric) {
+  if (metric === "score") return Array.from(scores()); // live: depends on weights
   if (!(metric in scaledCache)) scaledCache[metric] = rescale01(DATA.map(d => d[metric]));
   return scaledCache[metric];
 }
@@ -318,6 +335,7 @@ function recolor() {
   for (let i = 0; i < N; i++) {
     const c = magma(0.16 + 0.84 * Math.pow(s[i], 1.25));
     let dim = 0.55 + 0.45 * s[i];
+    if (!elig[i]) dim = 0.045;
     if (pinnedI >= 0 && i !== pinnedI) dim *= 0.3;
     colors[i * 3] = c[0] / 255 * dim;
     colors[i * 3 + 1] = c[1] / 255 * dim;
@@ -329,6 +347,8 @@ function recolor() {
     "weights: " + WEIGHTED.map((m, i) => weights[m].toFixed(1)).join(" / ");
   document.getElementById("s-lo").textContent = rawScoreRange[0].toFixed(2);
   document.getElementById("s-hi").textContent = rawScoreRange[1].toFixed(2);
+  document.getElementById("elig-n").textContent =
+    eligCount + " / " + N + " eligible";
 }
 
 // ---------------------------------------------------------------- carpet
@@ -385,36 +405,36 @@ function buildCarpet() {
 }
 
 // ---------------------------------------------------------------- labels
-let labelGroup = new THREE.Group();
-scene.add(labelGroup);
-function textSprite(text) {
-  const c = document.createElement("canvas");
-  c.width = 256; c.height = 64;
-  const g = c.getContext("2d");
-  g.font = "600 22px Inter, system-ui, sans-serif";
-  g.fillStyle = "#9fb6d9";
-  g.textAlign = "center";
-  g.fillText(text, 128, 40);
-  const tex = new THREE.CanvasTexture(c);
-  const m = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.55 });
-  const s = new THREE.Sprite(m);
-  s.scale.set(0.9, 0.225, 1);
-  return s;
+// DOM overlays projected from 3D anchors: crisp at any zoom, rename
+// freely, and are assertable in the self-test (canvas sprites were none
+// of those).
+const axEls = {};
+for (const dim of ["x", "y", "z"]) {
+  const el = document.createElement("div");
+  el.className = "axlabel";
+  container.appendChild(el);
+  axEls[dim] = el;
 }
+const AX_ANCHOR = {
+  x: new THREE.Vector3(1.18, -1.28, 0),
+  z: new THREE.Vector3(0, -1.28, 1.18),
+  y: new THREE.Vector3(-1.12, 0.42, -1.12)
+};
 function layoutAxisLabels() {
-  labelGroup.clear();
-  const lx = textSprite(AXIS_LABEL[currentAxes.x] + " \u2192");
-  lx.position.set(1.05, -1.32, 0.3);
-  lx.scale.set(0.6, 0.15, 1);
-  labelGroup.add(lx);
-  const lz = textSprite("\u2191 " + AXIS_LABEL[currentAxes.z]);
-  lz.position.set(0.3, -1.32, 1.05);
-  lz.scale.set(0.6, 0.15, 1)
-  labelGroup.add(lz);
-  const ly = textSprite("\u2191 " + AXIS_LABEL[currentAxes.y]);
-  ly.position.set(-1.15, 0.35, -1.15);
-  ly.scale.set(0.6, 0.15, 1)
-  labelGroup.add(ly);
+  axEls.x.textContent = AXIS_LABEL[currentAxes.x] + " \u2192";
+  axEls.z.textContent = "\u2191 " + AXIS_LABEL[currentAxes.z];
+  axEls.y.textContent = "\u2191 " + AXIS_LABEL[currentAxes.y];
+}
+const labelVec = new THREE.Vector3();
+function projectLabels() {
+  for (const dim of ["x", "y", "z"]) {
+    labelVec.copy(AX_ANCHOR[dim]).project(camera);
+    const el = axEls[dim];
+    if (labelVec.z > 1) { el.style.display = "none"; continue; }
+    el.style.display = "block";
+    el.style.left = ((labelVec.x * 0.5 + 0.5) * innerWidth) + "px";
+    el.style.top = ((-labelVec.y * 0.5 + 0.5) * innerHeight) + "px";
+  }
 }
 
 // ---------------------------------------------------------------- ui
@@ -432,8 +452,75 @@ for (const m of WEIGHTED) {
     weights[m] = parseFloat(e.target.value);
     document.getElementById("wval-" + m).textContent = weights[m].toFixed(1);
     recolor();
+    // a score axis moves when weights move: re-layout with animation
+    if (["x", "y", "z"].some(d => currentAxes[d] === "score")) {
+      setAxes(currentAxes, true);
+    }
   });
 }
+
+// ---------------------------------------------------------------- constraints
+// Hard conditions on proposed palettes, applied to the *existing* sample:
+// ineligible draws fade out and leave the ranked list. (What the sample
+// contains is decided at sampling time -- see the pastel-variant build,
+// which re-samples with chroma/lightness targets in the log density.)
+const chromaRange = [
+  Math.floor(Math.min(...DATA.map(d => d.mean_chroma)) * 100) / 100,
+  Math.ceil(Math.max(...DATA.map(d => d.mean_chroma)) * 100) / 100
+];
+const Lrange = [
+  Math.floor(Math.min(...DATA.map(d => d.mean_L)) * 100) / 100,
+  Math.ceil(Math.max(...DATA.map(d => d.mean_L)) * 100) / 100
+];
+const cons = { chromaMax: chromaRange[1], Llo: Lrange[0], Lhi: Lrange[1] };
+let elig = new Array(N).fill(true);
+let eligCount = N;
+function computeElig() {
+  eligCount = 0;
+  for (let i = 0; i < N; i++) {
+    const d = DATA[i];
+    elig[i] = d.mean_chroma <= cons.chromaMax + 1e-9 &&
+      d.mean_L >= cons.Llo - 1e-9 && d.mean_L <= cons.Lhi + 1e-9;
+    if (elig[i]) eligCount++;
+  }
+}
+function conSlider(labelText, min, max, value, onInput) {
+  const row = document.createElement("div");
+  row.className = "constrain-row";
+  row.innerHTML = "<label>" + labelText + ' <span class="val"></span></label>' +
+    '<input type="range" min="' + min + '" max="' + max +
+    '" step="0.01" value="' + value + '">';
+  document.getElementById("cons-sliders").appendChild(row);
+  const val = row.querySelector(".val");
+  const inp = row.querySelector("input");
+  val.textContent = (+value).toFixed(2);
+  inp.addEventListener("input", e => {
+    val.textContent = (+e.target.value).toFixed(2);
+    onInput(parseFloat(e.target.value));
+  });
+  return { input: inp, show: v => { val.textContent = (+v).toFixed(2); } };
+}
+const chromaSl = conSlider("mean chroma \u2264", chromaRange[0], chromaRange[1],
+  cons.chromaMax, v => { cons.chromaMax = v; computeElig(); recolor(); });
+const LloSl = conSlider("mean lightness \u2265", Lrange[0], Lrange[1],
+  cons.Llo, v => { cons.Llo = Math.min(v, cons.Lhi); computeElig(); recolor(); });
+const LhiSl = conSlider("mean lightness \u2264", Lrange[0], Lrange[1],
+  cons.Lhi, v => { cons.Lhi = Math.max(v, cons.Llo); computeElig(); recolor(); });
+function setConsSliders() {
+  chromaSl.input.value = cons.chromaMax; chromaSl.show(cons.chromaMax);
+  LloSl.input.value = cons.Llo; LloSl.show(cons.Llo);
+  LhiSl.input.value = cons.Lhi; LhiSl.show(cons.Lhi);
+}
+function clearConstraints() {
+  cons.chromaMax = chromaRange[1];
+  cons.Llo = Lrange[0];
+  cons.Lhi = Lrange[1];
+  setConsSliders();
+  computeElig();
+  recolor();
+}
+document.getElementById("btn-clear-cons")
+  .addEventListener("click", clearConstraints);
 
 for (const dim of ["x", "y", "z"]) {
   const sel = document.getElementById("ax-" + dim);
@@ -496,7 +583,8 @@ function paletteDist(a, b) {
 const DUP_THRESHOLD = 0.10;
 
 function renderChips(s) {
-  const idx = Array.from({ length: N }, (_, i) => i);
+  const idx = [];
+  for (let i = 0; i < N; i++) if (elig[i]) idx.push(i);
   idx.sort((a, b) => s[b] - s[a]);
   const top = [];
   for (const i of idx) {
@@ -505,8 +593,10 @@ function renderChips(s) {
     if (!dup) top.push(i);
     if (top.length === 8) break;
   }
-  document.getElementById("chips").innerHTML =
-    top.map((i, r) => chipHTML(DATA[i], s[i], r + 1, r === 0)).join("");
+  document.getElementById("chips").innerHTML = top.length === 0
+    ? '<div style="font-size:11px;color:#8b98ad;padding:6px 2px">' +
+      "no draws match the current constraints</div>"
+    : top.map((i, r) => chipHTML(DATA[i], s[i], r + 1, r === 0)).join("");
   document.querySelectorAll(".chip").forEach(el => {
     el.addEventListener("click", () => showDetail(+el.dataset.i));
   });
@@ -604,6 +694,7 @@ function animate(t) {
     spotRing.scale.set(p, p, 1);
   }
   controls.update();
+  projectLabels();
   updateHover();
   renderer.render(scene, camera);
 }
@@ -655,6 +746,20 @@ function animate(t) {
     const b = document.getElementById("btn-spin");
     if (b) b.textContent = "spin: off";
   }
+  // constraints: ?c=<chroma max> and ?L=<lo>,<hi>
+  const cq = qs.get("c");
+  if (cq !== null && isFinite(+cq)) {
+    cons.chromaMax = Math.max(chromaRange[0], Math.min(chromaRange[1], +cq));
+  }
+  const Lq = qs.get("L");
+  if (Lq) {
+    const p = Lq.split(",").map(Number);
+    if (p.length === 2 && p.every(v => isFinite(v))) {
+      cons.Llo = Math.max(Lrange[0], Math.min(Lrange[1], p[0]));
+      cons.Lhi = Math.max(cons.Llo, Math.min(Lrange[1], p[1]));
+    }
+  }
+  if (cq !== null || Lq) { setConsSliders(); computeElig(); }
   const pin = qs.get("pin");
   if (pin !== null && DATA[+pin]) showDetail(+pin);
 })();
@@ -698,9 +803,24 @@ if (location.search.indexOf("selftest") >= 0) {
   slider.dispatchEvent(new Event("input"));
   const s2 = scores();
   results.push("reweight:" + (document.getElementById("wval-mean_chroma").textContent === "3.0"));
-  // axis switch retargets positions
+  // axis switch retargets positions and renames the DOM axis labels
   setAxes({ x: "pc1", y: "pc2", z: "pc3" }, false);
   results.push("axes:" + (Math.abs(targets[0] - normAxis("pc1")[0]) < 1e-6));
+  results.push("labels:" + (axEls.x.textContent.indexOf("PC1") >= 0 &&
+    axEls.y.textContent.indexOf("PC2") >= 0));
+  // weighted score is usable as an axis
+  setAxes({ x: "score", y: "cvd_safe", z: "mean_chroma" }, false);
+  results.push("scoreax:" + (Math.abs(targets[0] - normAxis("score")[0]) < 1e-6));
+  setAxes({ x: "min_dist", y: "cvd_safe", z: "mean_chroma" }, false);
+  // constraints filter the ranked list and dim ineligible points
+  cons.chromaMax = (chromaRange[0] + chromaRange[1]) / 2;
+  computeElig();
+  recolor();
+  const chipEls = document.querySelectorAll(".chip");
+  const chipOk = chipEls.length > 0 && Array.from(chipEls).every(
+    el => DATA[+el.dataset.i].mean_chroma <= cons.chromaMax + 1e-9);
+  results.push("cons:" + (eligCount < N && chipOk));
+  clearConstraints();
   document.title = "SELFTEST " + results.join(" ");
 }
 </script>
