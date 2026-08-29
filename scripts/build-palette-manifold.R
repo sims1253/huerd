@@ -12,7 +12,7 @@
 #
 # Defaults build the standard posterior page; e.g. the pastel variant:
 #   Rscript scripts/build-palette-manifold.R scripts/palette-posterior-pastel \
-#     scripts/palette-manifold-pastel.html " &middot; chroma/L-targeted"
+#     scripts/palette-manifold-pastel.html " · chroma/L-targeted posterior"
 
 args <- commandArgs(trailingOnly = TRUE)
 art <- if (length(args) >= 1) args[1] else "scripts/palette-posterior"
@@ -75,6 +75,7 @@ html <- inject(html, "/*__THREE__*/", paste(three, collapse = "\n"))
 html <- inject(html, "/*__ORBIT__*/", paste(orbit, collapse = "\n"))
 html <- inject(html, "/*__DATA__*/", data_json)
 html <- inject(html, "__NDRAWS__", as.character(length(draws)))
+html <- inject(html, "__VTITLE__", variant)
 html <- inject(html, "__VARIANT__", variant)
 
 writeLines(html, out_html)

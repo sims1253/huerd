@@ -118,20 +118,24 @@ palette_log_density <- function(
     dquality <- dquality + qw$mean_chroma * grad_chroma
   }
   if (!is.null(qw$chroma_target)) {
-    # soft saturation target: -w * ((mean chroma - t) / 0.4)^2
+    # soft saturation target, per color: -w * mean_i(((C_i - t) / 0.4)^2).
+    # Per-color (not palette-mean) so one vivid swatch cannot compensate for
+    # five muted ones -- the mean version produces "diluted vivid" palettes.
     chroma <- sqrt(full[, 2]^2 + full[, 3]^2)
-    dev <- (mean(chroma) - qw$chroma_target) / 0.4
-    quality <- quality - qw$target_weight * dev^2
-    grad_t <- cbind(0, full[, 2] / chroma, full[, 3] / chroma) / nrow(full)
+    dev <- (chroma - qw$chroma_target) / 0.4
+    quality <- quality - qw$target_weight * mean(dev^2)
+    grad_t <- cbind(0, full[, 2] / chroma, full[, 3] / chroma)
     grad_t[chroma == 0, ] <- 0
-    dquality <- dquality - 2 * qw$target_weight * dev / 0.4 * grad_t
+    dquality <- dquality -
+      qw$target_weight * 2 * dev / 0.4 / nrow(full) * grad_t
   }
   if (!is.null(qw$l_target)) {
-    # soft brightness target on mean OKLAB lightness
-    dev <- (mean(full[, 1]) - qw$l_target) / 0.998
-    quality <- quality - qw$target_weight * dev^2
+    # soft brightness target on each color's OKLAB lightness (also keeps
+    # separation from anchoring the palette with a near-black swatch)
+    dev <- (full[, 1] - qw$l_target) / 0.998
+    quality <- quality - qw$target_weight * mean(dev^2)
     dquality[, 1] <- dquality[, 1] -
-      2 * qw$target_weight * dev / 0.998 / nrow(full)
+      qw$target_weight * 2 * dev / 0.998 / nrow(full)
   }
 
   # log density: beta * Q(u) + log |dx/du| (the Stan sampling rule:

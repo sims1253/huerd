@@ -53,6 +53,7 @@
     font-size: 11px; color: #93a7c4; white-space: nowrap;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
     transform: translate(-50%, -50%); }
+  .axlabel .arr { display: inline-block; }
   .constrain-row { margin: 6px 0; }
   .constrain-row label { display: flex; justify-content: space-between;
     font-size: 11px; color: #aebccd; margin-bottom: 2px; }
@@ -63,7 +64,8 @@
     border-radius: 4px; overflow: hidden; padding: 2px; margin-bottom: 5px;
     background: rgba(5, 8, 14, 0.85); }
   #tooltip .strip div { flex: 1; border-radius: 2px; }
-  #detail { display: none; bottom: 60px; left: 16px; width: 260px; }
+  #detail { display: none; bottom: 16px; left: 50%;
+    transform: translateX(-50%); width: 280px; }
   #detail .strip { display: flex; gap: 2px; height: 36px; border-radius: 6px;
     overflow: hidden; padding: 2px; margin: 8px 0; background: rgba(5, 8, 14, 0.85); }
   #detail .strip div { flex: 1; border-radius: 3px; }
@@ -1396,8 +1398,11 @@ function recolor() {
     "weights: " + WEIGHTED.map((m, i) => weights[m].toFixed(1)).join(" / ");
   document.getElementById("s-lo").textContent = rawScoreRange[0].toFixed(2);
   document.getElementById("s-hi").textContent = rawScoreRange[1].toFixed(2);
-  document.getElementById("elig-n").textContent =
-    eligCount + " / " + N + " eligible";
+  document.getElementById("elig-n").textContent = (function () {
+    const cs = consSummary();
+    return cs ? eligCount + " / " + N + " eligible \u00b7 " + cs
+      : "all " + N + " eligible";
+  })();
 }
 
 // ---------------------------------------------------------------- carpet
@@ -1469,12 +1474,21 @@ const AX_ANCHOR = {
   z: new THREE.Vector3(0, -1.28, 1.18),
   y: new THREE.Vector3(-1.12, 0.42, -1.12)
 };
+const AX_DIR = {
+  x: new THREE.Vector3(1, 0, 0),
+  y: new THREE.Vector3(0, 1, 0),
+  z: new THREE.Vector3(0, 0, 1)
+};
 function layoutAxisLabels() {
-  axEls.x.textContent = AXIS_LABEL[currentAxes.x] + " \u2192";
-  axEls.z.textContent = "\u2191 " + AXIS_LABEL[currentAxes.z];
-  axEls.y.textContent = "\u2191 " + AXIS_LABEL[currentAxes.y];
+  // trailing arrow on X, leading on Y/Z; the arrow glyph is rotated to the
+  // projected axis direction each frame (a screen-fixed arrow points the
+  // wrong way once the camera goes behind/below the cloud)
+  axEls.x.innerHTML = AXIS_LABEL[currentAxes.x] + ' <span class="arr">\u2192</span>';
+  axEls.z.innerHTML = '<span class="arr">\u2192</span> ' + AXIS_LABEL[currentAxes.z];
+  axEls.y.innerHTML = '<span class="arr">\u2192</span> ' + AXIS_LABEL[currentAxes.y];
 }
 const labelVec = new THREE.Vector3();
+const labelVec2 = new THREE.Vector3();
 function projectLabels() {
   for (const dim of ["x", "y", "z"]) {
     labelVec.copy(AX_ANCHOR[dim]).project(camera);
@@ -1483,6 +1497,10 @@ function projectLabels() {
     el.style.display = "block";
     el.style.left = ((labelVec.x * 0.5 + 0.5) * innerWidth) + "px";
     el.style.top = ((-labelVec.y * 0.5 + 0.5) * innerHeight) + "px";
+    labelVec2.copy(AX_ANCHOR[dim]).add(AX_DIR[dim]).project(camera);
+    const ang = Math.atan2(-(labelVec2.y - labelVec.y), labelVec2.x - labelVec.x);
+    const arr = el.querySelector(".arr");
+    if (arr) arr.style.transform = "rotate(" + ang + "rad)";
   }
 }
 
@@ -1533,7 +1551,7 @@ function computeElig() {
     if (elig[i]) eligCount++;
   }
 }
-function conSlider(labelText, min, max, value, onInput) {
+function conSlider(labelText, min, max, value, fmt, onInput) {
   const row = document.createElement("div");
   row.className = "constrain-row";
   row.innerHTML = "<label>" + labelText + ' <span class="val"></span></label>' +
@@ -1542,19 +1560,36 @@ function conSlider(labelText, min, max, value, onInput) {
   document.getElementById("cons-sliders").appendChild(row);
   const val = row.querySelector(".val");
   const inp = row.querySelector("input");
-  val.textContent = (+value).toFixed(2);
+  val.textContent = fmt(value);
   inp.addEventListener("input", e => {
-    val.textContent = (+e.target.value).toFixed(2);
+    val.textContent = fmt(+e.target.value);
     onInput(parseFloat(e.target.value));
   });
-  return { input: inp, show: v => { val.textContent = (+v).toFixed(2); } };
+  return { input: inp, show: v => { val.textContent = fmt(v); } };
 }
+// a slider sitting at its no-op end reads "off", so "no constraint" is
+// distinguishable from "constrained at the data maximum"
+const atEnd = (v, end) => Math.abs(v - end) < 1e-9;
 const chromaSl = conSlider("mean chroma \u2264", chromaRange[0], chromaRange[1],
-  cons.chromaMax, v => { cons.chromaMax = v; computeElig(); recolor(); });
+  cons.chromaMax,
+  v => atEnd(v, chromaRange[1]) ? "off" : (+v).toFixed(2),
+  v => { cons.chromaMax = v; computeElig(); recolor(); });
 const LloSl = conSlider("mean lightness \u2265", Lrange[0], Lrange[1],
-  cons.Llo, v => { cons.Llo = Math.min(v, cons.Lhi); computeElig(); recolor(); });
+  cons.Llo,
+  v => atEnd(v, Lrange[0]) ? "off" : (+v).toFixed(2),
+  v => { cons.Llo = Math.min(v, cons.Lhi); computeElig(); recolor(); });
 const LhiSl = conSlider("mean lightness \u2264", Lrange[0], Lrange[1],
-  cons.Lhi, v => { cons.Lhi = Math.max(v, cons.Llo); computeElig(); recolor(); });
+  cons.Lhi,
+  v => atEnd(v, Lrange[1]) ? "off" : (+v).toFixed(2),
+  v => { cons.Lhi = Math.max(v, cons.Llo); computeElig(); recolor(); });
+function consSummary() {
+  const parts = [];
+  if (cons.chromaMax < chromaRange[1] - 1e-9)
+    parts.push("chroma \u2264 " + cons.chromaMax.toFixed(2));
+  if (cons.Llo > Lrange[0] + 1e-9 || cons.Lhi < Lrange[1] - 1e-9)
+    parts.push("L \u2208 [" + cons.Llo.toFixed(2) + ", " + cons.Lhi.toFixed(2) + "]");
+  return parts.join(" \u00b7 ");
+}
 function setConsSliders() {
   chromaSl.input.value = cons.chromaMax; chromaSl.show(cons.chromaMax);
   LloSl.input.value = cons.Llo; LloSl.show(cons.Llo);
@@ -1599,12 +1634,12 @@ spinBtn.addEventListener("click", () => {
   spinBtn.textContent = "spin: " + (controls.autoRotate ? "on" : "off");
 });
 
-function chipHTML(d, s, rank, winner) {
+function chipHTML(d, rs, rank, winner) {
   const strip = d.hex.map(h => '<div style="background:' + h + '"></div>').join("");
   return '<div class="chip' + (winner ? " winner" : "") + '" data-i="' + d.i + '">' +
     '<div class="strip">' + strip + "</div>" +
     '<div class="meta"><span>' + (winner ? "\u2605 " : "#") + rank + " \u00b7 score <b>" +
-    s.toFixed(3) + "</b></span><span>cvd <b>" + d.cvd_safe.toFixed(3) + "</b> dist <b>" +
+    rs.toFixed(2) + "</b></span><span>cvd <b>" + d.cvd_safe.toFixed(3) + "</b> dist <b>" +
     d.min_dist.toFixed(3) + "</b> chroma <b>" + d.mean_chroma.toFixed(2) + "</b></span></div></div>";
 }
 
@@ -1645,7 +1680,10 @@ function renderChips(s) {
   document.getElementById("chips").innerHTML = top.length === 0
     ? '<div style="font-size:11px;color:#8b98ad;padding:6px 2px">' +
       "no draws match the current constraints</div>"
-    : top.map((i, r) => chipHTML(DATA[i], s[i], r + 1, r === 0)).join("");
+    : top.map((i, r) => chipHTML(
+        DATA[i],
+        rawScoreRange[0] + s[i] * (rawScoreRange[1] - rawScoreRange[0]),
+        r + 1, r === 0)).join("");
   document.querySelectorAll(".chip").forEach(el => {
     el.addEventListener("click", () => showDetail(+el.dataset.i));
   });
@@ -1705,7 +1743,9 @@ function updateHover() {
   if (!mouse) return;
   raycaster.setFromCamera({ x: mouse.x, y: mouse.y }, camera);
   const hits = raycaster.intersectObject(points);
-  if (hits.length && hits[0].index < N) {
+  // ineligible (ghosted) draws are not interactive: they read as filtered
+  // out, and hovering/pinning them would contradict that
+  if (hits.length && hits[0].index < N && elig[hits[0].index]) {
     hoverI = hits[0].index;
     const d = DATA[hoverI];
     tooltip.style.display = "block";
@@ -1870,6 +1910,8 @@ if (location.search.indexOf("selftest") >= 0) {
     el => DATA[+el.dataset.i].mean_chroma <= cons.chromaMax + 1e-9);
   results.push("cons:" + (eligCount < N && chipOk));
   clearConstraints();
+  results.push("consoff:" +
+    (document.querySelector("#cons-sliders .val").textContent === "off"));
   document.title = "SELFTEST " + results.join(" ");
 }
 </script>
