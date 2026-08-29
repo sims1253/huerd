@@ -114,10 +114,22 @@ run_sampling_payload <- function(locked_oklab, n_free, beta, chroma_target,
 #studio .irs-bar { background: #7cc4ff; }
 #studio .irs-from, #studio .irs-to, #studio .irs-single { background: #1b2433; }
 #studio .checkbox-inline { color: #aebccd; font-size: 11px; }
-#studio h2 { font-size: 12px; margin: 0 0 8px; color: #aebccd;
-  letter-spacing: 0.4px; font-weight: 600; }
 #studio .shiny-input-container { width: 100%; }
-#studio { padding: 12px 14px; }
+#studio-head { display: flex; align-items: center; gap: 8px; cursor: pointer;
+  user-select: none; padding: 2px 0; }
+#studio-head h2 { margin: 0; flex: 1; font-size: 12px; color: #aebccd;
+  letter-spacing: 0.4px; font-weight: 600; }
+#studio-head:hover h2 { color: #dfe6f1; }
+#studio-chev { color: #7cc4ff; width: 12px; text-align: center; }
+#studio .studio-status { font-size: 11px; color: #7ce8c9;
+  font-variant-numeric: tabular-nums; max-width: 45%; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+#studio-locks { font-family: ui-monospace, monospace; font-size: 11px;
+  margin: 2px 0 8px; min-height: 15px; letter-spacing: 0.2px; }
+.studio-help { font-size: 10.5px; color: #8b98ad; line-height: 1.55;
+  margin-top: 10px; border-top: 1px solid rgba(120, 150, 200, 0.18);
+  padding-top: 8px; }
+.studio-help b { color: #aebccd; font-weight: 600; }
 "
 
 build_palette_studio <- function(repo_path = ".") {
@@ -154,39 +166,110 @@ build_palette_studio <- function(repo_path = ".") {
     style = paste0("top:16px;left:50%;transform:translateX(-50%);",
       "width:400px;max-height:calc(100vh - 32px);overflow-y:auto"),
     tags$style(HTML(.studio_css)),
-    h2("sampling"),
-    fluidRow(
-      column(6, numericInput("n_free", "free colors", 6,
-        min = 2, max = 8, step = 1, width = "100%")),
-      column(6, numericInput("seed", "seed", 1234,
-        min = 1, step = 1, width = "100%"))
+    # clickable header: folds the body away so the panel collapses to a
+    # slim bar (status stays visible while folded)
+    tags$div(
+      id = "studio-head",
+      tags$span(id = "studio-chev", "\u25b8"),
+      h2("sampling parameters"),
+      tags$span(id = "studio-status", "idle", class = "studio-status")
     ),
-    textInput("locked", "locked colors (hex, comma-separated)",
-      placeholder = "#0B7285, #FFE066", width = "100%"),
-    sliderInput("beta", "\u03b2 (concentration)", 5, 60, 25,
-      step = 1, width = "100%"),
-    checkboxInput("use_ct", "chroma target (per color)", TRUE, width = "100%"),
-    conditionalPanel("input.use_ct",
-      sliderInput("ct", NULL, 0.05, 0.45, 0.09, step = 0.01, width = "100%")),
-    checkboxInput("use_lt", "lightness target (per color)", TRUE, width = "100%"),
-    conditionalPanel("input.use_lt",
-      sliderInput("lt", NULL, 0.3, 0.95, 0.72, step = 0.01, width = "100%")),
-    sliderInput("tw", "target strength", 1, 30, 8, step = 1, width = "100%"),
-    fluidRow(
-      column(4, numericInput("chains", "chains", 4,
-        min = 1, max = 8, width = "100%")),
-      column(4, numericInput("warmup", "warmup", 300,
-        min = 50, max = 1000, step = 50, width = "100%")),
-      column(4, numericInput("iter", "iter", 300,
-        min = 50, max = 1000, step = 50, width = "100%"))
+    tags$div(
+      id = "studio-body",
+      fluidRow(
+        column(6, tags$div(title = paste("How many colors the sampler proposes.",
+          "Final palette size = locked + free colors."),
+          numericInput("n_free", "free colors", 6,
+            min = 2, max = 8, step = 1, width = "100%"))),
+        column(6, tags$div(title = paste("RNG seed. Same seed and same",
+          "parameters reproduce the exact posterior."),
+          numericInput("seed", "seed", 1234,
+            min = 1, step = 1, width = "100%")))
+      ),
+      tags$div(title = paste("Hex colors kept verbatim in every proposed",
+        "palette (fixed parameters); only the other colors are sampled."),
+        textInput("locked", "locked colors (hex, comma-separated)",
+          placeholder = "#0B7285, #FFE066", width = "100%")),
+      div(id = "studio-locks"),
+      tags$div(title = paste("Posterior concentration: low beta keeps a",
+        "diverse, exploratory sample; high beta focuses tightly on the",
+        "best palettes."),
+        sliderInput("beta", "\u03b2 (concentration)", 5, 60, 25,
+          step = 1, width = "100%")),
+      tags$div(title = paste("Soft per-color saturation goal in OKLAB units",
+        "(~0 = gray, 0.4 = vivid). Unchecked, separation pushes colors to",
+        "the gamut edge -- maximum chroma."),
+        checkboxInput("use_ct", "chroma target (per color)", TRUE,
+          width = "100%")),
+      conditionalPanel("input.use_ct",
+        sliderInput("ct", NULL, 0.05, 0.45, 0.09, step = 0.01,
+          width = "100%")),
+      tags$div(title = paste("Soft per-color brightness goal (OKLAB L,",
+        "0 = black, 1 = white). Also prevents near-black anchor colors."),
+        checkboxInput("use_lt", "lightness target (per color)", TRUE,
+          width = "100%")),
+      conditionalPanel("input.use_lt",
+        sliderInput("lt", NULL, 0.3, 0.95, 0.72, step = 0.01,
+          width = "100%")),
+      tags$div(title = paste("How hard palettes are pulled toward the",
+        "targets, traded off against perceptual separation."),
+        sliderInput("tw", "target strength", 1, 30, 8, step = 1,
+          width = "100%")),
+      fluidRow(
+        column(4, tags$div(title = paste("Independent samplers whose draws",
+          "are pooled (also used for split-Rhat)."),
+          numericInput("chains", "chains", 4,
+            min = 1, max = 8, width = "100%"))),
+        column(4, tags$div(title = paste("Stan-style step-size adaptation,",
+          "discarded -- these draws never reach the canvas."),
+          numericInput("warmup", "warmup", 300,
+            min = 50, max = 1000, step = 50, width = "100%"))),
+        column(4, tags$div(title = "Kept draws per chain (draws = chains x iter).",
+          numericInput("iter", "iter", 300,
+            min = 50, max = 1000, step = 50, width = "100%")))
+      ),
+      actionButton("btn_sample", "sample posterior", width = "100%",
+        onclick = paste0(
+          "document.getElementById('studio-status').textContent=",
+          "'sampling... R is busy until it finishes (defaults take ~1 min)'")),
+      tags$div(class = "studio-help",
+        HTML(paste0(
+          "<b>\u03b2</b> concentrates the posterior: low = diverse candidates, ",
+          "high = sharp focus on top palettes. ",
+          "<b>Targets</b> are per-color soft goals (chroma 0\u20130.4, L 0\u20131); ",
+          "unchecked, separation drives colors to the gamut edge. ",
+          "<b>Strength</b> trades targets against separation. ",
+          "<b>Warmup</b> adapts step sizes and is discarded. ",
+          "Hover any control for details."))
+      ),
     ),
-    actionButton("btn_sample", "sample posterior", width = "100%",
-      onclick = paste0(
-        "document.getElementById('studio-status').textContent=",
-        "'sampling... R is busy until it finishes (defaults take ~1 min)'")),
-    div(id = "studio-status", "idle",
-      style = paste0("font-size:11px;color:#7ce8c9;margin-top:6px;",
-        "font-variant-numeric:tabular-nums"))
+    tags$script(HTML(paste0(
+      "(function(){",
+      "var head=document.getElementById('studio-head'),",
+      "body=document.getElementById('studio-body'),",
+      "chev=document.getElementById('studio-chev'),",
+      "open=false;",
+      "function applyFold(){",
+      "body.style.display=open?'block':'none';",
+      "chev.textContent=open?'\u25be':'\u25b8';}",
+      "head.addEventListener('click',function(){open=!open;applyFold();});",
+      "applyFold();",
+      "window.locksPreview=function(){",
+      "var el=document.getElementById('locked'),",
+      "out=document.getElementById('studio-locks');",
+      "if(!el||!out)return;",
+      "var parts=(el.value||'').split(',').map(function(s){return s.trim();})",
+      ".filter(Boolean);",
+      "out.innerHTML=parts.map(function(p){",
+      "return /^#[0-9A-Fa-f]{6}$/.test(p)?",
+      "'<span style=\"color:'+p.toUpperCase()+'\">\u25a0 '+p.toUpperCase()+'</span>'",
+      ":'<span style=\"color:#ff8f8f\">\u2717 '+p+'</span>';",
+      "}).join(' &nbsp; ');};",
+      "document.addEventListener('input',function(e){",
+      "if(e.target&&e.target.id==='locked')window.locksPreview();});",
+      "window.locksPreview();",
+      "})();"
+    )))
   )
 
   ui <- htmlTemplate(tpl_file, studio_panel = studio_panel)
