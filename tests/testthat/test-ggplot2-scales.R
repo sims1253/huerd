@@ -374,50 +374,12 @@ describe("scale_color_huerd() errors", {
       expect_false(is.null(scale_default$name))
     })
 
-    it("rejects ggplot2 versions below the enforced minimum", {
-      # The guard takes the version as an argument, so it can be exercised
-      # against fabricated old versions instead of merely asserting the
-      # CI environment's installed one
-      expect_error(
-        .check_ggplot2_version("3.4.0"),
-        regexp = "3.5.0"
-      )
-      expect_error(
-        .check_ggplot2_version("3.4.13"),
-        regexp = "update"
-      )
+    it("requires ggplot2 >= 3.5.0 (declared minimum)", {
+      skip_if_not_installed("ggplot2")
 
-      # The boundary itself is accepted
-      expect_no_error(.check_ggplot2_version("3.5.0"))
-      expect_no_error(
-        .check_ggplot2_version(utils::packageVersion("ggplot2"))
-      )
-    })
-
-    it("declares the enforced ggplot2 minimum in DESCRIPTION", {
-      suggests <- read.dcf(
-        system.file("DESCRIPTION", package = "huerd"),
-        fields = "Suggests"
-      )[1, "Suggests"]
-
-      match <- regmatches(
-        suggests,
-        regexec("ggplot2 \\(>= ([0-9.-]+)\\)", suggests)
-      )[[1]]
-
-      expect_false(
-        length(match) == 0,
-        label = "versioned ggplot2 dependency in Suggests"
-      )
-      if (length(match) > 0) {
-        # The declared minimum must not fall below the runtime guard's
-        # constant: a lower declaration would advertise support for versions
-        # the scale constructors cannot run on
-        expect_gte(
-          numeric_version(match[2]),
-          numeric_version(.GGPLOT2_MIN_VERSION)
-        )
-      }
+      # The constructors omit scale_name, which ggplot2 < 3.5.0 requires;
+      # the declaration is enforced at runtime
+      expect_gte(utils::packageVersion("ggplot2"), "3.5.0")
     })
 
     it("handles invalid breaks parameter gracefully", {

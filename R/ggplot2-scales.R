@@ -145,34 +145,6 @@ scale_fill_huerd <- function(
 }
 
 
-# Minimum ggplot2 version supported by the scale constructors: they omit
-# `scale_name`, which ggplot2 < 3.5.0 requires (and newer versions
-# deprecate). The DESCRIPTION declaration is pinned against this constant by
-# test so the runtime guard and the declared minimum cannot drift apart.
-# @noRd
-.GGPLOT2_MIN_VERSION <- "3.5.0"
-
-# Enforce the minimum supported ggplot2 version
-#
-# Takes the version to check as an argument (rather than reading
-# `utils::packageVersion()` itself) so tests can exercise the guard against
-# fabricated old versions.
-# @param version A numeric_version-coercible ggplot2 version.
-# @noRd
-.check_ggplot2_version <- function(version) {
-  if (numeric_version(version) < .GGPLOT2_MIN_VERSION) {
-    cli::cli_abort(c(
-      "{.pkg ggplot2} {.val {(.GGPLOT2_MIN_VERSION)}} or greater is required ",
-      "for huerd scale functions.",
-      "i" = paste0(
-        "Installed version: ",
-        version,
-        "; please update {.pkg ggplot2}."
-      )
-    ))
-  }
-}
-
 # Internal helper to build huerd scales
 #
 # @param aesthetics Character string or vector of aesthetic names.
@@ -195,7 +167,18 @@ build_huerd_scale <- function(
       "i" = "Install it with {.code install.packages(\"ggplot2\")}"
     ))
   }
-  .check_ggplot2_version(utils::packageVersion("ggplot2"))
+  # The scale constructors omit `scale_name`, which ggplot2 < 3.5.0 requires
+  # (and which newer versions deprecate), so enforce the declared minimum
+  if (utils::packageVersion("ggplot2") < "3.5.0") {
+    cli::cli_abort(c(
+      "{.pkg ggplot2} 3.5.0 or greater is required for huerd scale functions.",
+      "i" = paste0(
+        "Installed version: ",
+        utils::packageVersion("ggplot2"),
+        "; please update {.pkg ggplot2}."
+      )
+    ))
+  }
 
   # Separate ggplot2 scale args from generate_palette args. Explicit NULL
   # values are preserved: for ggplot2, `name = NULL`, `breaks = NULL`, and
