@@ -647,7 +647,12 @@ describe("Error Recovery: Reproducibility edge cases", {
         return_metrics = TRUE,
         weights = NULL,
         optimizer = "nloptr_cobyla",
-        seed = NULL,
+        # Real RNG state: isolates the version-mismatch warning from the
+        # legacy no-stored-RNG-state warning
+        seed = {
+          set.seed(123)
+          .Random.seed
+        },
         package_version = "0.0.0", # Different version
         target_space = "oklab",
         timestamp = Sys.time()

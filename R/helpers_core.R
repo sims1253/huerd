@@ -119,6 +119,24 @@
   }
 }
 
+#' Validate the iteration budget parameter
+#' @noRd
+.validate_max_iterations <- function(max_iterations) {
+  if (
+    !is.numeric(max_iterations) ||
+      length(max_iterations) != 1 ||
+      is.na(max_iterations) ||
+      !is.finite(max_iterations) ||
+      max_iterations < 1 ||
+      max_iterations != round(max_iterations)
+  ) {
+    stop(
+      "'max_iterations' must be a single integer >= 1.",
+      call. = FALSE
+    )
+  }
+}
+
 #' Validate weights parameter for multi-objective optimization
 #' @noRd
 .validate_weights <- function(weights) {
@@ -137,8 +155,22 @@
     )
   }
 
+  if (any(!is.finite(weights))) {
+    stop(
+      "All 'weights' values must be finite (not NA/NaN/Inf).",
+      call. = FALSE
+    )
+  }
+
   if (any(weights < 0)) {
     stop("All 'weights' values must be non-negative.", call. = FALSE)
+  }
+
+  if (anyDuplicated(names(weights)) > 0) {
+    stop(
+      "'weights' must not contain duplicate objective names.",
+      call. = FALSE
+    )
   }
 
   # Check for valid objective names
@@ -160,6 +192,85 @@
   if (sum(weights) <= 0) {
     stop("At least one 'weights' value must be positive.", call. = FALSE)
   }
+}
+
+#' Resolve the effective objective for the requested weights and optimizer
+#'
+#' `weights` is an objective selector, not a weighted mixture: exactly one
+#' objective is optimized per call. This helper computes which one, warning
+#' whenever the requested combination is not implemented and a documented
+#' fallback is used, so no request is silently changed into a different
+#' objective.
+#'
+#' @param weights Named numeric vector or NULL (validated beforehand).
+#' @param optimizer Optimizer label as accepted by `generate_palette()`.
+#' @param cvd_safe Logical, whether the minimax objective includes CVD
+#'   simulations.
+#' @return Character scalar: the label of the objective that will run.
+#' @noRd
+.resolve_effective_objective <- function(weights, optimizer, cvd_safe) {
+  minimax_label <- if (isTRUE(cvd_safe)) "minimax_cvd" else "minimax_distance"
+
+  if (identical(optimizer, "nlopt_lbfgs")) {
+    if (is.null(weights)) {
+      return("smooth_repulsion")
+    }
+    requested <- names(weights)[weights > 0]
+
+    if (setequal(requested, "distance")) {
+      cli::cli_warn(c(
+        "!" = paste0(
+          "The non-smooth {.val distance} objective is not available with ",
+          "{.arg optimizer} = {.val nlopt_lbfgs}; using ",
+          "{.val smooth_repulsion}."
+        ),
+        "i" = paste0(
+          "Use a minimax optimizer (e.g. {.val nloptr_cobyla}) for the ",
+          "{.val distance} objective."
+        )
+      ))
+      return("smooth_repulsion")
+    }
+
+    if (length(requested) > 1) {
+      # Mirrors the solver's selection rule: any positive log-sum-exp
+      # weight selects log-sum-exp; otherwise repulsion
+      fallback <- if ("smooth_logsumexp" %in% requested) {
+        "smooth_logsumexp"
+      } else {
+        "smooth_repulsion"
+      }
+      cli::cli_warn(c(
+        "!" = paste0(
+          "Weighted mixtures are not implemented; {.arg weights} selects a ",
+          "single objective. Using {.val {fallback}}."
+        )
+      ))
+      return(fallback)
+    }
+
+    return(requested)
+  }
+
+  # Minimax optimizers: only the distance objective family is available
+  if (!is.null(weights)) {
+    requested <- names(weights)[weights > 0]
+    smooth <- intersect(requested, c("smooth_repulsion", "smooth_logsumexp"))
+    if (length(smooth) > 0) {
+      cli::cli_warn(c(
+        "!" = paste0(
+          "Smooth objectives ({.val {smooth}}) require ",
+          "{.arg optimizer} = {.val nlopt_lbfgs}; optimizing the minimax ",
+          "distance objective instead."
+        ),
+        "i" = paste0(
+          "Use {.val nlopt_lbfgs} to optimize ",
+          "{.val {smooth}}."
+        )
+      ))
+    }
+  }
+  minimax_label
 }
 
 #' Validate aesthetic initialization config
@@ -249,7 +360,8 @@ validate_inputs <- function(
   fixed_aesthetic_influence,
   aesthetic_init_config,
   weights = NULL,
-  optimizer = "nloptr_cobyla"
+  optimizer = "nloptr_cobyla",
+  max_iterations = 1000
 ) {
   .validate_n(n)
   .validate_include_colors(include_colors, n)
@@ -260,6 +372,7 @@ validate_inputs <- function(
   .validate_aesthetic_config(aesthetic_init_config)
   .validate_weights(weights)
   .validate_optimizer(optimizer)
+  .validate_max_iterations(max_iterations)
 }
 
 #' Handle cases with no free colors to generate
@@ -284,7 +397,14 @@ validate_inputs <- function(
     cat("No free colors to generate; skipping optimization.\n")
   }
 
-  final_hex_colors <- if (n > 0) include_colors else character(0)
+  # Sort by actual OKLAB lightness so all-fixed palettes follow the same
+  # documented ascending-brightness ordering as the regular finalization
+  # path; the fixed hex values themselves are unchanged
+  final_hex_colors <- if (n > 0) {
+    include_colors[order(.hex_to_oklab(include_colors)[, 1])]
+  } else {
+    character(0)
+  }
   class(final_hex_colors) <- c("huerd_palette", class(final_hex_colors))
 
   if (return_metrics) {

@@ -22,12 +22,15 @@
 #'   - `"fast"`: Quick generation with fewer iterations (good for exploration)
 #'   - `"balanced"`: Default balance of quality and speed
 #'   - `"high"`: More iterations for better results (slower)
-#' @param lightness Character string or numeric vector specifying lightness
-#'   constraints:
+#' @param lightness Character string or numeric vector specifying the
+#'   OKLAB lightness range used to seed the initial candidate colors. These
+#'   are initialization preferences, not hard constraints: the optimizer is
+#'   free to move colors outside the requested range, so final lightness is
+#'   not guaranteed to stay within it.
 #'   - `"any"`: Balanced range (L: 0.2-0.9)
-#'   - `"light"`: Prefer lighter colors (L: 0.5-0.9)
-#'   - `"dark"`: Prefer darker colors (L: 0.2-0.6)
-#'   - `"mid"`: Prefer mid-range lightness (L: 0.35-0.75)
+#'   - `"light"`: Start from lighter colors (L: 0.5-0.9)
+#'   - `"dark"`: Start from darker colors (L: 0.2-0.6)
+#'   - `"mid"`: Start from mid-range lightness (L: 0.35-0.75)
 #'   - Numeric vector of length 2: Custom bounds (e.g., `c(0.3, 0.8)`)
 #'
 #' @return A `huerd_palette` object (character vector of hex colors with
@@ -43,7 +46,7 @@
 #' # Fast generation for exploration
 #' quick_palette(8, quality = "fast")
 #'
-#' # Light colors for dark backgrounds
+#' # Start from light colors (e.g., when plotting on a dark background)
 #' quick_palette(5, lightness = "light")
 #'
 #' @seealso [generate_palette()] for full control over palette generation.
@@ -153,6 +156,44 @@ brand_palette <- function(brand_colors, n_total, cvd_safe = TRUE) {
 }
 
 
+#' Escape a character vector for use inside JSON string literals
+#'
+#' Implements the full RFC 8259 string escaping rules: backslash and double
+#' quote get their two-character escapes, the five named control escapes
+#' (`\\b`, `\\f`, `\\n`, `\\r`, `\\t`) are used where defined, and every
+#' other control character in U+0000-U+001F is emitted as `\\u00XX`.
+#' @param x Character vector (without NA).
+#' @return Character vector of JSON-escaped strings.
+#' @noRd
+.escape_json_strings <- function(x) {
+  x <- gsub("\\", "\\\\", x, fixed = TRUE)
+  x <- gsub('"', '\\"', x, fixed = TRUE)
+
+  named_control_codes <- c(8L, 12L, 10L, 13L, 9L)
+  named_control_targets <- c("\\b", "\\f", "\\n", "\\r", "\\t")
+  for (i in seq_along(named_control_codes)) {
+    x <- gsub(
+      intToUtf8(named_control_codes[i]),
+      named_control_targets[i],
+      x,
+      fixed = TRUE
+    )
+  }
+
+  # U+0000 cannot appear inside an R string, so it starts at U+0001
+  other_control_codes <- setdiff(1:31, named_control_codes)
+  for (cp in other_control_codes) {
+    x <- gsub(
+      intToUtf8(cp),
+      sprintf("\\u%04X", cp),
+      x,
+      fixed = TRUE
+    )
+  }
+  x
+}
+
+
 #' Export palette to various formats
 #'
 #' Export a huerd palette to common formats used in design and development
@@ -206,6 +247,10 @@ export_palette <- function(
 
   if (is.null(names)) {
     names <- paste0("color_", seq_len(n))
+  } else if (!is.character(names) || anyNA(names)) {
+    cli::cli_abort(
+      "{.arg names} must be a character vector without NA values."
+    )
   } else if (length(names) != n) {
     cli::cli_abort(
       "{.arg names} must have length {n} (same as palette)."
@@ -214,14 +259,7 @@ export_palette <- function(
 
   # Validate/sanitize names based on format
   if (format == "json") {
-    # Escape JSON special characters in names
-    names <- gsub("\\\\", "\\\\\\\\", names) # Escape backslashes first
-    # Escape control characters
-    names <- gsub("\n", "\\\\n", names)
-    names <- gsub("\r", "\\\\r", names)
-    names <- gsub("\t", "\\\\t", names)
-    names <- gsub("\f", "\\\\f", names)
-    names <- gsub('"', '\\\\"', names, fixed = TRUE) # Escape quotes
+    names <- .escape_json_strings(names)
   } else if (format == "csv") {
     # Escape CSV special characters (quotes and commas)
     names <- gsub('"', '""', names, fixed = TRUE) # Double up quotes
@@ -253,9 +291,14 @@ export_palette <- function(
       paste(lines, collapse = "\n")
     },
     "json" = {
-      # JSON object keyed by color names
-      items <- paste0('    "', names, '": "', colors, '"')
-      paste0("{\n", paste(items, collapse = ",\n"), "\n}")
+      # An empty palette is the empty JSON object; without this, paste0's
+      # zero-length recycling would emit a bogus "color_": "" entry
+      if (n == 0) {
+        "{}"
+      } else {
+        items <- paste0('    "', names, '": "', colors, '"')
+        paste0("{\n", paste(items, collapse = ",\n"), "\n}")
+      }
     },
     "csv" = {
       lines <- paste0(names, ",", colors)

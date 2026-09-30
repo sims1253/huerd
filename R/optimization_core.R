@@ -23,17 +23,23 @@
 }
 
 #' Objective: Maximize Minimum Perceptual Distance
+#'
+#' Scores the delivered colors: candidates are projected onto the sRGB gamut
+#' before distances are computed, so out-of-gamut coordinates cannot earn
+#' separation credit for colors that clip to the same hex output.
 #' @noRd
 objective_min_perceptual_dist <- function(colors_oklab) {
   if (!is.matrix(colors_oklab) || ncol(colors_oklab) != 3) {
     return(0)
   }
-  if (anyNA(colors_oklab)) {
+  if (anyNA(colors_oklab) || !all(is.finite(colors_oklab))) {
     return(0)
   }
   if (nrow(colors_oklab) < 2) {
     return(Inf)
   }
+  colors_oklab <- .project_oklab_to_gamut(colors_oklab)
+
   dist_matrix <- calculate_perceptual_distances(colors_oklab)
 
   valid_distances <- dist_matrix[upper.tri(dist_matrix)]
@@ -266,6 +272,14 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
 #' selected via `method`: the objective function, the solver call, and the
 #' naming/ordering of the `details` fields.
 #'
+#' Parameterization: the minimax methods (COBYLA, SANN, DIRECT, Nelder-Mead)
+#' optimize free colors directly in OKLAB space under box constraints, and
+#' their objective scores gamut-projected colors, so separation credit always
+#' reflects deliverable colors. L-BFGS optimizes free colors in sRGB space
+#' (the unit cube), which keeps every candidate in gamut by construction
+#' while preserving an exactly consistent objective/gradient pair through
+#' the analytic OKLAB <-> sRGB transforms.
+#'
 #' @param method Character. One of "cobyla", "sann", "direct",
 #'   "neldermead", or "lbfgs".
 #' @param initial_colors_oklab Matrix of all colors (fixed and initial free)
@@ -338,11 +352,33 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
       list(status_message = "fixed_mask contains NA values")
     ))
   }
-  if (is.na(max_iterations) || max_iterations < 0) {
-    max_iterations <- 0
+  # Defensive budget normalization for internal callers: the public API
+  # validates strictly, but a zero or invalid budget must never reach NLopt,
+  # where maxeval = 0 disables the evaluation-budget stopping criterion
+  if (
+    length(max_iterations) != 1 ||
+      is.na(max_iterations) ||
+      !is.finite(max_iterations)
+  ) {
+    max_iterations <- 1
+  } else {
+    max_iterations <- max(1, as.integer(floor(max_iterations)))
   }
 
   n_free_colors <- sum(!fixed_mask)
+
+  # Label of the objective actually optimized, recorded in `details`
+  objective_label <- if (method == "lbfgs") {
+    use_logsumexp <- !is.null(weights) &&
+      "smooth_logsumexp" %in% names(weights) &&
+      is.finite(weights["smooth_logsumexp"]) &&
+      weights["smooth_logsumexp"] > 0
+    if (use_logsumexp) "smooth_logsumexp" else "smooth_repulsion"
+  } else if (isTRUE(cvd_safe)) {
+    "minimax_cvd"
+  } else {
+    "minimax_distance"
+  }
 
   if (n_free_colors == 0) {
     # Method-specific details fields for the "nothing to optimize" case
@@ -352,20 +388,23 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
         iterations = as.integer(0),
         status_message = "No free colors to optimize",
         sann_convergence = as.double(0),
-        final_objective_value = NA_real_
+        final_objective_value = NA_real_,
+        objective = "none"
       ),
       lbfgs = list(
         iterations = as.integer(0),
         status_message = "No free colors to optimize",
         nloptr_status = as.double(0),
         final_objective_value = NA_real_,
-        algorithm = "L-BFGS"
+        algorithm = "L-BFGS",
+        objective = "none"
       ),
       list(
         iterations = as.integer(0),
         status_message = "No free colors to optimize",
         nloptr_status = as.double(0),
-        final_objective_value = NA_real_
+        final_objective_value = NA_real_,
+        objective = "none"
       )
     )
     return(.make_list_result(as.matrix(initial_colors_oklab), details))
@@ -381,10 +420,34 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
   eval_f_env <- new.env(parent = emptyenv())
   eval_f_env$iter <- 0
 
-  # Box constraints for OKLAB space
-  # Using 0.001/0.999 to avoid numerical issues at exact boundaries
-  lower_bounds <- rep(c(0.001, -0.4, -0.4), n_free_colors)
-  upper_bounds <- rep(c(0.999, 0.4, 0.4), n_free_colors)
+  # Bounds and starting point. L-BFGS works in sRGB space (unit cube); the
+  # minimax methods work in OKLAB space under box constraints. In both
+  # cases the starting point is explicitly projected into the feasible
+  # region so accepted inputs can never hand the solver an infeasible x0.
+  if (method == "lbfgs") {
+    lower_bounds <- rep(c(0, 0, 0), n_free_colors)
+    upper_bounds <- rep(c(1, 1, 1), n_free_colors)
+    # farver's oklab -> rgb conversion clamps out-of-gamut channels, so
+    # converting the initial free colors through RGB yields a feasible,
+    # in-gamut sRGB starting point
+    initial_free_params <- as.vector(
+      farver::convert_colour(
+        initial_colors_oklab[!fixed_mask, , drop = FALSE],
+        from = "oklab",
+        to = "rgb"
+      ) /
+        255
+    )
+  } else {
+    # Box constraints for OKLAB space
+    # Using 0.001/0.999 to avoid numerical issues at exact boundaries
+    lower_bounds <- rep(c(0.001, -0.4, -0.4), n_free_colors)
+    upper_bounds <- rep(c(0.999, 0.4, 0.4), n_free_colors)
+    initial_free_params <- pmin(
+      upper_bounds,
+      pmax(lower_bounds, initial_free_params)
+    )
+  }
 
   # Method-specific objective setup
   if (method == "lbfgs") {
@@ -406,13 +469,13 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
       gradient_smooth_repulsion
     }
 
-    # Objective function using selected smooth objective
+    # Objective over sRGB parameters: convert analytically to OKLAB so the
+    # scored coordinates and the analytic gradient describe the same
+    # (exactly consistent) function
     eval_f <- function(free_params_vec) {
       eval_f_env$iter <- eval_f_env$iter + 1
-      current_free_colors_oklab <- matrix(
-        free_params_vec,
-        ncol = 3,
-        byrow = TRUE
+      current_free_colors_oklab <- .srgb_to_oklab(
+        matrix(free_params_vec, ncol = 3, byrow = TRUE)
       )
 
       # Reconstruct full color matrix
@@ -422,13 +485,11 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
       objective_func(temp_all_colors_oklab)
     }
 
-    # Gradient function using selected gradient function
+    # Gradient: OKLAB-space gradient chained through the analytic Jacobian
+    # back to the sRGB parameters
     eval_grad_f <- function(free_params_vec) {
-      current_free_colors_oklab <- matrix(
-        free_params_vec,
-        ncol = 3,
-        byrow = TRUE
-      )
+      free_srgb <- matrix(free_params_vec, ncol = 3, byrow = TRUE)
+      current_free_colors_oklab <- .srgb_to_oklab(free_srgb)
 
       # Reconstruct full color matrix
       temp_all_colors_oklab <- initial_colors_oklab
@@ -440,7 +501,7 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
       # Extract gradient for free colors only
       free_gradient <- full_gradient[!fixed_mask, , drop = FALSE]
 
-      as.vector(t(free_gradient))
+      as.vector(t(.oklab_grad_wrt_srgb(free_srgb, free_gradient)))
     }
   } else if (method == "sann") {
     # Minimax objective with penalty for constraint violations
@@ -583,24 +644,60 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
     stop("Unsupported optimization method: ", method)
   )
 
-  # Shared post-processing: clamp solution columns to the OKLAB bounds
-  optimized_free_colors_oklab <- matrix(result$solution, ncol = 3, byrow = TRUE)
-  # Final clamp to ensure solution is strictly within bounds
-  optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
-    optimized_free_colors_oklab[, 1],
-    lower_bounds[1],
-    upper_bounds[1]
-  )
-  optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
-    optimized_free_colors_oklab[, 2],
-    lower_bounds[2],
-    upper_bounds[2]
-  )
-  optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
-    optimized_free_colors_oklab[, 3],
-    lower_bounds[3],
-    upper_bounds[3]
-  )
+  # A -999 status means the solver threw or returned garbage and the
+  # normalized result fell back to the unoptimized starting point; surface
+  # that instead of reporting an ordinary success
+  if (identical(as.double(result$status %||% NA), -999)) {
+    solver_label <- .optimizer_method_labels[[method]] %||% method
+    cli::cli_warn(c(
+      "!" = paste0(
+        "The ",
+        solver_label,
+        " solver failed; returning the unoptimized initial free colors."
+      ),
+      "i" = result$message
+    ))
+  }
+
+  # Shared post-processing: clamp the solution into the parameter bounds
+  # and convert back to OKLAB
+  if (method == "lbfgs") {
+    # sRGB parameters: clamp to the unit cube, then convert through farver
+    # so the reported OKLAB coordinates match the delivered hex exactly.
+    # Clamp before reshaping: pmin/pmax drop matrix dims
+    optimized_free_srgb <- matrix(
+      pmin(1, pmax(0, result$solution)),
+      ncol = 3,
+      byrow = TRUE
+    )
+    optimized_free_colors_oklab <- farver::convert_colour(
+      optimized_free_srgb * 255,
+      from = "rgb",
+      to = "oklab"
+    )
+  } else {
+    optimized_free_colors_oklab <- matrix(
+      result$solution,
+      ncol = 3,
+      byrow = TRUE
+    )
+    # Final clamp to ensure solution is strictly within bounds
+    optimized_free_colors_oklab[, 1] <- .clamp_to_bounds(
+      optimized_free_colors_oklab[, 1],
+      lower_bounds[1],
+      upper_bounds[1]
+    )
+    optimized_free_colors_oklab[, 2] <- .clamp_to_bounds(
+      optimized_free_colors_oklab[, 2],
+      lower_bounds[2],
+      upper_bounds[2]
+    )
+    optimized_free_colors_oklab[, 3] <- .clamp_to_bounds(
+      optimized_free_colors_oklab[, 3],
+      lower_bounds[3],
+      upper_bounds[3]
+    )
+  }
 
   final_colors_oklab <- initial_colors_oklab
   final_colors_oklab[!fixed_mask, ] <- optimized_free_colors_oklab
@@ -629,25 +726,38 @@ objective_min_cvd_safe_dist <- function(colors_oklab) {
         result$message
       },
       sann_convergence = status_value,
-      final_objective_value = objective_value
+      final_objective_value = objective_value,
+      objective = objective_label
     ),
     lbfgs = list(
       algorithm = "L-BFGS",
       iterations = as.integer(eval_f_env$iter),
       nloptr_status = status_value,
       final_objective_value = objective_value,
-      status_message = result$message
+      status_message = result$message,
+      objective = objective_label
     ),
     list(
       iterations = as.integer(eval_f_env$iter),
       status_message = result$message,
       nloptr_status = status_value,
-      final_objective_value = objective_value
+      final_objective_value = objective_value,
+      objective = objective_label
     )
   )
 
   .make_list_result(as.matrix(final_colors_oklab), details)
 }
+
+# Solver display names for the solver-failure warning
+#' @noRd
+.optimizer_method_labels <- c(
+  cobyla = "COBYLA",
+  sann = "SANN",
+  direct = "DIRECT",
+  neldermead = "Nelder-Mead",
+  lbfgs = "L-BFGS"
+)
 
 #' Optimize Color Palette using Pure Minimax Box-Constrained Optimization
 #'

@@ -527,6 +527,24 @@ create_cvd_simulation <- function(hex_colors, font_scale = 0.8) {
   do.call(grid::grobTree, grobs)
 }
 
+#' Extract a palette's genuine pairwise distances
+#'
+#' For a square distance matrix, keeps the upper triangle (excluding the
+#' zero diagonal): exactly one entry per color pair. Real zero distances —
+#' duplicate colors, or colors that collide under CVD simulation — are
+#' retained, since they are exactly the pairs the comparison panels should
+#' surface. Vectors pass through unchanged (zeros included).
+#' @param distances Square distance matrix, or a vector of pair distances.
+#' @return Numeric vector of pairwise distances.
+#' @noRd
+.extract_pair_distances <- function(distances) {
+  if (is.matrix(distances) && nrow(distances) == ncol(distances)) {
+    as.numeric(distances[upper.tri(distances)])
+  } else {
+    as.numeric(distances)
+  }
+}
+
 #' Create Comparative Palettes Grob
 #' @noRd
 create_comparative_palettes <- function(
@@ -537,12 +555,10 @@ create_comparative_palettes <- function(
   grobs <- list()
 
   for (i in seq_along(distance_data)) {
-    filtered <- distance_data[[i]][distance_data[[i]] != 0]
-    if (length(filtered) == 0) {
-      distance_data[[i]] <- 0
-    } else {
-      distance_data[[i]] <- filtered
-    }
+    pairs <- .extract_pair_distances(distance_data[[i]])
+    # A 1x1 distance matrix has no pairs; keep the old scalar representation
+    # so downstream boxplot statistics stay computable
+    distance_data[[i]] <- if (length(pairs) == 0) 0 else pairs
   }
 
   n_palettes <- length(distance_data)
@@ -551,7 +567,14 @@ create_comparative_palettes <- function(
   plot_area_y <- c(0.15, 0.85)
 
   all_distances <- unlist(distance_data)
-  y_range <- c(0, max(all_distances, na.rm = TRUE) * 1.05)
+  max_distance <- suppressWarnings(max(all_distances, na.rm = TRUE))
+  # All-zero data (e.g. an all-identical palette) or fully undetermined
+  # distances still need a finite, positive range; division by a zero range
+  # would produce non-finite drawing coordinates
+  if (!is.finite(max_distance) || max_distance <= 0) {
+    max_distance <- 1
+  }
+  y_range <- c(0, max_distance * 1.05)
 
   scale_y <- function(val) {
     plot_area_y[1] +

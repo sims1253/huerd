@@ -41,6 +41,12 @@ The seed is scoped using \code{withr::with_seed()} to avoid mutating
 global state.
 }
 
+Palettes generated in a fresh R session by older huerd versions may carry
+no stored RNG state (a \code{NULL} seed); reproducing them warns that exact
+reproduction is impossible, generates a new palette from the stored
+parameters, and preserves the caller's RNG stream. Since the RNG state is
+always captured on the first generation, current palettes replay exactly.
+
 The function validates that the input object contains the necessary metadata
 and provides informative error messages if reproduction fails.
 }

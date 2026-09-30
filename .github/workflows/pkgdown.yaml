@@ -21,18 +21,18 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      
+
     steps:
       - uses: actions/checkout@v4
-        
+
       - uses: r-lib/actions/setup-pandoc@v2
         if: github.event.action != 'closed'
-      
+
       - uses: r-lib/actions/setup-r@v2
         if: github.event.action != 'closed'
         with:
           use-public-rspm: true
-          
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         if: github.event.action != 'closed'
         with:
@@ -41,10 +41,12 @@ jobs:
 
       - name: Create _pkgdown.yml
         if: github.event.action != 'closed'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ -n "$PR_NUMBER" ]]; then
             cat << EOF > _pkgdown.yml
-          url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/branch/${{ github.head_ref }}
+          url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr/${PR_NUMBER}
           template:
             bootstrap: 5
           EOF
@@ -74,24 +76,34 @@ jobs:
           branch: gh-pages
           folder: docs
 
+      # Fork pull requests only get a read-only GITHUB_TOKEN: publishing to
+      # gh-pages or commenting would fail the check for outside contributors,
+      # so privileged steps are limited to same-repository pull requests.
+      # Previews live under pr/<number>, which avoids branch-name collisions
+      # between forks and keeps untrusted values out of paths and scripts.
       - name: Deploy PR preview
-        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.action != 'closed' &&
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
           clean: false
           branch: gh-pages
           folder: docs
-          target-folder: branch/${{ github.head_ref }}
+          target-folder: pr/${{ github.event.pull_request.number }}
 
       - name: Comment PR
-        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.action == 'opened' &&
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7
         with:
           script: |
-            const branch = '${{ github.head_ref }}';
-            const url = `https://sims1253.github.io/huerd/branch/${branch}`;
-            
-            github.rest.issues.createComment({
+            const url = `https://sims1253.github.io/huerd/pr/${context.pull_request.number}`;
+
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -99,18 +111,24 @@ jobs:
             });
 
       - name: Clean up PR preview 🗑️
-        if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.action == 'closed' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git clone --single-branch --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages-repo
+          git clone --single-branch --branch gh-pages https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git gh-pages-repo
           cd gh-pages-repo
-          if [ -d "branch/${{ github.head_ref }}" ]; then
-            rm -rf "branch/${{ github.head_ref }}"
-            echo "Removed documentation for closed PR: ${{ github.head_ref }}"
+          if [ -d "pr/${PR_NUMBER}" ]; then
+            rm -rf "pr/${PR_NUMBER}"
+            echo "Removed documentation for closed PR: ${PR_NUMBER}"
             git add .
-            git commit -m "Remove documentation for closed PR: ${{ github.head_ref }}" || exit 0
+            git commit -m "Remove documentation for closed PR: ${PR_NUMBER}" || exit 0
             git push
           else
-            echo "No documentation found for PR: ${{ github.head_ref }}"
+            echo "No documentation found for PR: ${PR_NUMBER}"
           fi

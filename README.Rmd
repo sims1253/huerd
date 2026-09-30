@@ -171,9 +171,9 @@ cat("Nelder-Mead:", paste(neldermead_palette, collapse = ", "), "\n")
 cat("L-BFGS:", paste(lbfgs_palette, collapse = ", "), "\n")
 ```
 
-## Multi-Objective Framework
+## Objective Selection
 
-The package includes a multi-objective optimization framework with both discrete and smooth optimization support:
+The `weights` parameter selects the optimization objective: `c(distance = 1)` for discrete minimax optimization (the default family), or the smooth `c(smooth_repulsion = 1)` / `c(smooth_logsumexp = 1)` objectives for gradient-based optimization with `optimizer = "nlopt_lbfgs"`. Exactly one objective runs per call; unsupported combinations warn and fall back deterministically, and the objective actually optimized is recorded in the palette's metadata.
 
 ```{r multiobjective}
 library(huerd)
@@ -182,7 +182,7 @@ set.seed(789)
 # Discrete distance optimization (default)
 distance_palette <- generate_palette(
   n = 6,
-  weights = c(distance = 1),  # Explicit distance weighting
+  weights = c(distance = 1),  # Explicitly select the distance objective
   optimizer = "nloptr_cobyla",
   progress = FALSE
 )
