@@ -31,13 +31,16 @@ optimizes for normal vision only.}
 \item \code{"high"}: More iterations for better results (slower)
 }}
 
-\item{lightness}{Character string or numeric vector specifying lightness
-constraints:
+\item{lightness}{Character string or numeric vector specifying the
+OKLAB lightness range used to seed the initial candidate colors. These
+are initialization preferences, not hard constraints: the optimizer is
+free to move colors outside the requested range, so final lightness is
+not guaranteed to stay within it.
 \itemize{
 \item \code{"any"}: Balanced range (L: 0.2-0.9)
-\item \code{"light"}: Prefer lighter colors (L: 0.5-0.9)
-\item \code{"dark"}: Prefer darker colors (L: 0.2-0.6)
-\item \code{"mid"}: Prefer mid-range lightness (L: 0.35-0.75)
+\item \code{"light"}: Start from lighter colors (L: 0.5-0.9)
+\item \code{"dark"}: Start from darker colors (L: 0.2-0.6)
+\item \code{"mid"}: Start from mid-range lightness (L: 0.35-0.75)
 \item Numeric vector of length 2: Custom bounds (e.g., \code{c(0.3, 0.8)})
 }}
 }
@@ -60,7 +63,7 @@ quick_palette(6, brand_colors = c("#1f77b4", "#ff7f0e"))
 # Fast generation for exploration
 quick_palette(8, quality = "fast")
 
-# Light colors for dark backgrounds
+# Start from light colors (e.g., when plotting on a dark background)
 quick_palette(5, lightness = "light")
 
 }

@@ -334,15 +334,44 @@ describe("scale_color_huerd() errors", {
       })
     })
 
-    it("handles NULL breaks parameter", {
+    it("handles NULL breaks parameter by suppressing the guide", {
       skip_if_not_installed("ggplot2")
       library(ggplot2)
 
-      expect_no_error({
-        p <- ggplot(iris, aes(Sepal.Length, Sepal.Width, color = Species)) +
-          geom_point() +
-          scale_color_huerd(breaks = NULL)
-      })
+      # An explicit NULL is meaningful for ggplot2 (suppresses the
+      # guide/breaks) and must survive the wrapper instead of being
+      # replaced by discrete_scale() defaults
+      scale <- scale_color_huerd(
+        palette = c("#000000", "#FFFFFF"),
+        breaks = NULL
+      )
+      expect_null(scale$breaks)
+
+      p <- ggplot(iris, aes(Sepal.Length, Sepal.Width, color = Species)) +
+        geom_point() +
+        scale_color_huerd(
+          palette = c("#000000", "#888888", "#FFFFFF"),
+          breaks = NULL
+        )
+
+      expect_no_error(ggplot2::ggplot_build(p))
+    })
+
+    it("preserves explicit NULL name and labels", {
+      skip_if_not_installed("ggplot2")
+      library(ggplot2)
+
+      pal <- c("#000000", "#FFFFFF")
+
+      scale_name <- scale_color_huerd(palette = pal, name = NULL)
+      expect_null(scale_name$name)
+
+      scale_labels <- scale_fill_huerd(palette = pal, labels = NULL)
+      expect_null(scale_labels$labels)
+
+      # Omitted arguments still pick up ggplot2's defaults
+      scale_default <- scale_color_huerd(palette = pal)
+      expect_false(is.null(scale_default$name))
     })
 
     it("handles invalid breaks parameter gracefully", {

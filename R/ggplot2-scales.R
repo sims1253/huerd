@@ -167,8 +167,22 @@ build_huerd_scale <- function(
       "i" = "Install it with {.code install.packages(\"ggplot2\")}"
     ))
   }
+  # The scale constructors omit `scale_name`, which ggplot2 < 3.5.0 requires
+  # (and which newer versions deprecate), so enforce the declared minimum
+  if (utils::packageVersion("ggplot2") < "3.5.0") {
+    cli::cli_abort(c(
+      "{.pkg ggplot2} 3.5.0 or greater is required for huerd scale functions.",
+      "i" = paste0(
+        "Installed version: ",
+        utils::packageVersion("ggplot2"),
+        "; please update {.pkg ggplot2}."
+      )
+    ))
+  }
 
-  # Separate ggplot2 scale args from generate_palette args
+  # Separate ggplot2 scale args from generate_palette args. Explicit NULL
+  # values are preserved: for ggplot2, `name = NULL`, `breaks = NULL`, and
+  # `labels = NULL` are meaningful settings, not omissions
   scale_args <- list(...)
 
   # Known discrete_scale arguments
@@ -188,7 +202,6 @@ build_huerd_scale <- function(
   non_scale_names <- setdiff(names(scale_args), scale_arg_names)
   generate_args <- scale_args[non_scale_names]
   scale_args[non_scale_names] <- NULL
-  scale_args <- scale_args[!vapply(scale_args, is.null, logical(1))]
 
   pal_fun <- do.call(
     .huerd_pal,

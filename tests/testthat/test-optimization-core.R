@@ -131,10 +131,13 @@ describe("optimize_colors_constrained()", {
       dimnames = list(NULL, c("L", "a", "b"))
     )
 
-    result <- optimize_colors_constrained(
-      initial_colors_oklab = colors,
-      fixed_mask = c(FALSE, FALSE),
-      max_iterations = 1,
+    expect_warning(
+      result <- optimize_colors_constrained(
+        initial_colors_oklab = colors,
+        fixed_mask = c(FALSE, FALSE),
+        max_iterations = 1,
+      ),
+      regexp = "solver failed"
     )
 
     # Should still return a valid result structure even on failure
@@ -485,10 +488,13 @@ describe("optimize_colors_sann()", {
       dimnames = list(NULL, c("L", "a", "b"))
     )
 
-    result <- optimize_colors_sann(
-      initial_colors_oklab = colors,
-      fixed_mask = c(FALSE, FALSE),
-      max_iterations = 1,
+    expect_warning(
+      result <- optimize_colors_sann(
+        initial_colors_oklab = colors,
+        fixed_mask = c(FALSE, FALSE),
+        max_iterations = 1,
+      ),
+      regexp = "solver failed"
     )
 
     # Should still return a valid result structure even on failure
@@ -681,10 +687,13 @@ describe("optimize_colors_nlopt_direct()", {
       dimnames = list(NULL, c("L", "a", "b"))
     )
 
-    result <- optimize_colors_nlopt_direct(
-      initial_colors_oklab = colors,
-      fixed_mask = c(FALSE, FALSE),
-      max_iterations = 5,
+    expect_warning(
+      result <- optimize_colors_nlopt_direct(
+        initial_colors_oklab = colors,
+        fixed_mask = c(FALSE, FALSE),
+        max_iterations = 5,
+      ),
+      regexp = "solver failed"
     )
 
     # Should still return a valid result structure even on failure
@@ -914,10 +923,13 @@ describe("optimize_colors_nlopt_neldermead()", {
       dimnames = list(NULL, c("L", "a", "b"))
     )
 
-    result <- optimize_colors_nlopt_neldermead(
-      initial_colors_oklab = colors,
-      fixed_mask = c(FALSE, FALSE),
-      max_iterations = 5,
+    expect_warning(
+      result <- optimize_colors_nlopt_neldermead(
+        initial_colors_oklab = colors,
+        fixed_mask = c(FALSE, FALSE),
+        max_iterations = 5,
+      ),
+      regexp = "solver failed"
     )
 
     # Should still return a valid result structure even on failure
@@ -2452,10 +2464,13 @@ describe("Status code handling", {
     # Use inputs that will definitely cause an error
     colors <- matrix(c(NaN, NaN, NaN, Inf, Inf, Inf), nrow = 2)
 
-    result <- optimize_colors_constrained(
-      initial_colors_oklab = colors,
-      fixed_mask = c(FALSE, FALSE),
-      max_iterations = 1
+    expect_warning(
+      result <- optimize_colors_constrained(
+        initial_colors_oklab = colors,
+        fixed_mask = c(FALSE, FALSE),
+        max_iterations = 1
+      ),
+      regexp = "solver failed"
     )
 
     # On error, status should be -999
@@ -2465,10 +2480,13 @@ describe("Status code handling", {
   it("Error messages contain helpful information", {
     colors <- matrix(c(NaN, NaN, NaN, Inf, Inf, Inf), nrow = 2)
 
-    result <- optimize_colors_constrained(
-      initial_colors_oklab = colors,
-      fixed_mask = c(FALSE, FALSE),
-      max_iterations = 1
+    expect_warning(
+      result <- optimize_colors_constrained(
+        initial_colors_oklab = colors,
+        fixed_mask = c(FALSE, FALSE),
+        max_iterations = 1
+      ),
+      regexp = "solver failed"
     )
 
     # Error message should indicate error type

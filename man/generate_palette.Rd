@@ -46,7 +46,9 @@ influence the initialization for free colors. 0 = no influence,
 \item{aesthetic_init_config}{List. Advanced configuration for aesthetic
 initialization. Use \code{NULL} (default) for built-in defaults.}
 
-\item{max_iterations}{Integer. Maximum optimization iterations. Default
+\item{max_iterations}{Integer. Maximum optimization iterations (minimum
+1; validated). For the NLopt-based optimizers this is the
+function-evaluation budget, not the internal iteration count. Default
 is 1000.}
 
 \item{return_metrics}{Logical. Whether to return evaluation metrics as
@@ -55,14 +57,21 @@ attributes. Default is TRUE.}
 \item{progress}{Logical. Show progress messages. Default is
 \code{interactive()}.}
 
-\item{weights}{Named numeric vector. Weights for multi-objective
-optimization. Supports: \code{c(distance = 1)} for discrete distance
-optimization, \code{c(smooth_repulsion = 1)} for smooth repulsion
-objective using inverse squared distances, or
-\code{c(smooth_logsumexp = 1)} for smooth log-sum-exp objective. Default
-is NULL, which is internally equivalent to \code{c(distance = 1)} for
-most optimizers. For "nlopt_lbfgs", NULL defaults to
-\code{smooth_repulsion}.}
+\item{weights}{Named numeric vector selecting the optimization objective.
+Exactly one objective runs per call; the positive-valued entry selects
+it. Supports: \code{c(distance = 1)} for discrete minimax distance
+optimization (the default family for all optimizers except L-BFGS),
+\code{c(smooth_repulsion = 1)} for the smooth repulsion objective using
+inverse squared distances, or \code{c(smooth_logsumexp = 1)} for the smooth
+log-sum-exp objective. Default is NULL: equivalent to \code{c(distance = 1)}
+for the minimax optimizers and to \code{c(smooth_repulsion = 1)} for
+"nlopt_lbfgs". Requests that cannot run as written emit a warning and
+fall back deterministically: \code{distance} with "nlopt_lbfgs" uses
+\code{smooth_repulsion}, smooth objectives with other optimizers use the
+minimax distance objective, and mixed weights select a single objective.
+The objective actually optimized is recorded in
+\code{generation_metadata$effective_objective} and in
+\code{optimization_details$objective}. Weight magnitudes are not used.}
 
 \item{optimizer}{Character. Optimization algorithm to use. Currently
 supported: "nloptr_cobyla" (default) for deterministic optimization

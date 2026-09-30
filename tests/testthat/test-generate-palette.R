@@ -1113,36 +1113,52 @@ describe("generate_palette()", {
     it("L-BFGS optimizer behavior with non-smooth weights", {
       # L-BFGS is designed for smooth objectives.
 
-      # When non-smooth weights are passed, it falls back to smooth_repulsion.
-      # This test documents this behavior.
-
       # With NULL weights (default), L-BFGS uses smooth_repulsion internally
+      # and reports it
       palette_default <- generate_palette(
         n = 3,
         optimizer = "nlopt_lbfgs",
+        max_iterations = 10,
         progress = FALSE
       )
       expect_true(inherits(palette_default, "huerd_palette"))
       expect_length(palette_default, 3)
+      expect_equal(
+        attr(palette_default, "generation_metadata")$effective_objective,
+        "smooth_repulsion"
+      )
 
-      # With distance weight, L-BFGS still works (uses smooth_repulsion)
-      # Note: This is a silent fallback behavior
-      palette_distance <- generate_palette(
-        n = 3,
-        weights = c(distance = 1),
-        optimizer = "nlopt_lbfgs",
-        progress = FALSE
+      # With distance weight, L-BFGS warns about the unsupported objective
+      # and falls back to smooth_repulsion (previously a silent fallback)
+      expect_warning(
+        {
+          palette_distance <- generate_palette(
+            n = 3,
+            weights = c(distance = 1),
+            optimizer = "nlopt_lbfgs",
+            max_iterations = 10,
+            progress = FALSE
+          )
+        },
+        regexp = "not available"
       )
       expect_true(inherits(palette_distance, "huerd_palette"))
       expect_length(palette_distance, 3)
-
-      # Explicit smooth weights produce valid results
-      palette_smooth <- generate_palette(
-        n = 3,
-        weights = c(smooth_repulsion = 1),
-        optimizer = "nlopt_lbfgs",
-        progress = FALSE
+      expect_equal(
+        attr(palette_distance, "generation_metadata")$effective_objective,
+        "smooth_repulsion"
       )
+
+      # Explicit smooth weights produce valid results without warnings
+      expect_no_warning({
+        palette_smooth <- generate_palette(
+          n = 3,
+          weights = c(smooth_repulsion = 1),
+          optimizer = "nlopt_lbfgs",
+          max_iterations = 10,
+          progress = FALSE
+        )
+      })
       expect_true(inherits(palette_smooth, "huerd_palette"))
       expect_length(palette_smooth, 3)
     })

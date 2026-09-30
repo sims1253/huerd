@@ -219,6 +219,67 @@ describe("Individual grob creation functions", {
     # Note: Function requires non-empty distance data to work properly
   })
 
+  it(".extract_pair_distances keeps genuine zero pairs from a distance matrix", {
+    # Duplicate colors produce a real zero distance that the panels must
+    # show, not discard; the review example has pairs 0, 0.6, 0.6
+    x <- rbind(c(0.2, 0, 0), c(0.2, 0, 0), c(0.8, 0, 0))
+    d <- as.matrix(stats::dist(x))
+
+    expect_equal(.extract_pair_distances(d), c(0, 0.6, 0.6))
+
+    # Vectors pass through unchanged, zeros included
+    expect_equal(.extract_pair_distances(c(0, 0.1)), c(0, 0.1))
+
+    # A 1x1 matrix has no pairs
+    expect_length(.extract_pair_distances(matrix(0, 1, 1)), 0)
+  })
+
+  it("create_comparative_palettes stays finite on all-identical palettes", {
+    # Every pair distance is zero: the panel needs a valid positive range
+    # and finite drawing coordinates instead of dividing by a zero range
+    identical_colors <- rbind(c(0.5, 0, 0), c(0.5, 0, 0), c(0.5, 0, 0))
+    d <- as.matrix(stats::dist(identical_colors))
+    expect_true(all(d == 0))
+
+    grob <- huerd:::create_comparative_palettes(
+      list(Identical = d),
+      "All identical"
+    )
+    expect_true(inherits(grob, "gTree"))
+
+    # All point/box coordinates in the grob tree must be finite
+    coords <- function(g) {
+      if (inherits(g, "gTree")) {
+        unlist(lapply(g$children, coords))
+      } else {
+        c(
+          as.numeric(g$x %||% numeric(0)),
+          as.numeric(g$y %||% numeric(0)),
+          as.numeric(g$x0 %||% numeric(0)),
+          as.numeric(g$y0 %||% numeric(0)),
+          as.numeric(g$x1 %||% numeric(0)),
+          as.numeric(g$y1 %||% numeric(0))
+        )
+      }
+    }
+    all_coords <- coords(grob)
+    expect_gte(length(all_coords), 1)
+    expect_true(all(is.finite(all_coords)))
+  })
+
+  it("shows duplicate-color pairs in the dashboard comparison data", {
+    # A palette with a duplicated color: the CVD panel must retain the
+    # zero-distance pair rather than dropping it (value-level check via
+    # the extraction helper used by the panels)
+    pal <- c("#FF0000", "#FF0000", "#00FF00")
+    oklab <- .hex_to_oklab(pal)
+    d <- as.matrix(stats::dist(oklab))
+
+    pairs <- .extract_pair_distances(d)
+    expect_length(pairs, 3)
+    expect_equal(sum(pairs == 0), 1)
+  })
+
   # Note: create_nearest_neighbor function was removed in favor of new dashboard layout
 })
 

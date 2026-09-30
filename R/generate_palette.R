@@ -312,20 +312,29 @@
 #'   1 = strong influence. Default is 0.75.
 #' @param aesthetic_init_config List. Advanced configuration for aesthetic
 #'   initialization. Use `NULL` (default) for built-in defaults.
-#' @param max_iterations Integer. Maximum optimization iterations. Default
+#' @param max_iterations Integer. Maximum optimization iterations (minimum
+#'   1; validated). For the NLopt-based optimizers this is the
+#'   function-evaluation budget, not the internal iteration count. Default
 #'   is 1000.
 #' @param return_metrics Logical. Whether to return evaluation metrics as
 #'   attributes. Default is TRUE.
 #' @param progress Logical. Show progress messages. Default is
 #'   `interactive()`.
-#' @param weights Named numeric vector. Weights for multi-objective
-#'   optimization. Supports: `c(distance = 1)` for discrete distance
-#'   optimization, `c(smooth_repulsion = 1)` for smooth repulsion
-#'   objective using inverse squared distances, or
-#'   `c(smooth_logsumexp = 1)` for smooth log-sum-exp objective. Default
-#'   is NULL, which is internally equivalent to `c(distance = 1)` for
-#'   most optimizers. For "nlopt_lbfgs", NULL defaults to
-#'   `smooth_repulsion`.
+#' @param weights Named numeric vector selecting the optimization objective.
+#'   Exactly one objective runs per call; the positive-valued entry selects
+#'   it. Supports: `c(distance = 1)` for discrete minimax distance
+#'   optimization (the default family for all optimizers except L-BFGS),
+#'   `c(smooth_repulsion = 1)` for the smooth repulsion objective using
+#'   inverse squared distances, or `c(smooth_logsumexp = 1)` for the smooth
+#'   log-sum-exp objective. Default is NULL: equivalent to `c(distance = 1)`
+#'   for the minimax optimizers and to `c(smooth_repulsion = 1)` for
+#'   "nlopt_lbfgs". Requests that cannot run as written emit a warning and
+#'   fall back deterministically: `distance` with "nlopt_lbfgs" uses
+#'   `smooth_repulsion`, smooth objectives with other optimizers use the
+#'   minimax distance objective, and mixed weights select a single objective.
+#'   The objective actually optimized is recorded in
+#'   `generation_metadata$effective_objective` and in
+#'   `optimization_details$objective`. Weight magnitudes are not used.
 #' @param optimizer Character. Optimization algorithm to use. Currently
 #'   supported: "nloptr_cobyla" (default) for deterministic optimization
 #'   with constraint handling, "sann" for stochastic simulated annealing
@@ -459,9 +468,40 @@ generate_palette <- function(
     stop("`cvd_safe` must be a single TRUE or FALSE.", call. = FALSE)
   }
 
+  # Input validation
+  validate_inputs(
+    n,
+    include_colors,
+    init_lightness_bounds,
+    init_hcl_bounds,
+    fixed_aesthetic_influence,
+    aesthetic_init_config,
+    weights,
+    optimizer,
+    max_iterations
+  )
+
+  # Resolve which objective the weights/optimizer combination actually runs,
+  # warning on unsupported requests, and record it for reproducibility and
+  # auditability
+  effective_objective <- .resolve_effective_objective(
+    weights,
+    optimizer,
+    cvd_safe
+  )
+
+  # In a fresh session `.Random.seed` does not exist until the first random
+  # draw, but both initializers draw randomly. Initialize the global RNG (and
+  # thereby create its state) before capturing the seed, so the stored state
+  # can replay the initialization exactly via reproduce_palette()
+  if (!exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    stats::runif(1)
+  }
   # nolint start: object_usage_linter
-  seed_info <- if (exists(".Random.seed")) {
-    .Random.seed
+  seed_info <- if (
+    exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  ) {
+    get(".Random.seed", envir = globalenv(), inherits = FALSE)
   } else {
     NULL
   }
@@ -480,22 +520,11 @@ generate_palette <- function(
     weights = weights,
     optimizer = optimizer,
     cvd_safe = cvd_safe,
+    effective_objective = effective_objective,
     seed = seed_info,
     package_version = utils::packageVersion("huerd"),
     target_space = "oklab",
     timestamp = Sys.time()
-  )
-
-  # Input validation
-  validate_inputs(
-    n,
-    include_colors,
-    init_lightness_bounds,
-    init_hcl_bounds,
-    fixed_aesthetic_influence,
-    aesthetic_init_config,
-    weights,
-    optimizer
   )
 
   # Soft deprecation: DIRECT's center-lattice sampling cannot reliably
@@ -624,6 +653,12 @@ generate_palette <- function(
 #'     global state.
 #' }
 #'
+#' Palettes generated in a fresh R session by older huerd versions may carry
+#' no stored RNG state (a `NULL` seed); reproducing them warns that exact
+#' reproduction is impossible, generates a new palette from the stored
+#' parameters, and preserves the caller's RNG stream. Since the RNG state is
+#' always captured on the first generation, current palettes replay exactly.
+#'
 #' The function validates that the input object contains the necessary metadata
 #' and provides informative error messages if reproduction fails.
 #'
@@ -743,21 +778,36 @@ reproduce_palette <- function(palette, progress = NULL, ...) {
     })
     # nolint end
   } else {
-    reproduced_palette <- generate_palette(
-      n = metadata$n_colors,
-      include_colors = metadata$include_colors,
-      initialization = metadata$initialization,
-      init_lightness_bounds = metadata$init_lightness_bounds,
-      init_hcl_bounds = metadata$init_hcl_bounds,
-      fixed_aesthetic_influence = metadata$fixed_aesthetic_influence,
-      aesthetic_init_config = metadata$aesthetic_init_config,
-      max_iterations = metadata$max_iterations,
-      return_metrics = metadata$return_metrics,
-      progress = progress,
-      weights = metadata$weights,
-      optimizer = metadata$optimizer,
-      cvd_safe = metadata$cvd_safe %||% TRUE
-    )
+    # Legacy palettes carry no RNG state (generated before it was captured),
+    # so exact replay is impossible. Warn instead of presenting a new random
+    # draw as reproduction, and still preserve the caller's RNG stream
+    cli::cli_warn(c(
+      "!" = paste0(
+        "This palette's metadata has no stored RNG state, so it cannot be ",
+        "reproduced exactly."
+      ),
+      "i" = paste0(
+        "Generating a new palette with the stored parameters; the result ",
+        "may differ."
+      )
+    ))
+    reproduced_palette <- withr::with_preserve_seed({
+      generate_palette(
+        n = metadata$n_colors,
+        include_colors = metadata$include_colors,
+        initialization = metadata$initialization,
+        init_lightness_bounds = metadata$init_lightness_bounds,
+        init_hcl_bounds = metadata$init_hcl_bounds,
+        fixed_aesthetic_influence = metadata$fixed_aesthetic_influence,
+        aesthetic_init_config = metadata$aesthetic_init_config,
+        max_iterations = metadata$max_iterations,
+        return_metrics = metadata$return_metrics,
+        progress = progress,
+        weights = metadata$weights,
+        optimizer = metadata$optimizer,
+        cvd_safe = metadata$cvd_safe %||% TRUE
+      )
+    })
   }
 
   # Preserve the original generation metadata to maintain perfect

@@ -315,6 +315,44 @@ print_color_vector <- function(colors_vec, indent = "  ") {
   )
 }
 
+#' Test which OKLAB colors are inside the realizable sRGB gamut
+#'
+#' farver clamps out-of-gamut output channels instead of returning NA, so a
+#' non-NA conversion (or hex encoding) is not evidence of gamut membership.
+#' The definitive test is a round trip: a color is in gamut only if it
+#' survives the OKLAB -> RGB -> OKLAB conversion unchanged.
+#' @param oklab_colors Matrix of colors in OKLAB space.
+#' @return Logical vector, one entry per row.
+#' @noRd
+.oklab_in_gamut <- function(oklab_colors) {
+  if (!is.matrix(oklab_colors) || nrow(oklab_colors) == 0) {
+    return(logical(0))
+  }
+  rgb_fb <- farver::convert_colour(oklab_colors, from = "oklab", to = "rgb")
+  oklab_fb <- farver::convert_colour(rgb_fb, from = "rgb", to = "oklab")
+  !is.na(rgb_fb[, 1]) &
+    abs(oklab_colors[, 1] - oklab_fb[, 1]) < .OKLAB_TOLERANCE &
+    abs(oklab_colors[, 2] - oklab_fb[, 2]) < .OKLAB_TOLERANCE &
+    abs(oklab_colors[, 3] - oklab_fb[, 3]) < .OKLAB_TOLERANCE
+}
+
+#' Project OKLAB colors onto the realizable sRGB gamut
+#'
+#' Converts through RGB, where farver clamps out-of-range channels, and back.
+#' The result is the OKLAB coordinate of the color that finalization will
+#' actually deliver as hex, so scoring projected colors scores the delivered
+#' palette.
+#' @param oklab_colors Matrix of colors in OKLAB space.
+#' @return Matrix of gamut-projected OKLAB colors.
+#' @noRd
+.project_oklab_to_gamut <- function(oklab_colors) {
+  farver::convert_colour(
+    farver::convert_colour(oklab_colors, from = "oklab", to = "rgb"),
+    from = "rgb",
+    to = "oklab"
+  )
+}
+
 # Constants
 #' @noRd
 .CANDIDATE_POOL_BASE <- 2000

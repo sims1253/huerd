@@ -114,6 +114,87 @@ describe("export_palette()", {
     expect_type(result, "character")
     expect_true(grepl("\\{", result))
     expect_true(grepl("color_1", result, fixed = TRUE))
+
+    # The emitted string must be valid, parseable JSON
+    skip_if_not_installed("jsonlite")
+    expect_true(jsonlite::validate(result))
+    parsed <- jsonlite::fromJSON(result)
+    expect_equal(names(parsed), paste0("color_", 1:3))
+    expect_equal(unname(unlist(parsed)), as.character(pal))
+  })
+
+  it("JSON-escapes quotes, backslashes, and control characters", {
+    # RFC 8259: quotes and backslashes get two-character escapes; control
+    # characters use named escapes or \u00XX
+    names <- c(
+      'primary"accent',
+      "back\\slash",
+      "tab\tchar",
+      "newline\nchar",
+      paste0("ctrl", intToUtf8(1)),
+      paste0("backspace", intToUtf8(8))
+    )
+    colors <- paste0("#12345", seq_along(names))
+
+    result <- export_palette(colors, format = "json", names = names)
+
+    skip_if_not_installed("jsonlite")
+    expect_true(jsonlite::validate(result))
+    parsed <- jsonlite::fromJSON(result)
+    expect_equal(names(parsed), names)
+    expect_equal(unname(unlist(parsed)), colors)
+  })
+
+  it("round-trips non-ASCII JSON names", {
+    names <- c("primaire", " Hellblau ")
+    result <- export_palette(
+      c("#112233", "#445566"),
+      format = "json",
+      names = names
+    )
+
+    skip_if_not_installed("jsonlite")
+    expect_true(jsonlite::validate(result))
+    expect_equal(names(jsonlite::fromJSON(result)), names)
+  })
+
+  it("exports the empty palette as the empty JSON object", {
+    result <- export_palette(character(0), format = "json")
+
+    expect_equal(result, "{}")
+    skip_if_not_installed("jsonlite")
+    expect_equal(length(jsonlite::fromJSON(result)), 0)
+  })
+
+  it("writes valid JSON with special-character names to file", {
+    temp_file <- tempfile(fileext = ".json")
+    on.exit(unlink(temp_file))
+
+    export_palette(
+      c("#112233", "#445566"),
+      format = "json",
+      names = c('quoted"name', "ctrl\u0001"),
+      file = temp_file
+    )
+
+    skip_if_not_installed("jsonlite")
+    content <- paste(readLines(temp_file, warn = FALSE), collapse = "\n")
+    expect_true(jsonlite::validate(content))
+    expect_equal(
+      names(jsonlite::fromJSON(content)),
+      c('quoted"name', "ctrl\u0001")
+    )
+  })
+
+  it("errors on NA names", {
+    expect_error(
+      export_palette(
+        c("#112233", "#445566"),
+        format = "json",
+        names = c("ok", NA_character_)
+      ),
+      regexp = "NA"
+    )
   })
 
   it("generates CSV format", {

@@ -428,10 +428,11 @@ initialize_kmeans_plus_plus <- function(
     oklab_ab_gen_bounds
   )
 
-  # Check gamut validity by attempting to encode to hex
-  # Invalid/out-of-gamut colors will result in NA hex values
-  hex_candidates <- .oklab_to_hex(candidates)
-  valid_gamut <- !is.na(hex_candidates)
+  # Filter candidates to the realizable sRGB gamut. A non-NA hex encoding is
+  # not sufficient: farver clamps out-of-gamut channels, so a clipped color
+  # still encodes. Only the round-trip test proves membership.
+  projectable_pool <- candidates
+  valid_gamut <- .oklab_in_gamut(candidates)
   candidates <- candidates[valid_gamut, , drop = FALSE]
 
   # Check if we need more candidates: require at least 5x free colors
@@ -452,26 +453,25 @@ initialize_kmeans_plus_plus <- function(
       broader_l_bounds,
       oklab_ab_gen_bounds
     )
-    # Use round-trip conversion to detect true gamut membership
-    # farver clamps out-of-gamut colors, so RGB bounds checking is ineffective
-    rgb_fb <- farver::convert_colour(
-      candidates_fallback,
-      from = "oklab",
-      to = "rgb"
+    projectable_pool <- candidates_fallback
+    candidates <- candidates_fallback[
+      .oklab_in_gamut(candidates_fallback),
+      ,
+      drop = FALSE
+    ]
+  }
+
+  # Last resort: strict filtering cannot even supply n_free candidates,
+  # which happens when the requested lightness range barely overlaps the
+  # gamut (e.g. near-black or near-white ranges). Project the pool into the
+  # gamut instead of returning nothing, so initialization still yields a
+  # feasible starting point for the optimizer
+  if (nrow(candidates) < n_free && nrow(projectable_pool) >= n_free) {
+    cli::cli_alert_info(
+      "Strict gamut filtering found too few candidates for the requested ",
+      "lightness range; projecting candidates into the sRGB gamut."
     )
-    oklab_fb_roundtrip <- farver::convert_colour(
-      rgb_fb,
-      from = "rgb",
-      to = "oklab"
-    )
-    # OKLAB tolerance for gamut validation via round-trip conversion
-    valid_fb <- !is.na(rgb_fb[, 1]) &
-      abs(candidates_fallback[, 1] - oklab_fb_roundtrip[, 1]) <
-        .OKLAB_TOLERANCE &
-      abs(candidates_fallback[, 2] - oklab_fb_roundtrip[, 2]) <
-        .OKLAB_TOLERANCE &
-      abs(candidates_fallback[, 3] - oklab_fb_roundtrip[, 3]) < .OKLAB_TOLERANCE
-    candidates <- candidates_fallback[valid_fb, , drop = FALSE]
+    candidates <- .project_oklab_to_gamut(projectable_pool)
   }
 
   if (chroma_filter_params$apply_filter && nrow(candidates) > 0) {
