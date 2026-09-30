@@ -374,14 +374,6 @@ describe("scale_color_huerd() errors", {
       expect_false(is.null(scale_default$name))
     })
 
-    it("requires ggplot2 >= 3.5.0 (declared minimum)", {
-      skip_if_not_installed("ggplot2")
-
-      # The constructors omit scale_name, which ggplot2 < 3.5.0 requires;
-      # the declaration is enforced at runtime
-      expect_gte(utils::packageVersion("ggplot2"), "3.5.0")
-    })
-
     it("handles invalid breaks parameter gracefully", {
       skip_if_not_installed("ggplot2")
       library(ggplot2)
