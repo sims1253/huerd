@@ -370,7 +370,7 @@ system.time({
   fast <- generate_palette(8, max_iterations = 100, progress = FALSE)
 })
 #>    user  system elapsed 
-#>    0.12    0.00    0.12
+#>   0.127   0.000   0.128
 
 # Default generation
 # Expected runtime: ~0.5-2.0 seconds (balanced iteration count for good quality)
@@ -378,7 +378,7 @@ system.time({
   default <- generate_palette(8, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   0.661   0.000   0.661
+#>   0.702   0.000   0.702
 
 # High quality generation
 # Expected runtime: ~2.0-8.0 seconds (high iterations for maximum quality)
@@ -386,7 +386,7 @@ system.time({
   quality <- generate_palette(8, max_iterations = 3000, progress = FALSE)
 })
 #>    user  system elapsed 
-#>   0.886   0.000   0.886
+#>   0.930   0.000   0.931
 ```
 
 For performance-critical applications:
